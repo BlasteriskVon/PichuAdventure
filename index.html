@@ -203,12 +203,13 @@ canvas.height = mappy.scrollHeight;
 var c = canvas.getContext("2d");
 var collidables = [];
 var getables = [];
+var thunderBolts = [];
 var picMenu = false;
 var phase = 1;
 var spritesheet = new Image();
 var floor;
 var entry1, entry2, entry3, entry4;
-var birthdayShow = false;
+document.getElementById("player-pic").className = "options"
 spritesheet.src = "assets/images/spritesheet.png";
 spritesheet.addEventListener("load", function() {
     floor = new Image();
@@ -273,6 +274,8 @@ var pichu = {
     idleDelay: 0,
     idleDesiredDelay: 60,
     spriteMultiplier: 1,
+    cooldown: 0,
+    attckWindDown: 0,
     downArrays: [[0, 0, 215, 215], [230, 0, 215, 215], [0, 0, 215, 215], [467, 0, 215, 215]], //first is default, second is left foot out, fourth is right foot out (third is default)
     upArrays: [[0, 290, 215, 215], [240, 293, 215, 215], [0, 290, 215, 215], [480, 290, 215, 215]], //same as above
     leftArrays: [[0, 610, 215, 215], [230, 610, 215, 215], [0, 610, 215, 215], [467, 610, 215, 215]],
@@ -384,6 +387,63 @@ var pichu = {
         }
     },
     update: function() {
+        if(this.attckWindDown > 0){
+            this.mode = "attack";
+            switch(this.direction){
+                case "up":
+                    this.myArray = this.upAttackArray;
+                    break;
+                case "down":
+                    this.myArray = this.downAttackArray;
+                    break;
+                case "left":
+                    this.myArray = this.leftAttackArray;
+                    break;
+                case "right":
+                    this.myArray = this.rightAttackArray;
+                    break;
+                default:
+                    break;
+            }
+            this.attckWindDown--;
+        } else {
+            this.mode = "default";
+            if(this.motion){
+                switch(this.direction){
+                    case "up":
+                        this.myArray = this.upArrays;
+                        break;
+                    case "down":
+                        this.myArray = this.downArrays;
+                        break;
+                    case "left":
+                        this.myArray = this.leftArrays;
+                        break;
+                    case "right":
+                        this.myArray = this.rightArrays;
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                switch(this.direction){
+                    case "up":
+                        this.myArray = this.upIdleArrays;
+                        break;
+                    case "down":
+                        this.myArray = this.downIdleArrays;
+                        break;
+                    case "left":
+                        this.myArray = this.leftIdleArrays;
+                        break;
+                    case "right":
+                        this.myArray = this.rightIdleArrays;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
         if(this.motion){
             this.motionDelay++;
             if(this.motionDelay >= this.desiredDelay){
@@ -437,6 +497,10 @@ var pichu = {
         if(objIntersectBoth(pichu, entry)){
             phaseCheck();
         }
+        if(this.cooldown > 0){
+            this.cooldown--;
+        }
+        
         this.draw();
     }
 }
@@ -525,6 +589,59 @@ function phaseCheck() {
     }
 }
 
+function pictureMenu() {
+    if(picMenu){
+        var menu = document.getElementsByClassName("bison");
+        $(".bison").empty();
+        $(".bison").remove();
+        $("#map").css("background-color", "black");
+        canvas.style.position = "absolute";
+        canvas.style.zIndex = 1;
+        picMenu = false
+    } else {
+        picMenu = true;
+        $("#map").css("background-color", "transparent");
+        canvas.style.position = "fixed";
+        canvas.style.zIndex = -1;
+        var newDiv = $("<div>", {"class":"row bison"});
+        newDiv.css({"background-image":"url('assets/images/picMenuBG.png'", "background-repeat": "repeat"});
+        var picHeader = $("<div class='col-md-12'><h1 style='color: black'>Please select what picture you would like to be your profile pic! You get new options as you level up!</h1></div>");
+        newDiv.append(picHeader);
+        $("#map").append(newDiv);
+        var search = String("pichu");
+        var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=UXUhR58v2nmQC6jMGg5vr7GbLMDZclbm&q=" + search + "&limit=48&offset=0&lang=en";
+        $.ajax({
+            url: queryURL,
+            method: "GET"
+        }).then(function(response) {
+            console.log("done"); //maybe try seeing if I can somehow detect wifi so I can give a "Sorry no Wi-Fi :(" message
+            var index = 0;
+            var limiter = 3 * 4;
+            for(var i = 0;i < 3;i++){
+                var newRow = $("<div>", {"class":"row"});
+                for(var j = 0;j < 4;j++){
+                    var newCol = $("<div>", {"class":"col-md-3"});
+                    if(index <= limiter){
+                        var newImage = $("<img>", {"src": response.data[index].images.original.url});
+                        newImage.attr("class", i + "-" + j + " options");
+                        newImage.css({"width":"90%", "height":"auto"});
+                        newImage.on("click", function() {
+                            console.log(this);
+                            pichu.picture = pichuLoad.picture = $(this).attr("src");
+                            $("#player-pic").attr("src", pichuLoad.picture);
+                            localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+                        })
+                        newCol.append(newImage);
+                    }
+                    newRow.append(newCol);
+                    index++;
+                }
+                $(".bison").append(newRow);
+            }
+        })
+    }
+}
+
 function movement() {
     var i_array = pichu.myArray;
     var i_index = 0;
@@ -540,6 +657,9 @@ function movement() {
 window.addEventListener("keydown", function(event) {
     event.preventDefault();
     console.log(event.key);
+    if(canvas.style.zIndex != "" && canvas.style.zIndex < 1){
+        console.log("Can't do anything right now, sorry!");
+    } else {
         switch(event.key){
             case "ArrowUp":
                 if(pichu.direction != "up"){
@@ -572,73 +692,127 @@ window.addEventListener("keydown", function(event) {
                 pichu.myArray = [[708, 900, 215, 215]];
                 break;
             case " ":
-                if(picMenu){
-                    var menu = document.getElementsByClassName("bison");
-                    $(".bison").empty();
-                    $(".bison").remove();
-                    $("#map").css("background-color", "black");
-                    canvas.style.position = "absolute";
-                    canvas.style.zIndex = 1;
-                    picMenu = false
-                } else {
-                    picMenu = true;
-                    $("#map").css("background-color", "transparent");
-                    canvas.style.position = "fixed";
-                    canvas.style.zIndex = -1;
-                    var newDiv = $("<div>", {"class":"row bison"});
-                    newDiv.css({"background-image":"url('assets/images/picMenuBG.png'", "background-repeat": "repeat"});
-                    var picHeader = $("<div class='col-md-12'><h1 style='color: black'>Please select what picture you would like to be your profile pic! You get new options as you level up!</h1></div>");
-                    newDiv.append(picHeader);
-                    $("#map").append(newDiv);
-                    var search = String("pichu");
-                    var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=UXUhR58v2nmQC6jMGg5vr7GbLMDZclbm&q=" + search + "&limit=48&offset=0&lang=en";
-                    $.ajax({
-                        url: queryURL,
-                        method: "GET"
-                    }).then(function(response) {
-                        console.log("done"); //maybe try seeing if I can somehow detect wifi so I can give a "Sorry no Wi-Fi :(" message
-                        var index = 0;
-                        var limiter = 3 * 4;
-                        for(var i = 0;i < 3;i++){
-                            var newRow = $("<div>", {"class":"row"});
-                            for(var j = 0;j < 4;j++){
-                                var newCol = $("<div>", {"class":"col-md-3"});
-                                if(index <= limiter){
-                                    var newImage = $("<img>", {"src": response.data[index].images.original.url});
-                                    newImage.attr("class", i + "-" + j + " options");
-                                    newImage.css({"width":"90%", "height":"auto"});
-                                    newImage.on("click", function() {
-                                        console.log(this);
-                                        pichu.picture = pichuLoad.picture = $(this).attr("src");
-                                        $("#player-pic").attr("src", pichuLoad.picture);
-                                        localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
-                                    })
-                                    newCol.append(newImage);
-                                }
-                                newRow.append(newCol);
-                                index++;
-                            }
-                            $(".bison").append(newRow);
-                        }
-                    })
+                if(/*pichu.level >= 2 && */(pichu.cooldown <= 0 || thunderBolts.length === 0)){
+                    var frontPichu = frontOfPichu();
+                    var newThunderbolt = new Thunderbolt(frontPichu.x, frontPichu.y, pichu.direction, 20);
+                    pichu.cooldown = 100;
+                    pichu.attckWindDown = 10;
+                    thunderBolts.push(newThunderbolt);
                 }
                 break;
             default:
                 break;
         }
+    }
 })
 
+function frontOfPichu(){
+    var result = {
+        x: pichu.x + pichu.width/2,
+        y: pichu.y + pichu.height/2
+    }
+    switch(pichu.direction){
+        case "up":
+            result.y -= pichu.height/2;
+            break;
+        case "down":
+            result.y += pichu.height/2;
+            break;
+        case "left":
+            result.x -= pichu.width/2;
+            break;
+        case "right":
+            result.x += pichu.width/2;
+            break;
+    }
+    return result;
+}
+function Thunderbolt(x, y, direction, radius){
+    this.x = x;
+    this.y = y;
+    this.direction = direction;
+    this.radius = radius*2;
+    this.status = "go";
+    this.i = 0;
+    this.motionDelay = undefined;
+    this.size_i = 0;
+    this.size_Delay = 100;
+    this.bigTime = true;
+    this.draw = function() {
+        if(this.status != "stop"){
+        var rad;
+        if(this.bigTime){
+            rad = this.radius;
+        } else {
+            rad = this.radius * 0.8
+        }
+        c.beginPath();
+        c.arc(this.x, this.y, rad, Math.PI*2, false);
+        c.strokeStyle = "aqua";
+        c.stroke();
+        c.fillStyle = "aqua";
+        c.fill();
+        c.beginPath();
+        c.arc(this.x, this.y, this.radius/2, Math.PI*2, false);
+        c.strokeStyle = "blue";
+        c.stroke();
+        c.fillStyle = "blue";
+        c.fill();
+        }
+    }
+    this.update = function() {
+        switch(this.direction){
+            case "up":
+                this.y--;
+                break;
+            case "down":
+                this.y++;
+                break;
+            case "right":
+                this.x++;
+                break;
+            case "left":
+                this.x--;
+                break;
+        }
+        var areaOfBolt = {
+            x: this.x - this.radius,
+            y: this.y - this.radius,
+            width: this.radius * 2,
+            height: this.radius * 2
+        }
+        if(objIntersectBoth(areaOfBolt, entry) || this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
+            this.status = "stop";
+            thunderBolts.splice(thunderBolts.indexOf(this), 1);
+        } else {
+            this.draw();
+            if(!this.bigTime){
+                this.size_i++;
+                if(this.size_i > this.size_Delay){
+                    this.bigTime = true;
+                }
+            } else {
+                this.size_i--;
+                if(this.size_i <= 0){
+                    this.bigTime = false;
+                }
+            }
+        }
+
+    };
+}
+
 window.addEventListener("keyup", function(event){
-    if(!birthdayShow){
         var possibleDirection = event.key.slice(5).toLowerCase();
     if(pichu.direction === possibleDirection){
         pichu.stopMoving();
-    }
     }
     if(event.key === "Enter"){
         pichu.myArray = pichu.rightIdleArrays;
     }
 });
+
+document.getElementById("player-pic").onclick = pictureMenu;
 
 // function defaultMove() {
 //     var i_array = [pichu.downArrays, pichu.upArrays, pichu.leftArrays, pichu.rightArrays];
@@ -665,6 +839,11 @@ function animate() {
     // getableDraw();
     entry.update();
     pichu.update();
+    for(var i = 0;i < thunderBolts.length;i++){
+        for(var j = 0;j < 5;j++){
+            thunderBolts[i].update();
+        }
+    }
 }
         }
         
