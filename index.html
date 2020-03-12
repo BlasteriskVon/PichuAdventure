@@ -16,6 +16,9 @@
             }
             body {
                 margin: 0;
+                background-image: url("assets/images/backgroundBody.png");
+                background-size: auto;
+                background-repeat: repeat;
             }
             #bingo {
                 position: absolute;
@@ -48,7 +51,23 @@
                 <div class="col-md-3" style="padding: 0; margin: 0;">
                     <img src="assets/images/noAvatar.png" id="player-pic" style="height: 9.6em; width: auto;" alt="pic">
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-3" style="background-color: aqua;">
+                    <!--<label for="hp_bar"><strong>Health: </strong></label>
+                    <meter id="hp_bar" value="0" min="0" max="10" style="width: 75%">Pichu's Health</meter><br/>
+                    <label for="charge_bar"><strong>Charge: </strong></label>
+                    <meter id="charge_bar" value="0" min="0" max="100" style="width: 75%">Pichu's Charge</meter><br/>
+                    <label for="exp_bar"><strong>Exp: </strong></label>
+                    <meter id="exp_bar" value="0" min="0" max="100" style="width: 75%">Pichu's Charge</meter>-->
+                    <div class="row">
+                        <div class="col-md-3"><strong>Level</strong></div>
+                        <div class="col-md-9"><strong><span id="pichu_level"></span></strong></div>
+                        <div class="col-md-3"><strong>Health</strong></div>
+                        <div class="col-md-9"><meter id="hp_bar" value="0" min="0" max="10" style="width: 100%">Pichu's Health</meter><br/></div>
+                        <div class="col-md-3"><strong>Charge</strong></div>
+                        <div class="col-md-9"><meter id="charge_bar" value="0" min="0" max="100" style="width: 100%">Pichu's Health</meter><br/></div>
+                        <div class="col-md-3"><strong>Exp</strong></div>
+                        <div class="col-md-9"><meter id="exp_bar" value="0" min="0" max="10" style="width: 100%">Pichu's Health</meter><br/></div>
+                    </div>
 
                 </div>
             </div>
@@ -146,9 +165,12 @@
                     option2.onclick = option3.onclick = option4.onclick = function() {
                         clickedNotPichu = true;
                         var tempFn = option1.onclick;
+                        var tempFn2 = option2.onclick;
                         option1.onclick = "";
+                        option2.onclick = option3.onclick = option4.onclick = "";
                         rollingText("welcomeText", "Please select another option.", function() {
                             option1.onclick = tempFn;
+                            option2.onclick = option3.onclick = option4.onclick = tempFn2;
                         });
                     }
                     option1.onclick = function() {
@@ -204,6 +226,7 @@ var c = canvas.getContext("2d");
 var collidables = [];
 var getables = [];
 var thunderBolts = [];
+var enemies = [];
 var picMenu = false;
 var phase = 1;
 var spritesheet = new Image();
@@ -265,6 +288,7 @@ var pichu = {
     height: 100,
     width: 100,
     level: pichuLoad.level,
+    exp: pichuLoad.exp,
     speed: 5,
     i: 0,
     picture: pichuLoad.picture,
@@ -692,7 +716,7 @@ window.addEventListener("keydown", function(event) {
                 pichu.myArray = [[708, 900, 215, 215]];
                 break;
             case " ":
-                if(/*pichu.level >= 2 && */(pichu.cooldown <= 0 || thunderBolts.length === 0)){
+                if(/*pichu.level >= 2 && */(pichu.cooldown <= 0 /*|| thunderBolts.length === 0*/)){
                     var frontPichu = frontOfPichu();
                     var newThunderbolt = new Thunderbolt(frontPichu.x, frontPichu.y, pichu.direction, 20);
                     pichu.cooldown = 100;
@@ -785,6 +809,19 @@ function Thunderbolt(x, y, direction, radius){
             this.status = "stop";
             thunderBolts.splice(thunderBolts.indexOf(this), 1);
         } else {
+            var newAreaOfBolt = {
+                x: this.x,
+                y: this.y,
+                width: 1,
+                height: 1
+            }
+            for(var i = 0;i < enemies.length;i++){
+                if(objIntersectBoth(newAreaOfBolt, enemies[i])){
+                    this.status = "stop";
+                    thunderBolts.splice(thunderBolts.indexOf(this), 1);
+                    enemies[i].status = "eliminated";
+                }
+            }
             this.draw();
             if(!this.bigTime){
                 this.size_i++;
@@ -802,6 +839,179 @@ function Thunderbolt(x, y, direction, radius){
     };
 }
 
+function Voltorb(x, y, priority){
+    this.status = "active";
+    this.x = x;
+    this.y = y;
+    this.speed = 3;
+    this.radius = 5;
+    this.innerRadius = 0.1;
+    this.height = 100;
+    this.width = 100;
+    this.priority = priority;
+    this.direction = "down";
+    this.i = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 10;
+    this.myArray = undefined;
+    this.downArrays = [[44, 1166, 210, 210], [263, 1166, 210, 210]];
+    this.upArrays = [[470, 1166, 210, 210], [688, 1166, 210, 210]];
+    this.leftArrays = [[480, 1370, 210, 210], [694, 1370, 210, 210]];
+    this.rightArrays = [[50, 1370, 210, 210], [269, 1370, 210, 210]];
+    this.draw = function() {
+        i = this.i;
+        this.myArray = this.myArray ? this.myArray : this.downArrays;
+        steps = this.myArray;
+        c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+    }
+    this.update = function(target) {
+        var adjust = 50;
+        var testTarget = {
+            x: target.x,
+            y: target.y,
+            height: target.height - adjust,
+            width: target.width - adjust
+        }
+        var testVoltorb = {
+            x: this.x,
+            y: this.y,
+            height: this.height - adjust,
+            width: this.width - adjust
+        }
+        if(objIntersectBoth(testTarget, testVoltorb)){
+            this.status = "eliminated";
+        }
+        for(var i = 0;i < thunderBolts.length;i++){
+            var areaOfBolt = {
+                x: thunderBolts[i].x,
+                y: thunderBolts[i].y,
+                width: 1,
+                height: 1
+            }
+            if(objIntersectBoth(areaOfBolt, testVoltorb)){
+                thunderBolts[i].status = "stop";
+                thunderBolts.splice(i, 1);
+                this.status = "eliminated";
+            }
+        }
+        if(this.priority === 0){
+            if(Math.abs(this.x - target.x) >= 30){
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.myArray = this.leftArrays;
+                    }
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.myArray = this.rightArrays;
+                    }
+                }
+            } else {
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.myArray = this.upArrays;
+                    }
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.myArray = this.downArrays;
+                    }
+                }
+            }
+        }
+        if(this.priority === 1){
+            if(Math.abs(this.y - target.y) >= 30){
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.myArray = this.upArrays;
+                    }
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.myArray = this.downArrays;
+                    }
+                }
+            } else {
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.myArray = this.leftArrays;
+                    }
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.myArray = this.rightArrays;
+                    }
+                }
+            }
+        }
+        if(this.status === "active"){
+            this.motionDelay++;
+            if(this.motionDelay >= this.desiredDelay){
+                this.i++;
+                this.motionDelay = 0;
+                if(this.i >= this.myArray.length){
+                    this.i = 0;
+                }
+            }
+            switch(this.direction){
+                case "up":
+                    this.y -= this.speed;
+                    break;
+                case "down":
+                    this.y += this.speed;
+                    break;
+                case "left":
+                    this.x -= this.speed;
+                    break;
+                case "right":
+                    this.x += this.speed;
+                    break;
+                default:
+                    break;
+            }
+            this.draw();
+        } else if(this.status === "eliminated"){
+            /*c.beginPath();
+            c.arc(this.x + this.width/2, this.y + this.height/2, this.radius/4, Math.PI*2, false);
+            c.strokeStyle = "aqua";
+            c.stroke();
+            c.beginPath();
+            c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+            c.strokeStyle = "aqua";
+            c.stroke();*/
+            /*for(var d = 100;d > 0;d--){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius/d, Math.PI*2, false);
+                c.strokeStyle = "aqua";
+                c.stroke();
+            }*/
+            if(this.radius <= 50){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "aqua";
+                c.lineWidth = 50 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            }
+            /*c.beginPath();
+            c.arc(this.x + this.width/2, this.y + this.height/2, this.innerRadius, Math.PI*2, false);
+            c.strokeStyle = "blue";
+            c.lineWidth = 100 - this.innerRadius;
+            c.stroke();*/
+            if(this.radius > 50){
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+            }
+        } else {
+            return;
+        }
+    }
+}
+
 window.addEventListener("keyup", function(event){
         var possibleDirection = event.key.slice(5).toLowerCase();
     if(pichu.direction === possibleDirection){
@@ -811,6 +1021,12 @@ window.addEventListener("keyup", function(event){
         pichu.myArray = pichu.rightIdleArrays;
     }
 });
+
+canvas.addEventListener("click", function(event){
+    console.log(event);
+    var newVoltorb = new Voltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
+    enemies.push(newVoltorb);
+})
 
 document.getElementById("player-pic").onclick = pictureMenu;
 
@@ -839,11 +1055,18 @@ function animate() {
     // getableDraw();
     entry.update();
     pichu.update();
+    for(var i = 0;i < enemies.length;i++){
+        enemies[i].update(pichu);
+    }
     for(var i = 0;i < thunderBolts.length;i++){
         for(var j = 0;j < 5;j++){
             thunderBolts[i].update();
         }
     }
+    document.getElementById("pichu_level").innerText = pichu.level;
+    var chargebar = document.getElementById("charge_bar");
+    chargebar.max = 100;
+    chargebar.value = 100 - pichu.cooldown;
 }
         }
         
