@@ -47,6 +47,7 @@
                 <div id="map" class="col-md-9 borderMe" style="height: 38em;"></div>
                 <div id="meta-buttons" class="col-md-3 borderMe" style="background-color: aqua;">
                     <button id="resetButton">Reset Stats</button>
+                    <h2 id="arrowDirections"></h2>
                 </div>
             </div>
             <div id="player-data" class="row borderMe" style="height: 10em; background-color: blue;">
@@ -220,6 +221,7 @@
                                     var map = document.getElementById("map");
                                     map.textContent = "";
                                     map.append(newCanvas);
+                                    rollingText("arrowDirections", "Use the arrow keys to move around!", emptyFn);
                                     start();
                                 })
                             }
@@ -235,6 +237,7 @@
                                         var map = document.getElementById("map");
                                         map.textContent = "";
                                         map.append(newCanvas);
+                                        rollingText("arrowDirections", "Use the arrow keys to move around!", emptyFn);
                                         start();
                                     })
                                 }
@@ -666,9 +669,9 @@ var pichu = {
             }
         }
         // getBox();
-        if(objIntersectBoth(pichu, entry)){
+        /*if(objIntersectBoth(pichu, entry)){
             phaseCheck();
-        }
+        }*/
         if(this.cooldown < this.charge_Max()){
             this.cooldown++;
         }
@@ -703,7 +706,7 @@ var boxBoy = {
         c.fillRect(this.x, this.y, this.width, this.height);
     }
 }
-var entry = {
+/*var entry = {
     x: 10,
     y: 10,
     height: 186,
@@ -741,7 +744,7 @@ var entry = {
         }
         this.draw();
     }
-}
+}*/
 
 function Sign(x, y, message, additionalFunction){
     this.x = x;
@@ -1035,7 +1038,7 @@ function Thunderbolt(x, y, direction, radius){
             width: this.radius * 2,
             height: this.radius * 2
         }
-        if(objIntersectBoth(areaOfBolt, entry) || this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
+        if(/*objIntersectBoth(areaOfBolt, entry) || */this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
             this.status = "stop";
             thunderBolts.splice(thunderBolts.indexOf(this), 1);
         } else {
@@ -1212,25 +1215,25 @@ function Voltorb(x, y, priority){
             switch(this.direction){
                 case "up":
                     this.y -= this.speed;
-                    if(this.intersect()){
+                    if(this.intersect() || picMenu){
                         this.y += this.speed;
                     }
                     break;
                 case "down":
                     this.y += this.speed;
-                    if(this.intersect()){
+                    if(this.intersect() || picMenu){
                         this.y -= this.speed;
                     }
                     break;
                 case "left":
                     this.x -= this.speed;
-                    if(this.intersect()){
+                    if(this.intersect() || picMenu){
                         this.x += this.speed;
                     }
                     break;
                 case "right":
                     this.x += this.speed;
-                    if(this.intersect()){
+                    if(this.intersect() || picMenu){
                         this.x -= this.speed;
                     }
                     break;
@@ -1297,8 +1300,9 @@ window.addEventListener("keyup", function(event){
     }
 });
 
-var testSign = new Sign(300, 300, "Hello! Once you close this sign you will enter Rush Mode! Ready? Go!!!", function() {
+var testSign = new Sign(300, 300, "Okay, you likely want some directions.  For starters, use the Spacebar to fire Thunderbolts at enemies! Also, the picture at the bottom-left can be changed. Click the picture to open a menu of options. You obtain more options by leveling up! Oh, and once you close this box, you will engage in Rush Mode! Good luck!", function() {
     collidables.splice(collidables.indexOf(testSign),1);
+    $("#arrowDirections").text("");
     rushMode++;
 });
 collidables.push(testSign);
