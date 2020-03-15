@@ -45,7 +45,9 @@
         <div class="container">
             <div class="row">
                 <div id="map" class="col-md-9 borderMe" style="height: 38em;"></div>
-                <div id="card-data" class="col-md-3 borderMe" style="background-color: aqua;"></div>
+                <div id="meta-buttons" class="col-md-3 borderMe" style="background-color: aqua;">
+                    <button id="resetButton">Reset Stats</button>
+                </div>
             </div>
             <div id="player-data" class="row borderMe" style="height: 10em; background-color: blue;">
                 <div class="col-md-3" style="padding: 0; margin: 0;">
@@ -59,14 +61,14 @@
                     <label for="exp_bar"><strong>Exp: </strong></label>
                     <meter id="exp_bar" value="0" min="0" max="100" style="width: 75%">Pichu's Charge</meter>-->
                     <div class="row">
-                        <div class="col-md-3"><strong>Level</strong></div>
-                        <div class="col-md-9"><strong><span id="pichu_level"></span></strong></div>
+                        <div class="col-md-3"><strong><span id="level-label">Level</span></strong></div>
+                        <div class="col-md-9"><strong><span id="pichu_level" status="level"></span></strong></div>
                         <div class="col-md-3"><strong>Health</strong></div>
                         <div class="col-md-9"><meter id="hp_bar" value="0" min="0" max="10" style="width: 100%">Pichu's Health</meter><br/></div>
                         <div class="col-md-3"><strong>Charge</strong></div>
-                        <div class="col-md-9"><meter id="charge_bar" value="0" min="0" max="100" style="width: 100%">Pichu's Health</meter><br/></div>
+                        <div class="col-md-9"><meter id="charge_bar" value="0" min="0" max="100" style="width: 100%">Pichu's Charge</meter><br/></div>
                         <div class="col-md-3"><strong>Exp</strong></div>
-                        <div class="col-md-9"><meter id="exp_bar" value="0" min="0" max="10" style="width: 100%">Pichu's Health</meter><br/></div>
+                        <div class="col-md-9"><meter id="exp_bar" value="0" min="0" max="10" style="width: 100%">Pichu's EXP</meter><br/></div>
                     </div>
 
                 </div>
@@ -85,6 +87,7 @@
                 x: 100,
                 y: 500,
                 level: 0,
+                exp: 0,
                 picture: "assets/images/startingAvatar.png",
                 phase: 0
             }
@@ -110,6 +113,12 @@
             spot.text(text);
             finishingFunction();
         }
+        function skipClass(class_name, text, finishingFunction){
+            clearInterval(textInterval);
+            var spot = $("." + class_name);
+            spot.text(text);
+            finishingFunction();
+        }
         function rollingText(id, text, finishingFunction){
             var spot = $("#" + id);
             spot.text("");
@@ -127,6 +136,26 @@
                 } else {
                     spot.off("click", tempSkip);
                     skip(id, text, finishingFunction);
+                }
+            }, 50);
+        }
+        function rollingTextClass(class_name, text, finishingFunction){
+            var spot = $("." + class_name);
+            spot.text("");
+            var script = text.split("");
+            var textIndex = 0;
+            function tempSkip(){
+                spot.off("click", tempSkip);
+                skipClass(class_name, text, finishingFunction);
+            }
+            spot.on("click", tempSkip);
+            textInterval = setInterval(function() {
+                if(textIndex < script.length){
+                    spot.text(spot.text() + script[textIndex]);
+                    textIndex++;
+                } else {
+                    spot.off("click", tempSkip);
+                    skip(class_name, text, finishingFunction);
                 }
             }, 50);
         }
@@ -232,6 +261,7 @@ var phase = 1;
 var spritesheet = new Image();
 var floor;
 var entry1, entry2, entry3, entry4;
+var rushMode = -1;
 document.getElementById("player-pic").className = "options"
 spritesheet.src = "assets/images/spritesheet.png";
 spritesheet.addEventListener("load", function() {
@@ -285,11 +315,48 @@ var pichu = {
     motion: false,
     x: pichuLoad.x,
     y: pichuLoad.y,
+    radius: 5,
     height: 100,
     width: 100,
+    damaged: false,
+    damageCooldown: 50,
     level: pichuLoad.level,
     exp: pichuLoad.exp,
-    speed: 5,
+    levelUpExp: function() {
+        return 10*pichu.level;
+    },
+    gainExp: function(points){
+        pichu.exp += points;
+        console.log(pichu.exp);
+        if(pichu.exp >= pichu.levelUpExp()){
+            var remainingExp = pichu.exp - pichu.levelUpExp();
+            console.log(remainingExp);
+            pichu.level++;
+            pichu.exp = 0;
+            console.log(pichu.levelUpExp());
+            pichu.levelUp(remainingExp);
+        }
+    },
+    levelUp: function(remainingExp){
+        console.log("remaining exp is " + remainingExp);
+        pichu.health = pichu.max_Health();
+        pichu.cooldown = pichu.charge_Max();
+        $("#level-label").text("");
+        $("#pichu_level").attr("status", "levelingUp");
+        rollingText("pichu_level", "Level Up!", function() {
+            $("#level-label").text("Level");
+            $("#pichu_level").attr("status", "level");
+            pichu.gainExp(remainingExp);
+        })
+    },
+    live: true,
+    health: 10,
+    max_Health: function() {
+        return 10 + 10*this.level;
+    },
+    speed: function() {
+        return Math.min(5 + 1*pichu.level, 10);
+    },
     i: 0,
     picture: pichuLoad.picture,
     motionDelay: 0,
@@ -298,7 +365,10 @@ var pichu = {
     idleDelay: 0,
     idleDesiredDelay: 60,
     spriteMultiplier: 1,
-    cooldown: 0,
+    cooldown: 150,
+    charge_Max: function() {
+        return Math.max(20, 150 - 10*pichu.level);
+    },
     attckWindDown: 0,
     downArrays: [[0, 0, 215, 215], [230, 0, 215, 215], [0, 0, 215, 215], [467, 0, 215, 215]], //first is default, second is left foot out, fourth is right foot out (third is default)
     upArrays: [[0, 290, 215, 215], [240, 293, 215, 215], [0, 290, 215, 215], [480, 290, 215, 215]], //same as above
@@ -312,18 +382,21 @@ var pichu = {
     upAttackArray: [[714, 290, 215, 215]],
     leftAttackArray: [[718, 610, 215, 215]],
     rightAttackArray: [[708, 900, 215, 215]],
+    damageArray: [[0, 0, 0, 0]],
+    defeatedArray: [[1681, 0, 215, 215]],
     myArray: undefined,
     intersect: function() {
-        var answer = false;
+        var answer = [false, -5];
         var pichuTest = {
-            x: this.x + 25,
-            y: this.y,
-            width: this.width - 25,
-            height: this.height
+            x: this.x + this.width/2 - 5,
+            y: this.y + this.height/2 - 5,
+            width: 10,
+            height: 10
         }
         for(var i = 0;i < collidables.length;i++){
-            if(objIntersectBoth(pichuTest, collidables[i])){
-                answer = true;
+            if(objIntersectBoth(pichuTest, collidables[i].test)){
+                answer[0] = true;
+                answer[1] = i;
             }
         }
         return answer;
@@ -339,17 +412,54 @@ var pichu = {
         var test2 = pichuTest.y < 0 || (pichuTest.y + pichuTest.height) >= canvas.height;
         return test1 || test2;
     },
+    damage: function(amount){
+        if(!this.damaged && this.live){
+            pichu.damaged = true;
+            pichu.health -= amount;
+            if(pichu.health <= 0){
+                pichu.live = false;
+                pichu.damaged = false;
+            }
+        }
+    },
+    defeat: function(){
+        /*if(this.radius <= 100){
+            c.beginPath();
+            c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+            c.strokeStyle = "yellow";
+            c.lineWidth = 100 - this.radius;
+            c.stroke();
+            this.radius+=2;
+        } else {
+            emptyFn();
+        }*/
+        steps = this.defeatedArray;
+        c.drawImage(spritesheet, steps[0][0], steps[0][1], steps[0][2], steps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+    },
     draw: function() {
+        if(!this.live){
+            return;
+        }
        if(this.motion){
         i = this.i;
         this.myArray = this.myArray ? this.myArray : this.downArrays; //as myArray starts off undefined, this will change it to be equal to the down array by default
         steps = this.myArray;
-        c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+        damageSteps = this.damageArray;
+        if(this.damaged && this.damageCooldown%2 === 0){
+            c.drawImage(spritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+        } else {
+            c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+        }
        } else {
            idle_i = this.idle_i;
            this.myArray = this.myArray ? this.myArray : this.downIdleArrays;
            steps = this.myArray;
-           c.drawImage(spritesheet, steps[idle_i][0], steps[idle_i][1], steps[idle_i][2], steps[idle_i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+           damageSteps = this.damageArray;
+           if(this.damaged && this.damageCooldown%2 === 0){
+                c.drawImage(spritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+            } else {
+                c.drawImage(spritesheet, steps[idle_i][0], steps[idle_i][1], steps[idle_i][2], steps[idle_i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+            }
        }
     },
     turnUp: function() {
@@ -411,6 +521,7 @@ var pichu = {
         }
     },
     update: function() {
+        if(this.live){
         if(this.attckWindDown > 0){
             this.mode = "attack";
             switch(this.direction){
@@ -479,27 +590,64 @@ var pichu = {
             }
             switch(this.direction){
                 case "up":
-                    this.y -= this.speed;
-                    if(this.intersect() || this.hitWall()){
-                        this.y += this.speed;
+                    this.y -= this.speed();
+                    if(this.intersect()[0] || this.hitWall()){
+                        var index = -5;
+                        if(this.intersect()[0]){
+                            if(this.intersect()[1] >= 0){
+                            index = this.intersect()[1];
+                            }
+                        }
+                        this.y += this.speed();
+                        if(index >= 0){
+                            collidables[index].approach();
+                        }
                     }
                     break;
                 case "down":
-                    this.y += this.speed;
-                    if(this.intersect() || this.hitWall()){
-                        this.y -= this.speed;
+                    this.y += this.speed();
+                    if(this.intersect()[0] || this.hitWall()){
+                        var index = -5;
+                        if(this.intersect()[0]){
+                            if(this.intersect()[1] >= 0){
+                            index = this.intersect()[1];
+                            collidables[index].drawn = true;
+                            }
+                        }
+                        this.y -= this.speed();
+                        if(index >= 0){
+                            collidables[index].approach();
+                        }
                     }
                     break;
                 case "left":
-                    this.x -= this.speed;
-                    if(this.intersect() || this.hitWall()){
-                        this.x += this.speed;
+                    this.x -= this.speed();
+                    if(this.intersect()[0] || this.hitWall()){
+                        var index = -5;
+                        if(this.intersect()[0]){
+                            if(this.intersect()[1] >= 0){
+                            index = this.intersect()[1];
+                            }
+                        }
+                        this.x += this.speed();
+                        if(index >= 0){
+                            collidables[index].approach();
+                        }
                     }
                     break;
                 case "right":
-                    this.x += this.speed;
-                    if(this.intersect() || this.hitWall()){
-                        this.x -= this.speed;
+                    this.x += this.speed();
+                    if(this.intersect()[0] || this.hitWall()){
+                        var index = -5;
+                        if(this.intersect()[0]){
+                            if(this.intersect()[1] >= 0){
+                            index = this.intersect()[1];
+                            }
+                        }
+                        this.x -= this.speed();
+                        if(index >= 0){
+                            collidables[index].approach();
+                        }
                     }
                     break;
                 default:
@@ -521,11 +669,20 @@ var pichu = {
         if(objIntersectBoth(pichu, entry)){
             phaseCheck();
         }
-        if(this.cooldown > 0){
-            this.cooldown--;
+        if(this.cooldown < this.charge_Max()){
+            this.cooldown++;
         }
-        
-        this.draw();
+        if(this.damaged){
+            this.damageCooldown--;
+            if(this.damageCooldown < 0){
+                this.damaged = false;
+                this.damageCooldown = 50;
+            }
+        }
+        this.draw();            
+        } else {
+            this.defeat();
+        }
     }
 }
 
@@ -586,12 +743,89 @@ var entry = {
     }
 }
 
+function Sign(x, y, message, additionalFunction){
+    this.x = x;
+    this.y = y;
+    this.width = 100;
+    this.height = 100;
+    this.drawn = false;
+    this.myArray = [[1058, 1258, 298, 284]];
+    this.message = message;
+    this.test = {
+        x: this.x + this.width/2 - 30,
+        y: this.y + this.height/2 - 30,
+        width: 60,
+        height: 60
+    }
+    this.draw = function() {
+        c.drawImage(spritesheet, this.myArray[0][0], this.myArray[0][1], this.myArray[0][2], this.myArray[0][3], this.x, this.y, this.width, this.height);
+        this.drawn = false;
+    }
+    this.update = function() {
+        var pichuTest = {
+            x: pichu.x + pichu.width/2,
+            y: pichu.y + pichu.height/2,
+            full_y: pichu.y + pichu.height,
+            width: 1,
+            height: 1
+        }
+        if(objIntersectBoth(this, pichu) && pichuTest.full_y < this.y + this.height){
+            this.drawn = true;
+        } else {
+            this.drawn = false;
+        }
+        //console.log(this.drawn);
+        if(!this.drawn){
+            this.draw();
+        }
+    }
+    this.approach = function() {
+        if(picMenu){
+            return;
+        }
+        picMenu = true;
+        pichu.stopMoving();
+        $("#map").css("background-color", "transparent");
+        canvas.style.position = "fixed";
+        canvas.style.zIndex = -1;
+        console.log("did map");
+        var newDiv = $("<div>", {"class":"row bison borderMe"});
+        newDiv.css({"background-color":"rgb(185, 122, 87)", "color":"black"});
+        var newCol = $("<div>", {"class": "col-md-12 text-center"});
+        var newHead = $("<h1>", {"class":"sign"});
+        newCol.append(newHead);
+        newDiv.append(newCol);
+        $("#map").append(newDiv);
+        rollingTextClass("sign", this.message, function() {
+            var col1 = $("<div>", {"class":"col-md-4"});
+            newDiv.append(col1);
+            var col2 = $("<div class='col-md-4 options closeSign text-center'><h5>Close</h5><div>");
+            col2.on("click", function() {
+                pictureMenu();
+                additionalFunction();
+            });
+            newDiv.append(col2);
+            var col3 = $("<div>", {"class":"col-md-4"});
+            newDiv.append(col3);
+            
+        })
+    }
+}
+
 //collidables.push(boxBoy);
 //getables.push(boxBoy);
 
 function collidableDraw() {
     for(var i = 0;i < collidables.length;i++){
-        collidables[i].draw();
+        collidables[i].update();
+    }
+}
+
+function collidableDelayDraw() {
+    for(var i = 0;i < collidables.length;i++){
+        if(collidables[i].drawn){
+            collidables[i].draw();
+        }
     }
 }
 
@@ -633,20 +867,27 @@ function pictureMenu() {
         newDiv.append(picHeader);
         $("#map").append(newDiv);
         var search = String("pichu");
-        var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=UXUhR58v2nmQC6jMGg5vr7GbLMDZclbm&q=" + search + "&limit=48&offset=0&lang=en";
+        var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=UXUhR58v2nmQC6jMGg5vr7GbLMDZclbm&q=" + search + "&limit=25&offset=0&lang=en";
         $.ajax({
             url: queryURL,
             method: "GET"
         }).then(function(response) {
             console.log("done"); //maybe try seeing if I can somehow detect wifi so I can give a "Sorry no Wi-Fi :(" message
-            var index = 0;
-            var limiter = 3 * 4;
+            var index = -1;
+            var limiter = Math.min(pichu.level + 1, 12);
             for(var i = 0;i < 3;i++){
                 var newRow = $("<div>", {"class":"row"});
                 for(var j = 0;j < 4;j++){
                     var newCol = $("<div>", {"class":"col-md-3"});
-                    if(index <= limiter){
-                        var newImage = $("<img>", {"src": response.data[index].images.original.url});
+                    console.log("index: " + index + "\nlimiter: " + limiter);
+                    if(index < limiter){
+                        var source;
+                        if(index < 0){
+                            source = "assets/images/startingAvatar.png";
+                        } else {
+                            source = response.data[index].images.original.url;
+                        }
+                        var newImage = $("<img>", {"src": source});
                         newImage.attr("class", i + "-" + j + " options");
                         newImage.css({"width":"90%", "height":"auto"});
                         newImage.on("click", function() {
@@ -662,25 +903,14 @@ function pictureMenu() {
                 }
                 $(".bison").append(newRow);
             }
+            //$(".bison").css("height", $("#map").css("height"));
         })
     }
 }
 
-function movement() {
-    var i_array = pichu.myArray;
-    var i_index = 0;
-    interval = setInterval(function() {
-        i_index++;
-        if(i_index >= i_array.length){
-            i_index = 0;
-        }
-        pichu.i = i_index;
-    }, 250)
-}
-
 window.addEventListener("keydown", function(event) {
     event.preventDefault();
-    console.log(event.key);
+    //console.log(event.key);
     if(canvas.style.zIndex != "" && canvas.style.zIndex < 1){
         console.log("Can't do anything right now, sorry!");
     } else {
@@ -716,10 +946,10 @@ window.addEventListener("keydown", function(event) {
                 pichu.myArray = [[708, 900, 215, 215]];
                 break;
             case " ":
-                if(/*pichu.level >= 2 && */(pichu.cooldown <= 0 /*|| thunderBolts.length === 0*/)){
+                if(/*pichu.level >= 2 && */pichu.live && (pichu.cooldown >= pichu.charge_Max() /*|| thunderBolts.length === 0*/)){
                     var frontPichu = frontOfPichu();
                     var newThunderbolt = new Thunderbolt(frontPichu.x, frontPichu.y, pichu.direction, 20);
-                    pichu.cooldown = 100;
+                    pichu.cooldown = 0;
                     pichu.attckWindDown = 10;
                     thunderBolts.push(newThunderbolt);
                 }
@@ -816,10 +1046,12 @@ function Thunderbolt(x, y, direction, radius){
                 height: 1
             }
             for(var i = 0;i < enemies.length;i++){
-                if(objIntersectBoth(newAreaOfBolt, enemies[i])){
+                if(objIntersectBoth(newAreaOfBolt, enemies[i]) && enemies[i].status === "active" && this.status != "stop"){
+                    console.log("bolt hit");
                     this.status = "stop";
                     thunderBolts.splice(thunderBolts.indexOf(this), 1);
                     enemies[i].status = "eliminated";
+                    pichu.gainExp(enemies[i].exp);
                 }
             }
             this.draw();
@@ -845,6 +1077,7 @@ function Voltorb(x, y, priority){
     this.y = y;
     this.speed = 3;
     this.radius = 5;
+    this.exp = 6;
     this.innerRadius = 0.1;
     this.height = 100;
     this.width = 100;
@@ -858,6 +1091,21 @@ function Voltorb(x, y, priority){
     this.upArrays = [[470, 1166, 210, 210], [688, 1166, 210, 210]];
     this.leftArrays = [[480, 1370, 210, 210], [694, 1370, 210, 210]];
     this.rightArrays = [[50, 1370, 210, 210], [269, 1370, 210, 210]];
+    this.intersect = function() {
+        var answer = false;
+        /*var pichuTest = {
+            x: this.x + this.width/2 - 5,
+            y: this.y + this.height/2 - 5,
+            width: 10,
+            height: 10
+        }*/
+        for(var i = 0;i < collidables.length;i++){
+            if(objIntersectBoth(this, collidables[i].test)){
+                answer = true;
+            }
+        }
+        return answer;
+    }
     this.draw = function() {
         i = this.i;
         this.myArray = this.myArray ? this.myArray : this.downArrays;
@@ -878,8 +1126,10 @@ function Voltorb(x, y, priority){
             height: this.height - adjust,
             width: this.width - adjust
         }
-        if(objIntersectBoth(testTarget, testVoltorb)){
-            this.status = "eliminated";
+        if(objIntersectBoth(testTarget, testVoltorb) && this.status==="active" && !pichu.damaged){
+            this.status = "succeeded";
+            var damage = 5 + 10*(Math.max(0, pichu.level - 5));
+            pichu.damage(damage);
         }
         for(var i = 0;i < thunderBolts.length;i++){
             var areaOfBolt = {
@@ -888,10 +1138,12 @@ function Voltorb(x, y, priority){
                 width: 1,
                 height: 1
             }
-            if(objIntersectBoth(areaOfBolt, testVoltorb)){
+            if(objIntersectBoth(areaOfBolt, testVoltorb) && this.status==="active" && thunderBolts[i].status!="stop"){
+                console.log("Voltorb hit");
                 thunderBolts[i].status = "stop";
                 thunderBolts.splice(i, 1);
                 this.status = "eliminated";
+                pichu.gainExp(this.exp);
             }
         }
         if(this.priority === 0){
@@ -960,15 +1212,27 @@ function Voltorb(x, y, priority){
             switch(this.direction){
                 case "up":
                     this.y -= this.speed;
+                    if(this.intersect()){
+                        this.y += this.speed;
+                    }
                     break;
                 case "down":
                     this.y += this.speed;
+                    if(this.intersect()){
+                        this.y -= this.speed;
+                    }
                     break;
                 case "left":
                     this.x -= this.speed;
+                    if(this.intersect()){
+                        this.x += this.speed;
+                    }
                     break;
                 case "right":
                     this.x += this.speed;
+                    if(this.intersect()){
+                        this.x -= this.speed;
+                    }
                     break;
                 default:
                     break;
@@ -1006,8 +1270,19 @@ function Voltorb(x, y, priority){
                 this.status = "inactive";
                 enemies.splice(enemies.indexOf(this), 1);
             }
-        } else {
-            return;
+        } else if(this.status === "succeeded"){
+            if(this.radius <= 50){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "orange";
+                c.lineWidth = 50 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            }
+            if(this.radius > 50){
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+            }
         }
     }
 }
@@ -1022,13 +1297,85 @@ window.addEventListener("keyup", function(event){
     }
 });
 
+var testSign = new Sign(300, 300, "Hello! Once you close this sign you will enter Rush Mode! Ready? Go!!!", function() {
+    collidables.splice(collidables.indexOf(testSign),1);
+    rushMode++;
+});
+collidables.push(testSign);
+
 canvas.addEventListener("click", function(event){
     console.log(event);
     var newVoltorb = new Voltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
     enemies.push(newVoltorb);
 })
 
+function enemyRush(number){
+    if(enemies.length === 0){
+        rushMode++;
+        for(var i = 0;i < rushMode;i++){
+            var voltorb_x_coordinate;
+            var voltorb_y_coordinate;
+            for(var j = 0;j < 1;j++){
+                var randomCoordinate = {
+                    x: Math.floor(Math.random()*canvas.width),
+                    y: Math.floor(Math.random()*canvas.height),
+                    height: 100,
+                    width: 100
+                }
+                if(objIntersectBoth(randomCoordinate, pichu)){
+                    j--;
+                } else {
+                    voltorb_x_coordinate = randomCoordinate.x;
+                    voltorb_y_coordinate = randomCoordinate.y;
+                }
+            }
+            var newVoltorb = new Voltorb(voltorb_x_coordinate, voltorb_y_coordinate, Math.floor(Math.random() * 2));
+            enemies.push(newVoltorb);
+        }
+    }
+}
+
 document.getElementById("player-pic").onclick = pictureMenu;
+document.getElementById("resetButton").onclick = function() {
+    if(picMenu){
+        return;
+    }
+    picMenu = true;
+    pichu.stopMoving();
+    $("#map").css("background-color", "transparent");
+    canvas.style.position = "fixed";
+    canvas.style.zIndex = -1;
+    console.log("did map");
+    var newDiv = $("<div>", {"class":"row bison borderMe"});
+    newDiv.css({"background-color":"black", "color":"white"});
+    var newCol = $("<div>", {"class": "col-md-12 text-center"});
+    var newHead = $("<h1>", {"class":"confirmation"});
+    newCol.append(newHead);
+    newDiv.append(newCol);
+    $("#map").append(newDiv);
+    rollingTextClass("confirmation", "Are you sure you want to erase your file?", function(){
+        var col1 = $("<div>", {"class": "col-md-4 options"});
+        col1.html("<h5>Yes</h5>");
+        var col2 = $("<div>", {"class": "col-md-4"});
+        var col3 = $("<div>", {"class":"col-md-4 options"});
+        col3.html("<h5>No</h5>");
+        col1.on("click", function(){
+            localStorage.removeItem("pichuSaveFile");
+            col1.attr("class", "col-md-4 alwaysHighlighted");
+            col3.attr("class", "col-md-4");
+            rollingTextClass("confirmation", "Done!", function() {
+                pictureMenu();
+            })
+        });
+        col3.on("click", function() {
+            pictureMenu();
+        });
+        $(".bison").append(col1);
+        $(".bison").append(col2);
+        $(".bison").append(col3);
+    })
+
+}
 
 // function defaultMove() {
 //     var i_array = [pichu.downArrays, pichu.upArrays, pichu.leftArrays, pichu.rightArrays];
@@ -1051,22 +1398,38 @@ function animate() {
     requestAnimationFrame(animate);
     c.clearRect(0, 0, canvas.width, canvas.height);
     c.drawImage(floor, 0, 0, canvas.width, canvas.height);
-    //collidableDraw();
+    collidableDraw();
     // getableDraw();
-    entry.update();
+    //entry.update();
     pichu.update();
+    collidableDelayDraw();
+    if(rushMode >= 0){
+        enemyRush(rushMode);
+    }
     for(var i = 0;i < enemies.length;i++){
         enemies[i].update(pichu);
     }
     for(var i = 0;i < thunderBolts.length;i++){
         for(var j = 0;j < 5;j++){
-            thunderBolts[i].update();
+            if(thunderBolts[i]){
+                thunderBolts[i].update();
+            }
         }
     }
-    document.getElementById("pichu_level").innerText = pichu.level;
+    var levelTag = document.getElementById("pichu_level");
+    if(levelTag.getAttribute("status") === "level"){
+        document.getElementById("pichu_level").innerText = pichu.level;
+    }
     var chargebar = document.getElementById("charge_bar");
-    chargebar.max = 100;
-    chargebar.value = 100 - pichu.cooldown;
+    chargebar.max = pichu.charge_Max();
+    chargebar.value = pichu.cooldown;
+    var healthbar = document.getElementById("hp_bar");
+    healthbar.max = pichu.max_Health();
+    healthbar.value = pichu.health;
+    var expbar = document.getElementById("exp_bar");
+    expbar.max = pichu.levelUpExp();
+    expbar.value = pichu.exp;
+
 }
         }
         
