@@ -165,7 +165,7 @@
         map.append(welcomeRow);
         var welcomeText = $("<div id=\"welcomeText\" class=\"col-md-12\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\"></div>");
         $("#welcomeRow").append(welcomeText);
-        rollingText("welcomeText", "Hello! Welcome to your new adventure!", function() {
+        rollingText("welcomeText", "Welcome to Pichu's Adventure!", function() {
             var optionOne = $("<div id=\"option1\" class=\"col-md-3\" style=\"font-size: 2em; color:white\"></div>");
             var optionTwo = $("<div id=\"option2\" class=\"col-md-3 options\" style=\"font-size: 2em; color:white\">Thanks!</div>");
             var optionThree = $("<div id=\"option3\" class=\"col-md-3 options\" style=\"font-size: 2em; color:white\">Ok</div>");
@@ -182,25 +182,27 @@
             option2.onclick = option3.onclick = function() {
                 option2.onclick = option3.onclick = option2.innerText = option3.innerText = "";
                 option2.className = option3.className = "col-md-3";
-                rollingText("welcomeText", "Before we start, what Pokémon would you like to be?", function() {
-                    option2.className = option3.className = option4.className = "col-md-3 options";
+                rollingText("welcomeText", "Before we start, what mode would you like to play?", function() {
+                    option2.className = "col-md-3 options";
+                    option3.className = option4.className = "col-md-3";
                     option1.className = "col-md-3 options alwaysHighlighted";
-                    option1.innerText = "Pichu";
-                    option2.innerText = "Charizard";
-                    option3.innerText = "Mewtwo";
-                    option4.innerText = "Goku";
+                    option1.innerText = "Rush Mode";
+                    option2.innerText = "Story Mode (under construction)";
+                    option3.innerText = "";
+                    option4.innerText = "";
+                    option3.onclick = option4.onclick = ""
                     option1.onmouseover = function() {
                         option1.className = "col-md-3 options";
                     }
-                    option2.onclick = option3.onclick = option4.onclick = function() {
+                    option2.onclick =  function() {
                         clickedNotPichu = true;
                         var tempFn = option1.onclick;
                         var tempFn2 = option2.onclick;
                         option1.onclick = "";
                         option2.onclick = option3.onclick = option4.onclick = "";
-                        rollingText("welcomeText", "Please select another option.", function() {
+                        rollingText("welcomeText", "This mode is not available at the moment.", function() {
                             option1.onclick = tempFn;
-                            option2.onclick = option3.onclick = option4.onclick = tempFn2;
+                            option2.onclick = tempFn2;
                         });
                     }
                     option1.onclick = function() {
@@ -208,7 +210,7 @@
                         option1.innerText = option1.onclick = option2.innerText = option2.onclick = option3.innerText = option3.onclick = option4.innerText = option4.onclick = "";
                         option1.className = option2.className = option3.className = option4.className = "col-md-3";
                         $("#player-pic").attr("src", pichuLoad.picture);
-                        rollingText("welcomeText", "Awesome! Pichu it is! Well, are you ready to begin?", function() {
+                        rollingText("welcomeText", "Awesome! Rush Mode it is! Well, are you ready to begin?", function() {
                             option2.className = option3.className = "col-md-3 options";
                             option2.innerText = "Yes.";
                             option3.innerText = "Sure.";
@@ -227,7 +229,7 @@
                             }
                             if(clickedNotPichu){
                                 option4.className = "col-md-3 options";
-                                option4.innerText = "You didn't let me select any other Pokémon.";
+                                option4.innerText = "Why isn't Story Mode finished yet?";
                                 option4.onclick = function() {
                                     option2.className = option3.className = option4.className = "col-md-3";
                                     option2.innerText = option3.innerText = option4.innerText = "";
@@ -1203,6 +1205,10 @@ function Voltorb(x, y, priority){
                 }
             }
         }
+        if(!pichu.live){
+            this.direction = "down";
+            this.myArray = this.downArrays;
+        }
         if(this.status === "active"){
             this.motionDelay++;
             if(this.motionDelay >= this.desiredDelay){
@@ -1215,25 +1221,25 @@ function Voltorb(x, y, priority){
             switch(this.direction){
                 case "up":
                     this.y -= this.speed;
-                    if(this.intersect() || picMenu){
+                    if(this.intersect() || picMenu || !pichu.live){
                         this.y += this.speed;
                     }
                     break;
                 case "down":
                     this.y += this.speed;
-                    if(this.intersect() || picMenu){
+                    if(this.intersect() || picMenu || !pichu.live){
                         this.y -= this.speed;
                     }
                     break;
                 case "left":
                     this.x -= this.speed;
-                    if(this.intersect() || picMenu){
+                    if(this.intersect() || picMenu || !pichu.live){
                         this.x += this.speed;
                     }
                     break;
                 case "right":
                     this.x += this.speed;
-                    if(this.intersect() || picMenu){
+                    if(this.intersect() || picMenu || !pichu.live){
                         this.x -= this.speed;
                     }
                     break;
@@ -1307,11 +1313,11 @@ var testSign = new Sign(300, 300, "Okay, you likely want some directions.  For s
 });
 collidables.push(testSign);
 
-canvas.addEventListener("click", function(event){
+/*canvas.addEventListener("click", function(event){
     console.log(event);
     var newVoltorb = new Voltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
     enemies.push(newVoltorb);
-})
+})*/
 
 function enemyRush(number){
     if(enemies.length === 0){
