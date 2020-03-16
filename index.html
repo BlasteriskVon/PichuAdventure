@@ -165,6 +165,9 @@
         map.append(welcomeRow);
         var welcomeText = $("<div id=\"welcomeText\" class=\"col-md-12\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\"></div>");
         $("#welcomeRow").append(welcomeText);
+        var mobileUsage = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        console.log(mobileUsage);
+        if(!mobileUsage){
         rollingText("welcomeText", "Welcome to Pichu's Adventure!", function() {
             var optionOne = $("<div id=\"option1\" class=\"col-md-3\" style=\"font-size: 2em; color:white\"></div>");
             var optionTwo = $("<div id=\"option2\" class=\"col-md-3 options\" style=\"font-size: 2em; color:white\">Thanks!</div>");
@@ -250,6 +253,9 @@
                 })
             }
         });
+    } else {
+        rollingText("welcomeText", "Sorry, this game does not work on mobile browsers!", emptyFn);
+    }
 
         function start() {
             var canvas = document.querySelector("canvas");
