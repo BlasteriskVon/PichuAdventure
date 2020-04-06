@@ -116,9 +116,9 @@ function mainMenunize() {
     var option4 = document.getElementById("option4");
 
     option2.onclick = rushModenize;
-
-
-
+    option3.onclick = function() {
+        howToPlay(mainMenunize);
+    }
 }
 
 function rushModenize() {
@@ -133,10 +133,91 @@ function rushModenize() {
         var map = document.getElementById("map");
         map.textContent = "";
         map.append(newCanvas);
-        rollingText("arrowDirections", "Use the arrow keys to move around! And Spacebar to fire a Thunderbolt at enemies!", emptyFn);
         start("rush");
     }
     option2.onclick = mainMenunize;
+}
+
+function howToPlay(backFunction) {
+    //creates a directions page
+    var optionRow = $("#optionRow");
+    optionRow.empty();
+
+    //pseudo header
+    var directionsText = $("<div id=\"directionsText\" class=\"col-md-12 text-center\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\">Directions: How to Play</div>");
+    optionRow.append(directionsText);
+
+    //setting up an array to setup multiple divs for each category
+    var directionsArray = ["movement", "attack", "pause"];
+    for(var i = 0;i < directionsArray.length;i++){
+        var buttonDiv = $(`<div id=\"${directionsArray[i]}Button\" class=\"col-md-3\"></div>`);
+        optionRow.append(buttonDiv);
+        var buttonPic = $("<img>");
+        buttonPic.css({"height":"6em", "width":"auto"});
+        switch(directionsArray[i]){
+            case "movement":
+                buttonPic.attr("src", "assets/images/arrowKeys.png");
+                break;
+            case "attack":
+                buttonPic.attr("src", "assets/images/spacebar.png");
+                break;
+            case "pause":
+                buttonPic.attr("src", "assets/images/enterKey.png");
+                break;
+            default:
+                buttonPic.attr("src", "assets/images/pichu%20front%20potential%20annoyed.png");
+                break;
+        }
+        $(`#${directionsArray[i]}Button`).append(buttonPic);
+
+        var displayDiv = $(`<div id=\"${directionsArray[i]}Display\" class=\"col-md-3\"></div>`);
+        optionRow.append(displayDiv);
+        var displayPic = $("<img>");
+        displayPic.css({"height":"6em", "width":"auto"});
+        switch(directionsArray[i]){
+            case "movement":
+                displayPic.attr("src", "assets/images/moveHowTo.gif");
+                break;
+            case "attack":
+                displayPic.attr("src", "assets/images/attackHowTo.png");
+                break;
+            case "pause":
+                displayPic.attr("src", "assets/images/pause.png");
+                break;
+            default:
+                displayPic.attr("src", "assets/images/pichu%20front%20potential%20annoyed.png");
+                break;
+        }
+        $(`#${directionsArray[i]}Display`).append(displayPic);
+
+        var directionsDiv = $(`<div id=\"${directionsArray[i]}Directions\" class=\"col-md-6\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\"></div>`);
+        switch(directionsArray[i]){
+            case "movement":
+                directionsDiv.text("Use the arrow keys to move around!");
+                break;
+            case "attack":
+                directionsDiv.text("Use the Spacebar to fire a Thunderbolt at enemies!");
+                break;
+            case "pause":
+                directionsDiv.text("Use the Enter key to pause the game!");
+                break;
+            default:
+                directionsDiv.text("Directions not found!");
+                break;
+        }
+        optionRow.append(directionsDiv);
+    }
+
+    var spaceToBack = $("<div class=\"col-md-9\"></div>");
+    optionRow.append(spaceToBack);
+    var backDiv = $("<div id=\"backToMenu\" class=\"options col-md-3\" style=\"font-size: 2em; background-color: aqua; color:black\">Back</div>");
+    optionRow.append(backDiv);
+    var backer = document.querySelector("#backToMenu");
+    backer.onclick = function() {
+        $("#optionRow").remove();
+        backFunction();
+    }
+
 }
 
 function emptyFn() {
@@ -883,7 +964,7 @@ function pictureMenu() {
 }
 
 function pause(){
-    if(picMenu && !paused){
+    if((picMenu && !paused) || !startMeBaby){ //checks to ensure that the menu won't pop up if a different menu is up or if the game is not started
         return;
     }
     if(paused){
@@ -908,7 +989,7 @@ function pause(){
 }
 
 function pauseMenu() {
-    optionize("P A U S E", "Quit", "Close");
+    optionize("P A U S E", "How to Play", "Quit Game", "Continue Playing");
     $(".options").css("background-color", "black");
     var option1 = document.getElementById("option1");
     var option2 = document.getElementById("option2");
@@ -916,11 +997,16 @@ function pauseMenu() {
     var option4 = document.getElementById("option4");
 
     option1.onclick = function() {
+        howToPlay(pauseMenu);
+    }
+
+    option2.onclick = function() {
         optionize("Are you sure you wish to quit?", "Yes", "No");
         option2.onclick = pauseMenu;
         option1.onclick = function() {
             canvas.remove();
             cancelAnimationFrame(animateID);
+            startMeBaby = false;
             $("#map").css("background-color", "black");
             var map = document.getElementById("map");
             map.textContent = "";
@@ -934,7 +1020,7 @@ function pauseMenu() {
             mainMenunize();
         }
     }
-    option2.onclick = pause;
+    option3.onclick = pause;
 }
 
 window.addEventListener("keydown", function(event) {
@@ -1473,7 +1559,10 @@ function animate() {
 }
 
 function rushMode() {
-    var testSign = new Sign(300, 300, "Directions: attack and evade the enemies coming for you. You can click the picture at the bottom-left to change it. You obtain more options by leveling up! Once you close this box, the game will start! Good luck!", function() {
+    pichu.health = 10;
+    pichu.level = 0;
+    pichu.exp = 0;
+    var testSign = new Sign(300, 300, "Directions: attack and evade the enemies coming for you! You can click the picture at the bottom-left to change it. You obtain more options by leveling up! Once you close this box, the game will start! Good luck!", function() {
         collidables.splice(collidables.indexOf(testSign),1);
         $("#arrowDirections").text("");
         rushModeCount++;
