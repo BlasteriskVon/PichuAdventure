@@ -402,7 +402,7 @@ pichu = {
         return 10 + 10*this.level;
     },
     speed: function() {
-        return Math.min(5 + 1*pichu.level, 10);
+        return Math.min(5 + 0.5*pichu.level, 10);
     },
     i: 0,
     picture: pichuLoad.picture,
@@ -1562,6 +1562,7 @@ function rushMode() {
     pichu.health = 10;
     pichu.level = 0;
     pichu.exp = 0;
+    $("#player-pic").attr("src", pichu.picture);
     var testSign = new Sign(300, 300, "Directions: attack and evade the enemies coming for you! You can click the picture at the bottom-left to change it. You obtain more options by leveling up! Once you close this box, the game will start! Good luck!", function() {
         collidables.splice(collidables.indexOf(testSign),1);
         $("#arrowDirections").text("");
