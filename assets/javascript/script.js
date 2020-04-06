@@ -466,6 +466,7 @@ pichu = {
             if(pichu.health <= 0){
                 pichu.live = false;
                 pichu.damaged = false;
+                gameOver();
             }
         }
     },
@@ -1575,6 +1576,49 @@ function rushMode() {
 
 if(mode === "rush"){
     rushMode();
+}
+
+function gameOver(){
+    startMeBaby = false;
+    picMenu = true;
+    paused = true;
+    $("#map").css("background-color", "transparent");
+    canvas.style.position = "fixed";
+    canvas.style.zIndex = -1;
+    optionize("G A M E  O V E R", "Restart?", "Return to Main Menu");
+    $(".options").css("background-color", "black");
+    var option1 = document.getElementById("option1");
+    var option2 = document.getElementById("option2");
+    var option3 = document.getElementById("option3");
+    var option4 = document.getElementById("option4");
+    option1.onclick = function() {
+        cancelAnimationFrame(animateID);
+        $("#optionRow").remove();
+        $("#map").css("background-color", "black");
+        canvas.style.position = "absolute";
+        canvas.style.zIndex = 1;
+        picMenu = false
+        paused = false;
+        startMeBaby = true;
+        start(mode);
+    }
+    option2.onclick = function() {
+        canvas.remove();
+        cancelAnimationFrame(animateID);
+        $("#map").css("background-color", "black");
+        var map = document.getElementById("map");
+        map.textContent = "";
+        document.getElementById("pichu_level").innerText = "";
+        var chargebar = document.getElementById("charge_bar");
+        chargebar.value = 0;
+        var healthbar = document.getElementById("hp_bar");
+        healthbar.value = 0;
+        var expbar = document.getElementById("exp_bar");
+        expbar.value = 0;
+        mainMenunize();
+    }
+
+
 }
 }
 
