@@ -1663,6 +1663,24 @@ function resetSprites(){
     setPichu();
 }
 
+function useWooperSprites() {
+    testDown = [[70, 1620, 194, 194], [460, 1620, 194, 194], [70, 1620, 194, 194], [460, 1620, 194, 194]];
+    testUp = [[890, 1611, 194, 194], [1085, 1611, 194, 194], [890, 1611, 194, 194], [1087, 1610, 194, 194]];
+    testLeft = [[2120, 1625, 194, 194], [2500, 1635, 194, 194], [2120, 1625, 194, 194], [2500, 1635, 194, 194]];
+    testRight = [[1294, 1615, 194, 194], [1673, 1623, 194, 194], [1294, 1615, 194, 194], [1673, 1623, 194, 194]];
+    testDownIdle = [[70, 1620, 194, 194], [265, 1619, 194, 194]];
+    testUpIdle = [[890, 1611, 194, 194]];
+    testLeftIdle = [[2120, 1625, 194, 194], [2289, 1638, 194, 194]];
+    testRightIdle = [[1294, 1615, 194, 194], [1470, 1620, 194, 194]];
+    testDownAttack = [[675, 1625, 194, 194]];
+    testUpAttack = [[1085, 1611, 194, 194]];
+    testLeftAttack = [[2733, 1634, 194, 194]];
+    testRightAttack = [[1900, 1627, 194, 194]];
+    testDamage = [[0, 0, 0, 0]];
+    testHeight = testWidth = 100;
+    setPichu();
+}
+
 function setPichu(){
     pichu.downArrays = testDown;
     pichu.upArrays = testUp;
@@ -3555,7 +3573,7 @@ $("#player-pic").attr("src", pichu.picture);
 collidables.push(spriteSign);
 console.log(spriteSign.test);
 animateID = requestAnimationFrame(animate);
-resetSprites();
+useWooperSprites();
 
 
 function gameOver(){
