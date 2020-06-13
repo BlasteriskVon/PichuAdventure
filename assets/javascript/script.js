@@ -2992,6 +2992,16 @@ switch(event.key){
     case " ":
         pichu.attack();
         break;
+    case "a":
+        var usingPichuSprites = JSON.stringify(pichu.upIdleArrays) == JSON.stringify([[0, 290, 215, 215]]);
+        if(usingPichuSprites){
+            console.log("wooper");
+            useWooperSprites();
+        } else {
+            console.log("pichu");
+            resetSprites();
+        }
+        break;
     default:
         break;
 }
@@ -3573,7 +3583,7 @@ $("#player-pic").attr("src", pichu.picture);
 collidables.push(spriteSign);
 console.log(spriteSign.test);
 animateID = requestAnimationFrame(animate);
-useWooperSprites();
+resetSprites();
 
 
 function gameOver(){
