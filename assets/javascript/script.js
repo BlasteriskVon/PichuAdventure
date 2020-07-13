@@ -308,7 +308,7 @@ if(!mobileUsage){
     spritesheet.src = "assets/images/spritesheet.png";
     spritesheet.addEventListener("load", function() {
         floor = new Image();
-        floor.src = "assets/images/floor.png";
+        floor.src = "assets/images/floor2.png";
         floor.addEventListener("load", function() {
             entry1 = new Image();
             entry1.src = "assets/images/entry1.png";
@@ -5038,7 +5038,7 @@ pichu.health = 10;
 pichu.level = 0;
 pichu.exp = 0;
 $("#player-pic").attr("src", pichu.picture);
-//collidables.push(spriteSign);
+collidables.push(spriteSign);
 console.log(spriteSign.test);
 animateID = requestAnimationFrame(animate);
 resetSprites();
