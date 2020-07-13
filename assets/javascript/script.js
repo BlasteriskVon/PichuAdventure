@@ -980,8 +980,10 @@ function pictureMenu() {
     canvas.style.position = "absolute";
     canvas.style.zIndex = 1;
     picMenu = false
+    animateID = requestAnimationFrame(animate);
     } else {
     picMenu = true;
+    cancelAnimationFrame(animateID);
     $("#map").css("background-color", "transparent");
     canvas.style.position = "fixed";
     canvas.style.zIndex = -1;
@@ -3751,8 +3753,10 @@ function pictureMenu() {
     canvas.style.position = "absolute";
     canvas.style.zIndex = 1;
     picMenu = false
+    animateID = requestAnimationFrame(animate);
     } else {
     picMenu = true;
+    cancelAnimationFrame(animateID);
     $("#map").css("background-color", "transparent");
     canvas.style.position = "fixed";
     canvas.style.zIndex = -1;
