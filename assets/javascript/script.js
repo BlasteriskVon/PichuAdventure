@@ -447,7 +447,7 @@ pichu = {
     upAttackArray: [[714, 290, 215, 215]],
     leftAttackArray: [[718, 610, 215, 215]],
     rightAttackArray: [[708, 900, 215, 215]],
-    damageArray: [[0, 0, 0, 0]],
+    damageArray: [[0, 0, 1, 1]],
     defeatedArray: [[1681, 0, 215, 215]],
     myArray: undefined,
     intersect: function() {
@@ -1636,7 +1636,7 @@ function Voltorb(x, y, priority){
     this.upArrays = [[470, 1166, 210, 210], [688, 1166, 210, 210]];
     this.leftArrays = [[480, 1370, 210, 210], [694, 1370, 210, 210]];
     this.rightArrays = [[50, 1370, 210, 210], [269, 1370, 210, 210]];
-    this.damageArray = [[0, 0, 0, 0]];
+    this.damageArray = [[0, 0, 1, 1]];
     this.damage = function(amount){
         if(this.status === "active"){
             this.status = "damaged";
@@ -1890,7 +1890,7 @@ function Wooper(x, y){
     this.upAttackArray = [[1085, 1615, 194, 194]];
     this.leftAttackArray = [[2733, 1634, 194, 194]];
     this.rightAttackArray = [[1900, 1627, 194, 194]];
-    this.damageArray = [[0, 0, 0, 0]];
+    this.damageArray = [[0, 0, 1, 1]];
     this.damage = function(amount){
         if(this.status === "active"){
             this.status = "damaged";
@@ -2552,7 +2552,7 @@ function resetSprites(){
     testUpAttack = [[714, 290, 215, 215]];
     testLeftAttack = [[718, 610, 215, 215]];
     testRightAttack = [[708, 900, 215, 215]];
-    testDamage = [[0, 0, 0, 0]];
+    testDamage = [[0, 0, 1, 1]];
     testHeight = testWidth = 100;
     setPichu();
 }
@@ -2570,7 +2570,7 @@ function useWooperSprites() {
     testUpAttack = [[1085, 1611, 194, 194]];
     testLeftAttack = [[2733, 1634, 194, 194]];
     testRightAttack = [[1900, 1627, 194, 194]];
-    testDamage = [[0, 0, 0, 0]];
+    testDamage = [[0, 0, 1, 1]];
     testHeight = testWidth = 100;
     setPichu();
 }
@@ -2687,7 +2687,7 @@ pichu = {
     upAttackArray: [[714, 290, 215, 215]],
     leftAttackArray: [[718, 610, 215, 215]],
     rightAttackArray: [[708, 900, 215, 215]],
-    damageArray: [[0, 0, 0, 0]],
+    damageArray: [[0, 0, 1, 1]],
     defeatedArray: [[1681, 0, 215, 215]],
     myArray: undefined,
     intersect: function() {
@@ -4405,7 +4405,7 @@ function Voltorb(x, y, priority){
     this.upArrays = [[470, 1166, 210, 210], [688, 1166, 210, 210]];
     this.leftArrays = [[480, 1370, 210, 210], [694, 1370, 210, 210]];
     this.rightArrays = [[50, 1370, 210, 210], [269, 1370, 210, 210]];
-    this.damageArray = [[0, 0, 0, 0]];
+    this.damageArray = [[0, 0, 1, 1]];
     this.damage = function(amount){
         if(this.status === "active"){
             this.status = "damaged";
@@ -4659,7 +4659,7 @@ function Wooper(x, y){
     this.upAttackArray = [[1085, 1615, 194, 194]];
     this.leftAttackArray = [[2733, 1634, 194, 194]];
     this.rightAttackArray = [[1900, 1627, 194, 194]];
-    this.damageArray = [[0, 0, 0, 0]];
+    this.damageArray = [[0, 0, 1, 1]];
     this.damage = function(amount){
         if(this.status === "active"){
             this.status = "damaged";
