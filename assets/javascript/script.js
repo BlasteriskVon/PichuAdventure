@@ -15,7 +15,10 @@ var enemies;
 var picMenu;
 var rushMode;
 var spritesheet = new Image();
-var floor;
+var snorlaxSpritesheet = new Image(); //made the snorlax sprites too big so had to use a new spritesheet (decided JUST to that snorlax...)
+var gengarSpritesheet = new Image();
+var dragoniteSpritesheet = new Image();
+var floor, basicFloor, grassFloor, battleFloor;
 var entry1, entry2, entry3, entry4;
 var canvas;
 
@@ -216,7 +219,7 @@ function howToPlay(backFunction) {
                 directionsDiv.text("Use the arrow keys to move around!");
                 break;
             case "attack":
-                directionsDiv.text("Use the Spacebar to fire a Thunderbolt at enemies!");
+                directionsDiv.text("Use the Spacebar to fire an attack at enemies!");
                 break;
             case "pause":
                 directionsDiv.text("Use the Enter key to pause the game!");
@@ -302,33 +305,52 @@ map.css({"background-color":"black", "color":"white"});
 map.append(welcomeRow);
 var welcomeText = $("<div id=\"welcomeText\" class=\"col-md-12\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\"></div>");
 $("#welcomeRow").append(welcomeText);*/
+function loadSpritesheet(){
+    spritesheet.src = "assets/images/spritesheet.png";
+    spritesheet.addEventListener("load", function() {
+        loadFloors();
+    })
+}
+function loadFloors(){
+    $("#loadingText").html("<h1>Loading floors...</h1>");
+    basicFloor = new Image();
+    basicFloor.src = "assets/images/floor.png";
+    basicFloor.addEventListener("load", function() {
+        grassFloor = new Image();
+        grassFloor.src = "assets/images/floor2.png";
+        grassFloor.addEventListener("load", function() {
+            battleFloor = new Image();
+            battleFloor.src = "assets/images/floor3.png";
+            battleFloor.addEventListener("load", function() {
+                loadBosses();
+            })
+        })
+    })
+}
+function loadBosses(){
+    $("#loadingText").html("<h1>Loading bosses...</h1>");
+    snorlaxSpritesheet.src = "assets/images/snorlaxSpritesheet.png";
+    snorlaxSpritesheet.addEventListener("load", function() {
+        gengarSpritesheet.src = "assets/images/gengarSpritesheet.png";
+        gengarSpritesheet.addEventListener("load", function() {
+            dragoniteSpritesheet.src = "assets/images/dragoniteSpritesheet.png";
+            dragoniteSpritesheet.addEventListener("load", function() {
+                $("#loadingText").html("<h1>Done!</h1>");
+                $("#loadingText").remove();
+                mainMenunize();
+            })
+        })
+    })
+}
+function loadSprites() {
+    var loadingText = $("<div id='loadingText'><h1>Loading spritesheet...</h1></div>");
+    map.append(loadingText);
+    loadSpritesheet();
+}
 var mobileUsage = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 console.log(mobileUsage);
 if(!mobileUsage){
-    spritesheet.src = "assets/images/spritesheet.png";
-    spritesheet.addEventListener("load", function() {
-        floor = new Image();
-        floor.src = "assets/images/floor2.png";
-        floor.addEventListener("load", function() {
-            entry1 = new Image();
-            entry1.src = "assets/images/entry1.png";
-            entry1.addEventListener("load", function() {
-                entry2 = new Image();
-                entry2.src = "assets/images/entry2.png";
-                entry2.addEventListener("load", function() {
-                    entry3 = new Image();
-                    entry3.src = "assets/images/entry3.png";
-                    entry3.addEventListener("load", function() {
-                        entry4 = new Image();
-                        entry4.src = "assets/images/entry4.png";
-                        entry4.addEventListener("load", function() {
-                            mainMenunize();
-                        })
-                    })
-                })
-            })
-        });
-    })
+    loadSprites();
 } else {
     var welcomeRow = $("<div id=\"welcomeRow\" class=\"row\"></div>");
     map.append(welcomeRow);
@@ -354,6 +376,7 @@ picMenu = false;
 var phase = 1;
 rushModeCount = -1;
 continueRush = true;
+floor = grassFloor;
 document.getElementById("player-pic").className = "options";
 
 function pointWithin(x, y, obj){
@@ -980,7 +1003,6 @@ function pictureMenu() {
     canvas.style.position = "absolute";
     canvas.style.zIndex = 1;
     picMenu = false
-    animateID = requestAnimationFrame(animate);
     } else {
     picMenu = true;
     cancelAnimationFrame(animateID);
@@ -2539,9 +2561,14 @@ attacks = [];
 enemyAttacks = [];
 enemies = [];
 picMenu = false;
+floor = basicFloor;
 spriteInput = false; 
 var testDown, testUp, testLeft, testRight, testDownIdle, testUpIdle, testLeftIdle, testRightIdle, testDownAttack, testUpAttack, testLeftAttack, testRightAttack, testDamage, testHeight, testWidth;
 function resetSprites(){
+    pichu.speed = function() {
+        return Math.min(5 + 0.5*pichu.level, 10);
+    }
+    pichu.pichuSheet = spritesheet;
     testDown = [[0, 0, 215, 215], [230, 0, 215, 215], [0, 0, 215, 215], [467, 0, 215, 215]]; 
     testUp = [[0, 290, 215, 215], [240, 293, 215, 215], [0, 290, 215, 215], [480, 290, 215, 215]];
     testLeft = [[0, 610, 215, 215], [230, 610, 215, 215], [0, 610, 215, 215], [467, 610, 215, 215]];
@@ -2560,6 +2587,10 @@ function resetSprites(){
 }
 
 function useWooperSprites() {
+    pichu.speed = function() {
+        return Math.min(5 + 0.5*pichu.level, 10);
+    }
+    pichu.pichuSheet = spritesheet;
     testDown = [[70, 1620, 194, 194], [460, 1620, 194, 194], [70, 1620, 194, 194], [460, 1620, 194, 194]];
     testUp = [[890, 1611, 194, 194], [1085, 1611, 194, 194], [890, 1611, 194, 194], [1087, 1610, 194, 194]];
     testLeft = [[2120, 1625, 194, 194], [2500, 1635, 194, 194], [2120, 1625, 194, 194], [2500, 1635, 194, 194]];
@@ -2575,6 +2606,66 @@ function useWooperSprites() {
     testDamage = [[0, 0, 1, 1]];
     testHeight = testWidth = 100;
     setPichu();
+}
+
+function useSnorlaxSprites() {
+    pichu.pichuSheet = snorlaxSpritesheet;
+    pichu.speed = function() {
+        return 4;
+    }
+    testDown = [[66, 88, 522, 522], [66, 88, 522, 522], [1390, 72, 522, 522], [1390, 72, 522, 522], [66, 88, 522, 522], [66, 88, 522, 522], [2040, 88, 522, 522], [2040, 88, 522, 522]];
+    testUp = [[695, 705, 522, 522], [695, 705, 522, 522], [1375, 710, 522, 522], [1375, 710, 522, 522], [695, 705, 522, 522], [695, 705, 522, 522], [2018, 714, 522, 522], [2018, 714, 522, 522]];
+    testLeft = [[737, 1245, 545, 545], [737, 1245, 545, 545], [1345, 1261, 545, 545], [1345, 1261, 545, 545]];
+    testRight = [[687, 1843, 545, 545], [687, 1843, 545, 545], [1260, 1833, 545, 545], [1260, 1833, 545, 545]];
+    testDownIdle = [[66, 88, 522, 522], [694, 91, 522, 522]];
+    testUpIdle = [[695, 705, 522, 522]];
+    testLeftIdle = [[737, 1245, 545, 545], [2010, 1248, 545, 545]];
+    testRightIdle = [[687, 1843, 545, 545], [1945, 1857, 545, 545]];
+    testDownAttack = [[88, 695, 522, 522]];
+    testUpAttack = [[105, 1280, 522, 522]];
+    testLeftAttack = [[140, 1850, 545, 545]];
+    testRightAttack = [[2433, 1871, 545, 545]];
+    testDamage = [[0, 0, 1, 1]];
+    testHeight = testWidth = 300;
+    setPichu();
+}
+
+function Tm(x, y){
+    this.myArray = [[1396, 1236, 292, 292], [1714, 1251, 292, 292], [2016, 1252, 292, 292], [2306, 1259, 292, 292], [2661, 1265, 292, 292], [2306, 1259, 292, 292], [2016, 1252, 292, 292], [1714, 1251, 292, 292]];
+    this.i = 0;
+    this.iDelay = 0;
+    this.x = x;
+    this.y = y;
+    this.desiredDelay = 10;
+    this.height = 100;
+    this.width = 100;
+    this.test = {
+        x: this.x + this.width/2 - 30,
+        y: this.y + this.height/2 - 30,
+        width: 60,
+        height: 60
+    }
+    this.draw = function() {
+        i = this.i;
+        steps = this.myArray;
+        c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+    }
+    this.update = function() {
+        this.iDelay++;
+        if(this.iDelay > this.desiredDelay){
+            this.i++;
+            if(this.i >= this.myArray.length){
+                this.i = 0;
+            }
+            this.iDelay = 0;
+        }
+        this.draw();
+    }
+    this.approach = function() {
+        return;
+    }
+
+
 }
 
 function setPichu(){
@@ -2624,6 +2715,7 @@ pichu = {
     motion: false,
     x: pichuLoad.x,
     y: pichuLoad.y,
+    pichuSheet: spritesheet,
     attackNumber: 0,
     radius: 5,
     height: 100,
@@ -2744,7 +2836,7 @@ pichu = {
             emptyFn();
         }*/
         steps = this.defeatedArray;
-        c.drawImage(spritesheet, steps[0][0], steps[0][1], steps[0][2], steps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+        c.drawImage(this.pichuSheet, steps[0][0], steps[0][1], steps[0][2], steps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
     },
     draw: function() {
         if(!this.live){
@@ -2759,9 +2851,9 @@ pichu = {
             }
             damageSteps = this.damageArray;
             if(this.damaged && this.damageCooldown%2 === 0){
-                c.drawImage(spritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                c.drawImage(this.pichuSheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
             } else {
-                c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                c.drawImage(this.pichuSheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
             }
         } else {
             idle_i = this.idle_i;
@@ -2769,9 +2861,9 @@ pichu = {
             steps = this.myArray;
             damageSteps = this.damageArray;
             if(this.damaged && this.damageCooldown%2 === 0){
-                    c.drawImage(spritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                    c.drawImage(this.pichuSheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
             } else {
-                    c.drawImage(spritesheet, steps[idle_i][0], steps[idle_i][1], steps[idle_i][2], steps[idle_i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                    c.drawImage(this.pichuSheet, steps[idle_i][0], steps[idle_i][1], steps[idle_i][2], steps[idle_i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
             }
         }
     },
@@ -3753,7 +3845,6 @@ function pictureMenu() {
     canvas.style.position = "absolute";
     canvas.style.zIndex = 1;
     picMenu = false
-    animateID = requestAnimationFrame(animate);
     } else {
     picMenu = true;
     cancelAnimationFrame(animateID);
@@ -3926,14 +4017,27 @@ switch(event.key){
         pichu.attack();
         break;
     case "a":
-        var usingPichuSprites = JSON.stringify(pichu.upIdleArrays) == JSON.stringify([[0, 290, 215, 215]]);
-        if(usingPichuSprites){
-            console.log("wooper");
-            pichu.attackNumber = 10;
-            useWooperSprites();
+        ///////////////////////use wooper sprites
+        // var usingPichuSprites = JSON.stringify(pichu.upIdleArrays) == JSON.stringify([[0, 290, 215, 215]]);
+        // if(usingPichuSprites){
+        //     console.log("wooper");
+        //     pichu.attackNumber = 10;
+        //     useWooperSprites();
+        // } else {
+        //     console.log("pichu");
+        //     pichu.attackNumber = 0;
+        //     resetSprites();
+        // }
+        ///////////////////////use snorlax sprites
+        // if(pichu.pichuSheet === spritesheet){
+        //     useSnorlaxSprites();
+        // } else {
+        //     resetSprites();
+        // }
+        ///////////////////////use gengar sprites
+        if(pichu.pichuSheet === spritesheet){
+            pichu.pichuSheet = gengarSpritesheet;
         } else {
-            console.log("pichu");
-            pichu.attackNumber = 0;
             resetSprites();
         }
         break;
@@ -4980,8 +5084,10 @@ window.onkeyup = function(event) {
 
 canvas.addEventListener("click", function(event){
 //var newVoltorb = new Voltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
-var newWooper = new Wooper(event.layerX, event.layerY);
-enemies.push(newWooper);
+// var newWooper = new Wooper(event.layerX, event.layerY);
+// enemies.push(newWooper);
+var newTM = new Tm(event.layerX, event.layerY);
+collidables.push(newTM);
 })
 
 document.getElementById("player-pic").onclick = pictureMenu;
