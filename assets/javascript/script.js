@@ -2860,7 +2860,7 @@ function enemyRush(number){
                 berryPlace("leppa");
             }
             //endless mode (until I code in other stuff)
-            for(var i = 0;i < (rushModeCount - 4);i++){
+            for(var i = 0;i < 5;i++){
                 var enemy_x_coordinate;
                 var enemy_y_coordinate;
                 for(var j = 0;j < 1;j++){
@@ -2879,6 +2879,9 @@ function enemyRush(number){
                 }
                 var newEnemy;
                 var enemyChoice = Math.floor(Math.random() * 2);
+                if(rushModeCount < 15 && i > 2){
+                    enemyChoice = 0;
+                }
                 switch(enemyChoice){
                     case 0:
                         newEnemy = new Voltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
