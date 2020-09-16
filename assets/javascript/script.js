@@ -1867,7 +1867,7 @@ function Voltorb(x, y, priority){
         height: 10
     }*/
     for(var i = 0;i < collidables.length;i++){
-        if(objIntersectBoth(this, collidables[i].test)){
+        if(objIntersectBoth(this, collidables[i].test) && !collidables[i].intangible){
             answer = true;
         }
     }
@@ -2113,7 +2113,7 @@ function Wooper(x, y){
     this.intersect = function() {
         var answer = false;
         for(var i = 0;i < collidables.length;i++){
-            if(objIntersectBoth(this, collidables[i].test)){
+            if(objIntersectBoth(this, collidables[i].test) && !collidables[i].intangible){
                 answer = true;
             }
         }
@@ -2851,6 +2851,14 @@ function enemyRush(number){
                 enemies.push(newWooper);
             }
         } else {
+            var placeOranBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
+            var placeLeppaBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
+            if(placeOranBerry){
+                berryPlace("oran");
+            }
+            if(placeLeppaBerry){
+                berryPlace("leppa");
+            }
             //endless mode (until I code in other stuff)
             for(var i = 0;i < (rushModeCount - 4);i++){
                 var enemy_x_coordinate;
@@ -3094,7 +3102,7 @@ function gameOver(){
         cancelAnimationFrame(animateID);
         $("#optionRow").remove();
         $("#map").css("background-color", "black");
-        canvas.style.position = "absolute";
+        //canvas.style.position = "absolute";
         canvas.style.zIndex = 1;
         picMenu = false
         paused = false;
