@@ -229,7 +229,7 @@ function rushModenize() {
 }
 
 function spriteTesternize(){
-    optionize("Are you sure you wish to use Sprite Testing?", "Yes", "No");
+    optionize("Are you sure you wish to use Sprite Testing? (NOTE: This mode is mainly for the creator to test animations and is not intended for regular play.)", "Yes", "No");
     var option1 = document.getElementById("option1");
     var option2 = document.getElementById("option2");
     var option3 = document.getElementById("option3");
@@ -1812,6 +1812,466 @@ function Swift(x,y,spikes,outerRadius,innerRadius){
     }
 }
 
+function Snore(x, y){
+    for(var i = 0;i < 8;i++){
+        var direction, newX, newY;
+        switch(i){
+            case 0:
+                direction = "up";
+                newX = x;
+                newY = y--;
+                break;
+            case 1:
+                direction = "down";
+                newX = x;
+                newY = y++;
+                break;
+            case 2:
+                direction = "left";
+                newX = x--;
+                newY = y;
+                break;
+            case 3:
+                direction = "right";
+                newX = x++;
+                newY = y;
+                break;
+            case 4:
+                direction = "upper-left";
+                newX = x--;
+                newY = y--;
+                break;
+            case 5:
+                direction = "upper-right";
+                newX = x++;
+                newY = y--;
+                break;
+            case 6:
+                direction = "lower-left";
+                newX = x--;
+                newY = y++;
+                break;
+            case 7:
+                direction = "lower-right";
+                newX = x++;
+                newY = y++;
+                break;
+            default:
+                break;
+        }
+        var newSnore = new SnoreSingle(newX, newY, direction);
+        enemyAttacks.push(newSnore);
+    }
+}
+
+function SnoreSingle(x, y, direction){
+    this.name = "Snore";
+    this.type = "Normal";
+    this.x = x;
+    this.y = y;
+    this.direction = direction;
+    this.damage = function() {
+        return 10 + 5*(Math.max(0, pichu.level - 5));
+    }
+    this.width = 85;
+    this.height = 49.5;
+    this.status = "go";
+    this.size_i = 0;
+    this.size_Delay = 10;
+    this.bigTime = true;
+    this.draw = function(){
+        if(this.status != "stop"){
+            var font;
+            if(this.bigTime){
+                font = "75px Impact";
+            } else {
+                font = "70px Impact";
+            }
+            c.font = font;
+            c.textAlign = "center"
+            c.fillStyle = "black";
+            c.fillText("zzz", this.x, this.y);
+            // c.beginPath();
+            // c.strokeStyle = "yellow";
+            // c.strokeRect(this.x - this.width/2, this.y-this.height, this.width, this.height);
+            // c.stroke();
+        }
+    }
+    this.update = function() {
+        switch(this.direction){
+            case "up":
+                this.y--;
+                break;
+            case "down":
+                this.y++;
+                break;
+            case "right":
+                this.x++;
+                break;
+            case "left":
+                this.x--;
+                break;
+            case "upper-left":
+                this.y--;
+                this.x--;
+                break;
+            case "upper-right":
+                this.y--;
+                this.x++;
+                break;
+            case "lower-left":
+                this.y++;
+                this.x--;
+                break;
+            case "lower-right":
+                this.y++;
+                this.x++;
+        }
+        if(this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
+            this.status = "stop";
+            enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+        } else {
+            var newAreaOfAttack = {
+                x: this.x - this.width/2,
+                y: this.y - this.height,
+                width: this.width,
+                height: this.height
+            }
+            if(objIntersectBoth(newAreaOfAttack, pichu) && this.status != "stop" && !pichu.damaged){
+                this.status = "stop";
+                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+                pichu.damage(this.damage());
+            }
+            this.draw();
+            if(!this.bigTime){
+                this.size_i++;
+                if(this.size_i > this.size_Delay){
+                    this.bigTime = true;
+                }
+            } else {
+                this.size_i--;
+                if(this.size_i <= 0){
+                    this.bigTime = false;
+                }
+            }
+        }
+    }
+}
+
+function HyperBeam(x, y, direction, user){
+    this.name = "Hyper Beam";
+    this.type = "Normal";
+    this.finishing = false;
+    this.status = "go";
+    this.random_placement_because_I_didnt_want_to_relocate_the_beam = Math.floor(Math.random() * 2);
+    this.finishDelay = 0;
+    this.radius = 40;
+    this.speed = 5;
+    this.start = {
+        x: x,
+        y: y
+    }
+    this.end = {
+        x: x,
+        y: y
+    }
+    this.direction = direction;
+    this.damage = function(){
+        var secondBeamDamage = 20 + 5*(Math.max(0, pichu.level - 5));
+        var firstBeamDamage = 25 + 5*(Math.max(0, pichu.level - 5));
+        if(this.finishing){
+            firstBeamDamage = secondBeamDamage;
+        }
+        return [firstBeamDamage, secondBeamDamage];
+    }
+    this.draw = function() {
+        var multiplier = this.finishing ? 1 : 2/1.5;
+        //outer beam
+        if(!this.finishing){
+            c.beginPath();
+            c.arc(this.start.x, this.start.y, this.radius, Math.PI*2, false);
+            c.strokeStyle = "yellow";
+            c.stroke();
+            c.fillStyle = "yellow";
+            c.fill();
+        }
+
+        switch(this.direction){
+            case "left":
+                c.beginPath();
+                c.fillStyle = "yellow";
+                c.fillRect(this.end.x, this.end.y-this.radius/1.5, this.start.x - this.end.x, this.radius*2/1.5);
+                c.fill();
+                break;
+            case "right":
+                c.beginPath();
+                c.fillStyle = "yellow";
+                c.fillRect(this.start.x, this.start.y-this.radius/1.5, this.end.x - this.start.x, this.radius*2/1.5);
+                c.fill();
+                break;
+            case "up":
+                c.beginPath();
+                c.fillStyle = "yellow";
+                c.fillRect(this.end.x-this.radius/1.5, this.end.y, this.radius*2/1.5, this.start.y - this.end.y);
+                c.fill();
+                break;
+            case "down":
+                c.beginPath();
+                c.fillStyle = "yellow";
+                c.fillRect(this.start.x-this.radius/1.5, this.start.y, this.radius*2/1.5, this.end.y - this.start.y);
+                c.fill();
+                break;
+            default:
+                break;
+        }
+
+        c.beginPath();
+        c.arc(this.end.x, this.end.y, this.radius*multiplier, Math.PI*2, false);
+        c.strokeStyle = "yellow";
+        c.stroke();
+        c.fillStyle = "yellow";
+        c.fill();
+
+        //inner beam
+
+        var smallerRadius = this.radius/1.5;
+        if(!this.finishing){
+            c.beginPath();
+            c.arc(this.start.x, this.start.y, smallerRadius, Math.PI*2, false);
+            c.strokeStyle = "orange";
+            c.stroke();
+            c.fillStyle = "orange";
+            c.fill();
+        }
+        
+        switch(this.direction){
+            case "left":
+                c.beginPath();
+                c.fillStyle = "orange";
+                c.fillRect(this.end.x, this.end.y-smallerRadius/1.5, this.start.x - this.end.x, smallerRadius*2/1.5);
+                c.fill();
+                break;
+            case "right":
+                c.beginPath();
+                c.fillStyle = "orange";
+                c.fillRect(this.start.x, this.start.y-smallerRadius/1.5, this.end.x - this.start.x, smallerRadius*2/1.5);
+                c.fill();
+                break;
+            case "up":
+                c.beginPath();
+                c.fillStyle = "orange";
+                c.fillRect(this.end.x-smallerRadius/1.5, this.end.y, smallerRadius*2/1.5, this.start.y - this.end.y);
+                c.fill();
+                break;
+            case "down":
+                c.beginPath();
+                c.fillStyle = "orange";
+                c.fillRect(this.start.x-smallerRadius/1.5, this.start.y, smallerRadius*2/1.5, this.end.y - this.start.y);
+                c.fill();
+                break;
+            default:
+                break;
+        }
+
+        c.beginPath();
+        c.arc(this.end.x, this.end.y, smallerRadius*multiplier, Math.PI*2, false);
+        c.strokeStyle = "orange";
+        c.stroke();
+        c.fillStyle = "orange";
+        c.fill();
+        if(this.direction === "up"){
+            user.draw();
+        }
+    }
+    this.update = function() {
+        if(!this.finishing){
+            switch(this.direction){
+                case "left":
+                    this.end.x -= this.speed;
+                    break;
+                case "right":
+                    this.end.x += this.speed;
+                    break;
+                case "up":
+                    this.end.y -= this.speed;
+                    break;
+                case "down":
+                    this.end.y += this.speed;
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            if(this.finishDelay < 50){
+                this.finishDelay++;
+            } else {
+                this.finishDelay++;
+                if(this.finishDelay >= 60){
+                    user.attacking = false;
+                }
+                switch(this.direction){
+                    case "left":
+                        this.end.x -= this.speed;
+                        break;
+                    case "right":
+                        this.end.x += this.speed;
+                        break;
+                    case "up":
+                        this.end.y -= this.speed;
+                        break;
+                    case "down":
+                        this.end.y += this.speed;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        var smallX = Math.min(this.start.x, this.end.x);
+        var smallY = Math.min(this.start.y, this.end.y);
+        var bigX = Math.max(this.start.x, this.end.x);
+        var bigY = Math.max(this.start.y, this.end.y); 
+
+        var firstBeam;
+        var secondBeam;
+        switch(this.direction){
+            case "left":
+                if(!this.finishing){
+                    firstBeam = {
+                        x: smallX - this.radius,
+                        y: smallY-this.radius,
+                        width: this.radius*2,
+                        height: this.radius*2
+                    }
+                } else {
+                    firstBeam = {
+                        x: smallX,
+                        y: smallY-this.radius/1.5,
+                        width: this.radius,
+                        height: this.radius*2/1.5
+                    }
+                }
+
+                secondBeam = {
+                    x: smallX + this.radius,
+                    y: smallY - this.radius/1.5,
+                    width: bigX - smallX,
+                    height: this.radius*2/1.5
+                }
+                break;
+            case "right":
+                if(!this.finishing){
+                    firstBeam = {
+                        x: bigX - this.radius,
+                        y: bigY-this.radius,
+                        width: this.radius*2,
+                        height: this.radius*2
+                    }
+                } else {
+                    firstBeam = {
+                        x: bigX - this.radius,
+                        y: bigY - this.radius,
+                        width: this.radius,
+                        height: this.radius*2/1.5
+                    }
+                }
+
+                secondBeam = {
+                    x: smallX - this.radius,
+                    y: smallY - this.radius/1.5,
+                    width: bigX - smallX,
+                    height: this.radius*2/1.5
+                }
+                break;
+            
+            case "up":
+                if(!this.finishing){
+                    firstBeam = {
+                        x: smallX - this.radius,
+                        y: smallY - this.radius,
+                        width: this.radius*2,
+                        height: this.radius*2
+                    }
+                } else {
+                    firstBeam = {
+                        x: smallX - this.radius/1.5,
+                        y: smallY,
+                        width: this.radius*2/1.5,
+                        height: this.radius
+                    }
+                }
+
+                secondBeam = {
+                    x: smallX - this.radius/1.5,
+                    y: smallY + this.radius,
+                    width: this.radius*2/1.5,
+                    height: bigY - smallY
+                }
+                break;
+
+            case "down":
+                if(!this.finishing){
+                    firstBeam = {
+                        x: bigX - this.radius,
+                        y: bigY - this.radius,
+                        width: this.radius*2,
+                        height: this.radius*2
+                    }
+                } else {
+                    firstBeam = {
+                        x: bigX - this.radius/1.5,
+                        y: bigY - this.radius,
+                        width: this.radius*2/1.5,
+                        height: this.radius
+                    }
+                }
+
+                secondBeam = {
+                    x: smallX - this.radius/1.5,
+                    y: smallY - this.radius,
+                    width: this.radius*2/1.5,
+                    height: bigY - smallY
+                }
+                break;
+
+            default:
+                break;
+        }
+        if(objIntersectBoth(firstBeam, pichu) && this.status!="stop" && !pichu.damaged){
+            pichu.damage(this.damage()[0]);
+        }
+        if(objIntersectBoth(secondBeam, pichu) && this.status!="stop" && !pichu.damaged){
+            pichu.damage(this.damage()[1]);
+        }
+        for(var i = 0;i < attacks.length;i++){
+            var areaOfAttack = {
+                x: attacks[i].x,
+                y: attacks[i].y,
+                height: attacks[i].height,
+                width: attacks[i].width
+            }
+            if((objIntersectBoth(secondBeam, areaOfAttack) || objIntersectBoth(firstBeam, areaOfAttack)) && this.status!="stop"){
+                attacks[i].status = "stop";
+                attacks.splice(i,1);
+            }
+        }
+        var test1 = this.end.x < 0 || this.end.x >= canvas.width;
+        var test2 = this.end.y < 0 || this.end.y >= canvas.height;
+        if(!this.finishing && (test1 || test2)){
+            this.finishing = true;
+            var tempEnd = this.end;
+            this.end = this.start;
+            this.start = tempEnd;
+        } else {
+            if(this.finishing && (test1 || test2)){
+                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+            }
+        }
+        this.draw();
+    }
+}
+
 function Voltorb(x, y, priority){
     this.status = "active";
     this.health = 8;
@@ -2392,8 +2852,495 @@ function Wooper(x, y){
             }
         }
     }
+}
 
+function Snorlax(x, y, priority){
+    this.status = "active";
+    this.health = 300;
+    this.statesWithoutAttacking = 0;
+    this.x = x;
+    this.y = y;
+    this.mainX = x;
+    this.mainY = y;
+    this.mainWidth = 300;
+    this.mainHeight = 300;
+    this.attacking = false;
+    this.state = "stand";
+    this.stateArray = ["stand", "move", "attack"];
+    this.stateDelay = 0;
+    this.stateDesiredDelay = 80;
+    this.hitboxAdjust = function() {
+        switch(this.direction){
+            case "up":
+                this.x = this.mainX+24;
+                this.y = this.mainY+10;
+                this.width = this.mainWidth-56;
+                this.height = this.mainHeight-30;
+                break;
+            case "down":
+                this.x = this.mainX+30;
+                this.y = this.mainY+30;
+                this.width = this.mainWidth-65;
+                this.height = this.mainHeight-60;
+                break;
+            case "left":
+                this.x = this.mainX+50;
+                this.y = this.mainY+20;
+                this.width = this.mainWidth-140;
+                this.height = this.mainHeight-30;
+                break;
+            case "right":
+                this.x = this.mainX+40;
+                this.y = this.mainY+10;
+                this.width = this.mainWidth-90;
+                this.height = this.mainHeight-20;
+                break;
+        }
+    }
+    this.priority = priority;
+    this.speed = 0.5;
+    this.radius = 5;
+    this.exp = 100;
+    this.innerRadius = 0.1;
+    this.height = 300;
+    this.width = 300;
+    this.direction = "down";
+    this.i = 0;
+    this.iDelay = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 10;
+    this.idleDesiredDelay = 60;
+    this.myArray = undefined;
+    this.damageCooldown = 50;
+    this.downArrays = [[66, 88, 522, 522], [66, 88, 522, 522], [1390, 72, 522, 522], [1390, 72, 522, 522], [66, 88, 522, 522], [66, 88, 522, 522], [2040, 88, 522, 522], [2040, 88, 522, 522]];
+    this.upArrays = [[695, 705, 522, 522], [695, 705, 522, 522], [1375, 710, 522, 522], [1375, 710, 522, 522], [695, 705, 522, 522], [695, 705, 522, 522], [2018, 714, 522, 522], [2018, 714, 522, 522]];
+    this.leftArrays = [[737, 1245, 545, 545], [737, 1245, 545, 545], [1345, 1261, 545, 545], [1345, 1261, 545, 545]];
+    this.rightArrays = [[687, 1843, 545, 545], [687, 1843, 545, 545], [1260, 1833, 545, 545], [1260, 1833, 545, 545]];
+    this.downIdleArrays = [[66, 88, 522, 522], [694, 91, 522, 522]];
+    this.upIdleArrays = [[695, 705, 522, 522]];
+    this.leftIdleArrays = [[737, 1245, 545, 545], [2010, 1248, 545, 545]];
+    this.rightIdleArrays = [[687, 1843, 545, 545], [1945, 1857, 545, 545]];
+    this.downAttackArray = [[88, 695, 522, 522]];
+    this.upAttackArray = [[105, 1280, 522, 522]];
+    this.leftAttackArray = [[140, 1850, 545, 545]];
+    this.rightAttackArray = [[2433, 1871, 545, 545]];
+    this.attckWindDown = 0;
+    this.attackArray = ["Snore", "Hyper Beam"];
+    this.damageArray = [[0, 0, 1, 1]];
+    this.damage = function(amount){
+        if(this.status === "active"){
+            this.status = "damaged";
+            this.health -= amount;
+            if(this.health <= 0){
+                this.status = "eliminated";
+                pichu.gainExp(this.exp);
+                continueRush = true;
+            }
+        }
+    }
+    this.attack = function(attack){
+        if((this.status === "active" || this.status === "damaged") && !this.attacking){
+            switch(attack){
+                case "Snore":
+                    var front = {
+                        x: this.mainX + this.mainWidth/2,
+                        y: this.mainY + (this.mainHeight*2/5)
+                    }
 
+                    if(this.direction === "left"){
+                        front.x = this.mainX + this.mainWidth*7/24;
+                    }
+                    if(this.direction === "right"){
+                        front.x += this.mainWidth*4/24;
+                    }
+                    this.attckWindDown = 10;
+                    var newSnore = new Snore(front.x, front.y);
+                    break;
+                case "Hyper Beam":
+                    var front = {
+                        x: this.mainX + this.mainWidth/2,
+                        y: this.mainY + this.mainHeight/2
+                    }
+                    switch(this.direction){
+                        case "right":
+                            front.x = this.mainX + this.mainWidth*5/6;
+                            front.y = this.mainY + this.mainHeight/3;
+                            break;
+                        case "left":
+                            front.x = this.mainX + this.mainWidth*1/15;
+                            front.y = this.mainY + this.mainHeight/3;
+                            break;
+                        case "up":
+                            front.y = this.mainY + this.mainHeight/7;
+                        default:
+                            break;
+                    }
+                    this.idle_i = 0;
+                    this.attckWindDown = 10;
+                    var newHB = new HyperBeam(front.x, front.y, this.direction, this);
+                    this.attacking = true;
+                    enemyAttacks.push(newHB);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    this.intersect = function() {
+        var answer = false;
+        for(var i = 0;i < collidables.length;i++){
+            if(objIntersectBoth(this, collidables[i].test) && !collidables[i].intangible){
+                answer = true;
+            }
+        }
+        return answer;
+    }
+    this.adjustDirectionAttackVer = function(target){
+        var point = {
+            x: target.x + target.width/2,
+            y: target.y + target.height/2
+        }
+        if((this.mainX - 10) <= point.x && point.x <= (this.mainX + this.mainWidth + 10)){
+            if(target.y < this.mainY){
+                if(this.direction != "up"){
+                    this.direction = "up";
+                }
+            } else {
+                if(this.direction != "down"){
+                    this.direction = "down";
+                }
+            }
+        } else {
+            if(target.x < this.mainX){
+                if(this.direction != "left"){
+                    this.direction = "left";
+                }
+            } else if(target.x > this.mainX){
+                if(this.direction != "right"){
+                    this.direction = "right";
+                }
+            }
+        }
+        switch(this.direction){
+            case "left":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = this.leftIdleArrays;
+                break;
+            case "right":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = this.rightIdleArrays;
+                break;
+            case "up":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = this.upIdleArrays;
+                break;
+            case "down":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = this.downIdleArrays;
+                break;
+            default:
+                break;
+        }
+    }
+    this.adjustDirection = function(target, stand){
+        console.log(stand);
+        if(this.priority === 0){
+            if(Math.abs((this.mainX+(this.mainWidth/2)) - (target.x+(target.width/2))) >= 100){
+                if(target.x < this.mainX){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                    }
+                } else if(target.x > this.mainX){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                    }
+                }
+            } else {
+                if(target.y < this.mainY){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                    }
+                } else if(target.y > this.mainY){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                    }
+                }
+            }
+        }
+        if(this.priority === 1){
+            if(Math.abs((this.mainY+(this.mainHeight/2)) - (target.y+(target.height/2))) >= 100){
+                if(target.y < this.mainY){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                    }
+                } else if(target.y > this.mainY){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                    }
+                }
+            } else {
+                if(target.x < this.mainX){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                    }
+                } else if(target.x > this.mainX){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                    }
+                }
+            }
+        }
+        switch(this.direction){
+            case "left":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = stand ? this.leftIdleArrays : this.leftArrays;
+                break;
+            case "right":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = stand ? this.rightIdleArrays : this.rightArrays;
+                break;
+            case "up":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = stand ? this.upIdleArrays : this.upArrays;
+                break;
+            case "down":
+                this.i = 0;
+                this.hitboxAdjust();
+                this.myArray = stand ? this.downIdleArrays : this.downArrays;
+                break;
+            default:
+                break;
+        }
+    }
+    this.draw = function() {
+        i = this.i;
+        this.myArray = this.myArray ? this.myArray : this.downIdleArrays;
+        steps = this.myArray; //if Snorlax is attacking (with hyper beam), should update to use the correct directional array
+        damageSteps = this.damageArray;
+
+        if(this.status === "damaged" && this.damageCooldown%2 === 0){
+            c.drawImage(snorlaxSpritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.mainX, this.mainY, this.mainWidth, this.mainHeight);
+        } else {
+            c.drawImage(snorlaxSpritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.mainX, this.mainY, this.mainWidth, this.mainHeight);
+        }
+        // c.beginPath();
+        // c.strokeStyle = "blue";
+        // c.strokeRect(this.x, this.y, this.width, this.height);
+        // c.stroke();
+    }
+    this.update = function(target){
+        var adjust = 50;
+        var testTarget = {
+            x: target.x + 30,
+            y: target.y,
+            height: target.height-20,
+            width: target.width - 30
+        }
+        this.hitboxAdjust();
+        var testSnorlax = {
+            x: this.x,
+            y: this.y,
+            height: this.height,
+            width: this.width
+        }
+        var testPichu = {
+            x: pichu.x + 30,
+            y: pichu.y,
+            height: pichu.height-20,
+            width: pichu.width - 30
+        }
+        if(objIntersectBoth(testPichu, testSnorlax) && this.status==="active" && !pichu.damaged){
+            pichu.damage(1);
+        }
+        for(var i = 0;i < attacks.length;i++){
+            var areaOfAttack = {
+                x: attacks[i].givenX,
+                y: attacks[i].givenY,
+                height: attacks[i].height,
+                width: attacks[i].width
+            }
+            if(objIntersectBoth(areaOfAttack, testSnorlax) && this.status==="active" && attacks[i].status!="stop"){
+                attacks[i].status = "stop";
+                attacks.splice(i,1);
+                this.damage(attacks[i].damage());
+            }
+        }
+        if(!pichu.live){
+            this.direction = "down";
+            this.state = "stand";
+            this.i = 0;
+            this.myArray = this.downIdleArrays;
+            this.draw();
+        }
+        if((this.status === "active" || this.status === "damaged") && pichu.live){
+            if(this.stateDelay < this.stateDesiredDelay){
+                this.stateDelay++;
+                switch(this.state){
+                    case "stand":
+                        this.iDelay++;
+                        if(this.iDelay >= this.idleDesiredDelay){
+                            this.i++;
+                            this.iDelay = 0;
+                            this.idleDesiredDelay = 10;
+                            if(this.i >= this.myArray.length){
+                                this.i = 0;
+                                this.idleDesiredDelay = 60;
+                            }
+                        }
+                        break;
+                    case "move":
+                        this.motionDelay++;
+                        console.log(this.myArray.length);
+                        if(this.motionDelay >= this.desiredDelay){
+                            this.i++;
+                            this.motionDelay = 0;
+                            if(this.i >= this.myArray.length){
+                                this.i = 0;
+                            }
+                        }
+                        //preventing Snorlax from roaming around when Hyper Beam is still active
+                        if(!this.attacking){
+                            switch(this.direction){
+                                case "up":
+                                    this.mainY -= this.speed;
+                                    if(this.intersect() || picMenu || !pichu.live){
+                                        this.mainY += this.speed;
+                                    }
+                                    break;
+                                case "down":
+                                    this.mainY += this.speed;
+                                    if(this.intersect() || picMenu || !pichu.live){
+                                        this.mainY -= this.speed;
+                                    }
+                                    break;
+                                case "left":
+                                    this.mainX -= this.speed;
+                                    if(this.intersect() || picMenu || !pichu.live){
+                                        this.mainX += this.speed;
+                                    }
+                                    break;
+                                case "right":
+                                    this.mainX += this.speed;
+                                    if(this.intersect() || picMenu || !pichu.live){
+                                        this.mainX -= this.speed;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        break;
+                    case "attack":
+                        if(this.attckWindDown > 0){
+                            if(!this.attacking){
+                                this.attckWindDown--;
+                            } else {
+                                this.stateDelay--;
+                            }
+                        } else {
+                            this.state = "stand";
+                            switch(this.direction){
+                                case "up":
+                                    this.myArray = this.upIdleArrays;
+                                    break;
+                                case "down":
+                                    this.myArray = this.downIdleArrays;
+                                    break;
+                                case "left":
+                                    this.myArray = this.leftIdleArrays;
+                                    break;
+                                case "right":
+                                    this.myArray = this.rightIdleArrays;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            this.i = 0;
+                            this.iDelay = 0;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                this.stateDelay = 0;
+                this.i = 0;
+                this.iDelay = 0;
+                this.state = this.stateArray[Math.floor(Math.random()*this.stateArray.length)];
+                if(this.statesWithoutAttacking >= 2){
+                    this.state = "attack";
+                }
+                console.log(this.state);
+                this.idleDesiredDelay = 60;
+                switch(this.state){
+                    case "stand":
+                        this.adjustDirection(target, true);
+                        this.statesWithoutAttacking++;
+                        break;
+                    case "move":
+                        this.adjustDirection(target, false);
+                        this.statesWithoutAttacking++;
+                        break;
+                    case "attack":
+                        this.adjustDirectionAttackVer(target);
+                        this.statesWithoutAttacking = 0;
+                        if(enemyAttacks.length > 0){
+                            this.state = "stand";
+                        } else {
+                            switch(this.direction){
+                                case "up":
+                                    this.myArray = this.upAttackArray;
+                                    break;
+                                case "down":
+                                    this.myArray = this.downAttackArray;
+                                    break;
+                                case "right":
+                                    this.myArray = this.rightAttackArray;
+                                    break;
+                                case "left":
+                                    this.myArray = this.leftAttackArray;
+                                    break;
+                                default: 
+                                    break;
+                            }
+                            this.attack(this.attackArray[Math.floor(Math.random()*2)]);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            if(this.status === "damaged"){
+                this.damageCooldown--;
+                if(this.damageCooldown < 0){
+                    this.status = "active";
+                    this.damageCooldown = 50;
+                }
+            }
+            this.draw();
+        } else if(this.status === "eliminated"){
+            if(this.radius <= 150){
+                c.beginPath();
+                c.arc(this.mainX + this.mainWidth/2, this.mainY + this.mainHeight/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "aqua";
+                c.lineWidth = 150 - this.radius;
+                c.stroke();
+                this.radius+=7;
+            }
+            if(this.radius > 150){
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+            }
+        }
+    }
 }
 
 function oranBerry(x, y, size){
@@ -2853,39 +3800,102 @@ function enemyRush(number){
                 berryPlace("leppa");
             }
             //endless mode (until I code in other stuff)
-            for(var i = 0;i < 5;i++){
-                var enemy_x_coordinate;
-                var enemy_y_coordinate;
-                for(var j = 0;j < 1;j++){
-                    var randomCoordinate = {
-                        x: Math.floor(Math.random()*canvas.width),
-                        y: Math.floor(Math.random()*canvas.height),
-                        height: 100,
-                        width: 100
+            if(rushModeCount % 5 === 0){
+                if(continueRush){
+                    continueRush = false;
+                    floor = battleFloor;
+                    rollingText("directions", "Snorlax wants to battle!", emptyFn);
+                    var enemy_x_coordinate;
+                    var enemy_y_coordinate;
+                    for(var j = 0;j < 1;j++){
+                        var randomCoordinate = {
+                            x: Math.floor(Math.random()*canvas.width),
+                            y: Math.floor(Math.random()*canvas.height),
+                            height: 300,
+                            width: 300
+                        }
+                        if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
+                            j--;
+                        } else {
+                            enemy_x_coordinate = randomCoordinate.x;
+                            enemy_y_coordinate = randomCoordinate.y;
+                        }
                     }
-                    if(objIntersectBoth(randomCoordinate, pichu)){
-                        j--;
-                    } else {
-                        enemy_x_coordinate = randomCoordinate.x;
-                        enemy_y_coordinate = randomCoordinate.y;
+                    var newSnorlax = new Snorlax(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));;
+                    enemies.push(newSnorlax);
+                }
+            } else if(rushModeCount % 5 === 1){
+                if(continueRush){
+                    continueRush = false;
+                    var pokeball = new Pokeball(300, 300, false, function() {
+                        var options = ["oran", "leppa", "Double Team"];
+                        if(pichu.attacks.includes("Double Team") && options.includes("Double Team")){
+                            options.pop();
+                        }
+                        var option = options[Math.floor(Math.random() * options.length)];
+                        switch(option){
+                            case "Double Team":
+                                var doubleTeamTM = new Tm(300, 300, "Double Team");
+                                collidables.push(doubleTeamTM);
+                                break;
+                            case "oran":
+                                var newBerry = new oranBerry(300, 300, 3);
+                                collidables.push(newBerry);
+                                break;
+                            case "leppa":
+                                var newBerry = new leppaBerry(300, 300, 3);
+                                collidables.push(newBerry);
+                                break;
+                            default: 
+                                break;
+                        }
+                    });
+                    collidables.push(pokeball);
+                    rollingText("directions", "You defeated Snorlax! (Obtain the item to continue!)", emptyFn);
+                }
+                if(collidables.length === 0){
+                    //means the berries were eaten
+                    continueRush = true;
+                }
+            } else {
+                floor = grassFloor;
+                if(rushModeCount % 5 > 1){
+                    $("#directions").text("");
+                }
+                for(var i = 0;i < 5;i++){
+                    var enemy_x_coordinate;
+                    var enemy_y_coordinate;
+                    for(var j = 0;j < 1;j++){
+                        var randomCoordinate = {
+                            x: Math.floor(Math.random()*canvas.width),
+                            y: Math.floor(Math.random()*canvas.height),
+                            height: 100,
+                            width: 100
+                        }
+                        if(objIntersectBoth(randomCoordinate, pichu)){
+                            j--;
+                        } else {
+                            enemy_x_coordinate = randomCoordinate.x;
+                            enemy_y_coordinate = randomCoordinate.y;
+                        }
                     }
+                    var newEnemy;
+                    var enemyChoice = Math.floor(Math.random() * 2);
+                    if(rushModeCount < 15 && i > 2){
+                        enemyChoice = 0;
+                    }
+                    switch(enemyChoice){
+                        case 0:
+                            newEnemy = new Voltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
+                            break;
+                        case 1:
+                            newEnemy = new Wooper(enemy_x_coordinate, enemy_y_coordinate);
+                            break;
+                        default:
+                            break;
+                    }
+                    enemies.push(newEnemy);
                 }
-                var newEnemy;
-                var enemyChoice = Math.floor(Math.random() * 2);
-                if(rushModeCount < 15 && i > 2){
-                    enemyChoice = 0;
-                }
-                switch(enemyChoice){
-                    case 0:
-                        newEnemy = new Voltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
-                        break;
-                    case 1:
-                        newEnemy = new Wooper(enemy_x_coordinate, enemy_y_coordinate);
-                        break;
-                    default:
-                        break;
-                }
-                enemies.push(newEnemy);
             }
         }
     }
@@ -3263,7 +4273,7 @@ function Snorlax(x, y, priority){
     this.priority = priority;
     this.speed = 0.5;
     this.radius = 5;
-    this.exp = 1000;
+    this.exp = 100;
     this.innerRadius = 0.1;
     this.height = 300;
     this.width = 300;
@@ -3703,8 +4713,6 @@ function Snorlax(x, y, priority){
             }
         }
     }
-
-
 }
 
 function oranBerry(x, y, size){
@@ -6394,8 +7402,8 @@ function HyperBeam(x, y, direction, user){
     }
     this.direction = direction;
     this.damage = function(){
-        var secondBeamDamage = 2 + 5*(Math.max(0, pichu.level - 5));
-        var firstBeamDamage = 2.5 + 5*(Math.max(0, pichu.level - 5));
+        var secondBeamDamage = 20 + 5*(Math.max(0, pichu.level - 5));
+        var firstBeamDamage = 25 + 5*(Math.max(0, pichu.level - 5));
         if(this.finishing){
             firstBeamDamage = secondBeamDamage;
         }
