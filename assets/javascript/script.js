@@ -1849,7 +1849,7 @@ function Swift(x,y,spikes,outerRadius,innerRadius){
     this.change_i = 0;
     this.change_Delay = 15;
     this.damage = function() {
-        return 5 + 5*(Math.max(0, pichu.level - 5));
+        return 5 + 1*(Math.max(0, pichu.level - 5));
     }
     this.draw = function() {
         if(this.status != "stop"){
@@ -2763,7 +2763,7 @@ function Wooper(x, y){
             width: pichu.width - adjust
         }
         if(objIntersectBoth(testPichu, testWooper) && this.status==="active" && !pichu.damaged){
-            var damage = 8 + 5*(Math.max(0, pichu.level - 5)); //return later
+            var damage = 8 + 1*(Math.max(0, pichu.level - 5)); //return later
             pichu.damage(damage);
         }
         for(var i = 0;i < attacks.length;i++){
