@@ -255,7 +255,7 @@ function howToPlay(backFunction) {
     optionRow.append(directionsText);
 
     //setting up an array to setup multiple divs for each category
-    var directionsArray = ["movement", "attack", "pause"];
+    var directionsArray = ["movement", "attack", "pause", "z-attack"];
     for(var i = 0;i < directionsArray.length;i++){
         var buttonDiv = $(`<div id=\"${directionsArray[i]}Button\" class=\"col-md-3\"></div>`);
         optionRow.append(buttonDiv);
@@ -270,6 +270,9 @@ function howToPlay(backFunction) {
                 break;
             case "pause":
                 buttonPic.attr("src", "assets/images/enterKey.png");
+                break;
+            case "z-attack":
+                buttonPic.attr("src", "assets/images/zKey.png");
                 break;
             default:
                 buttonPic.attr("src", "assets/images/pichu%20front%20potential%20annoyed.png");
@@ -291,6 +294,9 @@ function howToPlay(backFunction) {
             case "pause":
                 displayPic.attr("src", "assets/images/pause.png");
                 break;
+            case "z-attack":
+                displayPic.attr("src", "assets/images/attackHowTo.png");
+                break;
             default:
                 displayPic.attr("src", "assets/images/pichu%20front%20potential%20annoyed.png");
                 break;
@@ -307,6 +313,9 @@ function howToPlay(backFunction) {
                 break;
             case "pause":
                 directionsDiv.text("Use the Enter key to pause the game!");
+                break;
+            case "z-attack":
+                directionsDiv.text("Use the Z key to fire an attack (that is mapped to the Z key) at enemies!");
                 break;
             default:
                 directionsDiv.text("Directions not found!");
@@ -498,6 +507,7 @@ pichu = {
     y: pichuLoad.y,
     pichuSheet: spritesheet,
     attackNumber: 0,
+    z_attackNumber: undefined,
     radius: 5,
     height: 100,
     width: 100,
@@ -734,8 +744,14 @@ pichu = {
         }
     },
     attacks: ["Thunderbolt"],
-    attack: function() {
-        switch(this.attackNumber){
+    attack: function(z) {
+        var atkNum;
+        if(z){
+            atkNum = this.z_attackNumber;
+        } else {
+            atkNum = this.attackNumber;
+        }
+        switch(atkNum){
             case 0:
                 if(this.live && (this.charge >= 15)){
                     var frontPichu = frontOfPichu();
@@ -1209,7 +1225,7 @@ function pause(){
 }
 
 function pauseMenu() {
-    optionize("P A U S E", "How to Play", "Quit Game", "Continue Playing", "Change Attack");
+    optionize("P A U S E", "How to Play", "Quit Game", "Continue Playing", "Change Attack", "Change Z-Attack");
     $(".options").css("background-color", "black");
     var option1 = document.getElementById("option1");
     var option2 = document.getElementById("option2");
@@ -1246,25 +1262,141 @@ function pauseMenu() {
     option4.onclick = function() {
         var optionsArray = pichu.attacks.slice();
         optionsArray.push("Go Back (this isn't an attack)");
+        for(var i = 0;i < optionsArray.length;i++){
+            switch(optionsArray[i]){
+                case "Thunderbolt":
+                    if(pichu.attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Swift":
+                    if(pichu.attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Double Team":
+                    if(pichu.attackNumber === 2){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 2){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+        }
         $("#optionRow").remove();
-        optionizeArrayVer("Which attack would you like to select?", optionsArray);
+        optionizeArrayVer("Which attack would you like to select? (* means the attack is mapped to the Spacebar, ** means it is mapped to the Z key)", optionsArray);
 
         var optionArrayByClass = document.getElementsByClassName("options");
         for(var i = 0;i < optionArrayByClass.length;i++){
             optionArrayByClass[i].onclick = function(option){
-                console.log(option.target.innerText);
-                switch(option.target.innerText){
+                console.log(option.target.innerText.replace(/\*/g, ''));
+                switch(option.target.innerText.replace(/\*/g, '')){
                     case "Thunderbolt":
-                        pichu.attackNumber = 0;
-                        option.target.innerText = "Done!";
-                        break;
+                        if(pichu.attackNumber != 0 && pichu.z_attackNumber != 0){
+                            pichu.attackNumber = 0;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                     case "Swift":
-                        pichu.attackNumber = 1;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
+                            pichu.attackNumber = 1;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     case "Double Team":
-                        pichu.attackNumber = 2;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
+                            pichu.attackNumber = 2;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    default:
+                        $("#optionRow").remove();
+                        pauseMenu();
+                }
+            }
+        }
+    }
+
+    option5.onclick = function() {
+        var optionsArray = pichu.attacks.slice();
+        optionsArray.push("Go Back (this isn't an attack)");
+        for(var i = 0;i < optionsArray.length;i++){
+            switch(optionsArray[i]){
+                case "Thunderbolt":
+                    if(pichu.attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Swift":
+                    if(pichu.attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Double Team":
+                    if(pichu.attackNumber === 2){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 2){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+        }
+        $("#optionRow").remove();
+        optionizeArrayVer("Which attack would you like to select to be mapped to the Z key? (* means the attack is mapped to the Spacebar, ** means it is mapped to the Z key)", optionsArray);
+
+        var optionArrayByClass = document.getElementsByClassName("options");
+        for(var i = 0;i < optionArrayByClass.length;i++){
+            optionArrayByClass[i].onclick = function(option){
+                console.log(option.target.innerText.replace(/\*/g, ''));
+                switch(option.target.innerText.replace(/\*/g, '')){
+                    case "Thunderbolt":
+                        if(pichu.attackNumber != 0 && pichu.z_attackNumber != 0){
+                            pichu.z_attackNumber = 0;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Swift":
+                        if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
+                            pichu.z_attackNumber = 1;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Double Team":
+                        if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
+                            pichu.z_attackNumber = 2;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     default:
                         $("#optionRow").remove();
@@ -1319,6 +1451,11 @@ window.onkeydown = function(event) {
             break;
         case " ":
             pichu.attack();
+            break;
+        case "z":
+            if(pichu.attacks.length > 1){
+                pichu.attack(true);
+            }
             break;
         default:
             break;
@@ -1712,7 +1849,7 @@ function Swift(x,y,spikes,outerRadius,innerRadius){
     this.change_i = 0;
     this.change_Delay = 15;
     this.damage = function() {
-        return 5;
+        return 5 + 5*(Math.max(0, pichu.level - 5));
     }
     this.draw = function() {
         if(this.status != "stop"){
@@ -1869,6 +2006,7 @@ function SnoreSingle(x, y, direction){
     this.type = "Normal";
     this.x = x;
     this.y = y;
+    this.frameNumber = 0;
     this.direction = direction;
     this.damage = function() {
         return 10 + 5*(Math.max(0, pichu.level - 5));
@@ -1898,6 +2036,7 @@ function SnoreSingle(x, y, direction){
         }
     }
     this.update = function() {
+        this.frameNumber++;
         switch(this.direction){
             case "up":
                 this.y--;
@@ -1937,7 +2076,13 @@ function SnoreSingle(x, y, direction){
                 width: this.width,
                 height: this.height
             }
-            if(objIntersectBoth(newAreaOfAttack, pichu) && this.status != "stop" && !pichu.damaged){
+            var testPichu = {
+                x: pichu.x + 30,
+                y: pichu.y,
+                height: pichu.height-20,
+                width: pichu.width - 30
+            }
+            if(objIntersectBoth(newAreaOfAttack, testPichu) && this.status != "stop" && !pichu.damaged){
                 this.status = "stop";
                 enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
                 pichu.damage(this.damage());
@@ -2618,7 +2763,7 @@ function Wooper(x, y){
             width: pichu.width - adjust
         }
         if(objIntersectBoth(testPichu, testWooper) && this.status==="active" && !pichu.damaged){
-            var damage = 8; //return later
+            var damage = 8 + 5*(Math.max(0, pichu.level - 5)); //return later
             pichu.damage(damage);
         }
         for(var i = 0;i < attacks.length;i++){
@@ -2856,7 +3001,7 @@ function Wooper(x, y){
 
 function Snorlax(x, y, priority){
     this.status = "active";
-    this.health = 300;
+    this.health = 300 + 100*((rushModeCount/5) - 3);
     this.statesWithoutAttacking = 0;
     this.x = x;
     this.y = y;
@@ -3753,23 +3898,25 @@ function enemyRush(number){
         } else if(rushModeCount === 6){
             if(continueRush){
                 continueRush = false;
-                // var swiftSign = new Sign(300, 300, "Congrats! You learned Swift! Change your attack via the Pause menu!", function() {
-                //     pichu.attacks.push("Swift");
-                //     collidables.splice(collidables.indexOf(swiftSign), 1);
-                //     // var wooperSign = new Sign(600, 300, "Oh by the way, a new enemy appears! Be careful, this one resists electric attack(s)!", function() {
-                //     //     collidables.splice(collidables.indexOf(wooperSign), 1);
-                //     //     continueRush = true;
-                //     // })
-                //     // collidables.push(wooperSign);
-                //     continueRush = true;
-                // })
-                // collidables.push(swiftSign);
-                var swiftTM = new Tm(300, 300, "Swift", function() {
-                    continueRush = true;
-                });
-                collidables.push(swiftTM);
+                berryPlace("oran");
+                berryPlace("leppa");
+                rollingText("directions", "Eat berries to restore health/charge!", emptyFn);
+            }
+            if(collidables.length === 0){
+                continueRush = true;
             }
         } else if(rushModeCount > 6 && rushModeCount < 9){
+            if(rushModeCount === 7){
+                $("#directions").text("");
+            }
+            var placeOranBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
+            var placeLeppaBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
+            if(placeOranBerry){
+                berryPlace("oran");
+            }
+            if(placeLeppaBerry){
+                berryPlace("leppa");
+            }
             for(var i = 0;i < (rushModeCount - 6);i++){
                 var wooper_x_coordinate;
                 var wooper_y_coordinate;
@@ -3791,8 +3938,8 @@ function enemyRush(number){
                 enemies.push(newWooper);
             }
         } else {
-            var placeOranBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
-            var placeLeppaBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
+            var placeOranBerry = ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
+            var placeLeppaBerry = ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
             if(placeOranBerry){
                 berryPlace("oran");
             }
@@ -3828,14 +3975,25 @@ function enemyRush(number){
                 if(continueRush){
                     continueRush = false;
                     var pokeball = new Pokeball(300, 300, false, function() {
-                        var options = ["oran", "leppa", "Double Team"];
+                        var options = ["oran", "leppa", "Swift", "Double Team"];
+                        if(pichu.attacks.includes("Swift") && options.includes("SWift")){
+                            options.splice(options.indexOf("Swift"),1)
+                        }
                         if(pichu.attacks.includes("Double Team") && options.includes("Double Team")){
-                            options.pop();
+                            options.splice(options.indexOf("Double Team"),1)
                         }
                         var option = options[Math.floor(Math.random() * options.length)];
                         switch(option){
+                            case "Swift":
+                                var swiftTM = new Tm(300, 300, "Swift", function() {
+                                    pichu.z_attackNumber = 1;
+                                });
+                                collidables.push(swiftTM);
+                                break;
                             case "Double Team":
-                                var doubleTeamTM = new Tm(300, 300, "Double Team");
+                                var doubleTeamTM = new Tm(300, 300, "Double Team", function(){
+                                    pichu.z_attackNumber = 2;
+                                });
                                 collidables.push(doubleTeamTM);
                                 break;
                             case "oran":
@@ -4113,6 +4271,7 @@ function gameOver(){
         picMenu = false
         paused = false;
         startMeBaby = true;
+        $("#directions").text("");
         startRush();
     }
     option2.onclick = function() {
@@ -4128,6 +4287,7 @@ function gameOver(){
         healthbar.value = 0;
         var expbar = document.getElementById("exp_bar");
         expbar.value = 0;
+        $("#directions").text("");
         mainMenunize();
     }
 
@@ -5129,6 +5289,7 @@ pichu = {
     y: pichuLoad.y,
     pichuSheet: spritesheet,
     attackNumber: 0,
+    z_attackNumber: 1,
     radius: 5,
     attacking: false, //testing for hyper beam
     height: 100,
@@ -5375,8 +5536,14 @@ pichu = {
         }
     },
     attacks: ["Thunderbolt", "Swift", "Hyper Beam", "Cry (testing for Swift)"],
-    attack: function() {
-        switch(this.attackNumber){
+    attack: function(z) {
+        var atkNum;
+        if(z){
+            atkNum = this.z_attackNumber;
+        } else {
+            atkNum = this.attackNumber;
+        }
+        switch(atkNum){
             case 0:
                 if(this.live && (this.charge >= 15)){
                     var frontPichu = frontOfPichu();
@@ -6446,7 +6613,7 @@ function pause(){
 }
 
 function pauseMenu() {
-    optionize("P A U S E", "How to Play", "Quit Game", "Continue Playing", "Change Attack");
+    optionize("P A U S E", "How to Play", "Quit Game", "Continue Playing", "Change Attack", "Change Z-Attack");
     $(".options").css("background-color", "black");
     var option1 = document.getElementById("option1");
     var option2 = document.getElementById("option2");
@@ -6485,33 +6652,174 @@ function pauseMenu() {
     option4.onclick = function() {
         var optionsArray = pichu.attacks.slice();
         optionsArray.push("Go Back (this isn't an attack)");
+        for(var i = 0;i < optionsArray.length;i++){
+            switch(optionsArray[i]){
+                case "Thunderbolt":
+                    if(pichu.attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Swift":
+                    if(pichu.attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Double Team":
+                    if(pichu.attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+        }
         $("#optionRow").remove();
-        optionizeArrayVer("Which attack would you like to select?", optionsArray);
+        optionizeArrayVer("Which attack would you like to select? (* means the attack is mapped to the Spacebar, ** means it is mapped to the Z key)", optionsArray);
 
         var optionArrayByClass = document.getElementsByClassName("options");
         for(var i = 0;i < optionArrayByClass.length;i++){
             optionArrayByClass[i].onclick = function(option){
-                console.log(option.target.innerText);
-                switch(option.target.innerText){
+                console.log(option.target.innerText.replace(/\*/g, ''));
+                switch(option.target.innerText.replace(/\*/g, '')){
                     case "Thunderbolt":
-                        pichu.attackNumber = 0;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 0 && pichu.z_attackNumber != 0){
+                            pichu.attackNumber = 0;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     case "Swift":
-                        pichu.attackNumber = 1;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
+                            pichu.attackNumber = 1;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     case "Cry (testing for Swift)":
-                        pichu.attackNumber = 2;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
+                            pichu.attackNumber = 2;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     case "Double Team":
-                        pichu.attackNumber = 3;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
+                            pichu.attackNumber = 3;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     case "Hyper Beam":
-                        pichu.attackNumber = 11;
-                        option.target.innerText = "Done!";
+                        if(pichu.attackNumber != 11 && pichu.z_attackNumber != 11){
+                            pichu.attackNumber = 11;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    default:
+                        $("#optionRow").remove();
+                        pauseMenu();
+                }
+            }
+        }
+    }
+
+    option5.onclick = function() {
+        var optionsArray = pichu.attacks.slice();
+        optionsArray.push("Go Back (this isn't an attack)");
+        for(var i = 0;i < optionsArray.length;i++){
+            switch(optionsArray[i]){
+                case "Thunderbolt":
+                    if(pichu.attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 0){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Swift":
+                    if(pichu.attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 1){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Double Team":
+                    if(pichu.attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+        }
+        $("#optionRow").remove();
+        optionizeArrayVer("Which attack would you like to select to be mapped to the Z key? (* means the attack is mapped to the Spacebar, ** means it is mapped to the Z key)", optionsArray);
+
+        var optionArrayByClass = document.getElementsByClassName("options");
+        for(var i = 0;i < optionArrayByClass.length;i++){
+            optionArrayByClass[i].onclick = function(option){
+                console.log(option.target.innerText.replace(/\*/g, ''));
+                switch(option.target.innerText.replace(/\*/g, '')){
+                    case "Thunderbolt":
+                        if(pichu.attackNumber != 0 && pichu.z_attackNumber != 0){
+                            pichu.z_attackNumber = 0;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Swift":
+                        if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
+                            pichu.z_attackNumber = 1;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Cry (testing for Swift)":
+                        if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
+                            pichu.z_attackNumber = 2;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Double Team":
+                        if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
+                            pichu.z_attackNumber = 3;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Hyper Beam":
+                        if(pichu.attackNumber != 11 && pichu.z_attackNumber != 11){
+                            pichu.z_attackNumber = 11;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
                         break;
                     default:
                         $("#optionRow").remove();
@@ -6567,6 +6875,9 @@ switch(event.key){
         break;
     case " ":
         pichu.attack();
+        break;
+    case "z":
+        pichu.attack(true);
         break;
     case "a":
         ///////////////////////use wooper sprites
@@ -6722,10 +7033,10 @@ function SnoreSingle(x, y, direction){
             c.textAlign = "center"
             c.fillStyle = "black";
             c.fillText("zzz", this.x, this.y);
-            // c.beginPath();
-            // c.strokeStyle = "yellow";
-            // c.strokeRect(this.x - this.width/2, this.y-this.height, this.width, this.height);
-            // c.stroke();
+            c.beginPath();
+            c.strokeStyle = "yellow";
+            c.strokeRect(this.x - this.width/2, this.y-this.height, this.width, this.height);
+            c.stroke();
         }
     }
     this.update = function() {
@@ -6768,7 +7079,13 @@ function SnoreSingle(x, y, direction){
                 width: this.width,
                 height: this.height
             }
-            if(objIntersectBoth(newAreaOfAttack, pichu) && this.status != "stop" && !pichu.damaged){
+            var testPichu = {
+                x: pichu.x + 30,
+                y: pichu.y,
+                height: pichu.height-20,
+                width: pichu.width - 30
+            }
+            if(objIntersectBoth(newAreaOfAttack, testPichu) && this.status != "stop" && !pichu.damaged){
                 this.status = "stop";
                 enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
                 pichu.damage(this.damage());
@@ -8514,7 +8831,7 @@ pichu.health = 10;
 pichu.level = 0;
 pichu.exp = 0;
 $("#player-pic").attr("src", pichu.picture);
-//collidables.push(spriteSign);
+collidables.push(spriteSign);
 var doubleTeamtM = new Tm(300, 300, "Double Team");
 //collidables.push(doubleTeamtM);
 console.log(spriteSign.test);
