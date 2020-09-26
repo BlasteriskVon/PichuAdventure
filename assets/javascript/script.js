@@ -3045,7 +3045,7 @@ function Snorlax(x, y, priority){
     this.priority = priority;
     this.speed = 0.5;
     this.radius = 5;
-    this.exp = 100;
+    this.exp = 25;
     this.innerRadius = 0.1;
     this.height = 300;
     this.width = 300;
@@ -3977,10 +3977,14 @@ function enemyRush(number){
                     var pokeball = new Pokeball(300, 300, false, function() {
                         var options = ["oran", "leppa", "Swift", "Double Team"];
                         if(pichu.attacks.includes("Swift") && options.includes("SWift")){
-                            options.splice(options.indexOf("Swift"),1)
+                            options.splice(options.indexOf("Swift"),1);
                         }
                         if(pichu.attacks.includes("Double Team") && options.includes("Double Team")){
-                            options.splice(options.indexOf("Double Team"),1)
+                            options.splice(options.indexOf("Double Team"),1);
+                        }
+                        if(pichu.health >= pichu.max_Health() && pichu.attacks.length < 3){
+                            options.splice(options.indexOf("oran"),1);
+                            options.splice(options.indexOf("leppa"),1)
                         }
                         var option = options[Math.floor(Math.random() * options.length)];
                         switch(option){
