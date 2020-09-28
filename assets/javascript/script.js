@@ -1829,6 +1829,12 @@ function Swift(x,y,spikes,outerRadius,innerRadius){
                 enemies[i].damage(this.damage());
             }
         }
+        for(var i = 0;i < enemyAttacks.length;i++){
+            if(objIntersectBoth(this, enemyAttacks[i]) && enemyAttacks[i].status != "stop" && this.status != "stop"){
+                this.status = "stop";
+                attacks.splice(attacks.indexOf(this), 1);
+            }
+        }
         this.i++;
         if(this.i > 1){
             this.i = 0;
@@ -1844,6 +1850,7 @@ function Swift(x,y,spikes,outerRadius,innerRadius){
     this.x = x;
     this.y = y;
     this.direction = direction;
+    this.status = "go";
     this.radius = radius;
     this.horizontal = true;
     this.change_i = 0;
@@ -3873,6 +3880,7 @@ function enemyRush(number){
     if(enemies.length === 0){
         if(continueRush){
             rushModeCount++;
+            console.log("Wave " + rushModeCount);
         }
         if(rushModeCount <= 5){
             for(var i = 0;i < rushModeCount;i++){
@@ -3938,8 +3946,8 @@ function enemyRush(number){
                 enemies.push(newWooper);
             }
         } else {
-            var placeOranBerry = ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
-            var placeLeppaBerry = ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
+            var placeOranBerry = (((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2))) && rushModeCount % 5 != 1;
+            var placeLeppaBerry = (((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()))) && rushModeCount % 5 != 1;
             if(placeOranBerry){
                 berryPlace("oran");
             }
