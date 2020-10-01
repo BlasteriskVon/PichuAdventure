@@ -1,4 +1,4 @@
-//ADD WIDTH AND HEIGHT FOR SWIFT
+//ADJUST HITBOXES FOR VOLTORB AND WOOPER, MIGHT AS WELL AS A HITBOX FUNCTION FOR THEM TOO (and snorlax)
 var textInterval;
 var startMeBaby = false;
 var pichuLoad;
@@ -516,6 +516,44 @@ pichu = {
     level: pichuLoad.level,
     exp: pichuLoad.exp,
     slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow them down temporarily
+    hitbox: function(){
+        var newPichu = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        switch(this.direction){
+            case "down":
+                newPichu.x += 23;
+                newPichu.width = 54;
+                newPichu.y += 28;
+                newPichu.height = 67;
+                break;
+            case "up":
+                newPichu.x += 23;
+                newPichu.width = 54;
+                newPichu.y += 29;
+                newPichu.height = 67;
+                break;
+            case "left":
+                newPichu.x += 28;
+                newPichu.width = 52;
+                newPichu.y += 21;
+                newPichu.height = 71;
+                break;
+            case "right":
+                newPichu.x += 36;
+                newPichu.width = 52;
+                newPichu.y += 24;
+                newPichu.height = 71;
+                break;
+            default:
+                break;
+                
+        }
+        return newPichu;
+    },
     levelUpExp: function() {
         return 10*pichu.level;
     },
@@ -2083,13 +2121,7 @@ function SnoreSingle(x, y, direction){
                 width: this.width,
                 height: this.height
             }
-            var testPichu = {
-                x: pichu.x + 30,
-                y: pichu.y,
-                height: pichu.height-20,
-                width: pichu.width - 30
-            }
-            if(objIntersectBoth(newAreaOfAttack, testPichu) && this.status != "stop" && !pichu.damaged){
+            if(objIntersectBoth(newAreaOfAttack, pichu.hitbox()) && this.status != "stop" && !pichu.damaged){
                 this.status = "stop";
                 enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
                 pichu.damage(this.damage());
@@ -2507,16 +2539,10 @@ function Voltorb(x, y, priority){
     var testVoltorb = {
         x: this.x,
         y: this.y,
-        height: this.height - adjust,
-        width: this.width - adjust
+        height: this.height,
+        width: this.width
     }
-    var testPichu = {
-        x: pichu.x,
-        y: pichu.y,
-        height: pichu.height - adjust,
-        width: pichu.width - adjust
-    }
-    if(objIntersectBoth(testPichu, testVoltorb) && this.status==="active" && !pichu.damaged){
+    if(objIntersectBoth(pichu.hitbox(), testVoltorb) && this.status==="active" && !pichu.damaged){
         this.status = "succeeded";
         var damage = 5 + 10*(Math.max(0, pichu.level - 5));
         pichu.damage(damage);
@@ -2763,13 +2789,7 @@ function Wooper(x, y){
             height: this.height - adjust,
             width: this.width - adjust
         }
-        var testPichu = {
-            x: pichu.x,
-            y: pichu.y,
-            height: pichu.height - adjust,
-            width: pichu.width - adjust
-        }
-        if(objIntersectBoth(testPichu, testWooper) && this.status==="active" && !pichu.damaged){
+        if(objIntersectBoth(pichu.hitbox(), testWooper) && this.status==="active" && !pichu.damaged){
             var damage = 8 + 1*(Math.max(0, pichu.level - 5)); //return later
             pichu.damage(damage);
         }
@@ -3302,13 +3322,7 @@ function Snorlax(x, y, priority){
             height: this.height,
             width: this.width
         }
-        var testPichu = {
-            x: pichu.x + 30,
-            y: pichu.y,
-            height: pichu.height-20,
-            width: pichu.width - 30
-        }
-        if(objIntersectBoth(testPichu, testSnorlax) && this.status==="active" && !pichu.damaged){
+        if(objIntersectBoth(pichu.hitbox(), testSnorlax) && this.status==="active" && !pichu.damaged){
             pichu.damage(1);
         }
         for(var i = 0;i < attacks.length;i++){
@@ -4134,6 +4148,10 @@ function animate() {
     c.drawImage(floor, 0, 0, canvas.width, canvas.height);
     collidableDraw();
     pichu.update();
+    // c.beginPath();
+    // c.strokeStyle = "yellow";
+    // c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
+    // c.stroke();
     collidableDelayDraw();
     if(rushModeCount >= 0){
         enemyRush(rushModeCount);
@@ -4694,13 +4712,7 @@ function Snorlax(x, y, priority){
             height: this.height,
             width: this.width
         }
-        var testPichu = {
-            x: pichu.x + 30,
-            y: pichu.y,
-            height: pichu.height-20,
-            width: pichu.width - 30
-        }
-        if(objIntersectBoth(testPichu, testSnorlax) && this.status==="active" && !pichu.damaged){
+        if(objIntersectBoth(pichu.hitbox(), testSnorlax) && this.status==="active" && !pichu.damaged){
             pichu.damage(1);
         }
         for(var i = 0;i < attacks.length;i++){
@@ -5218,7 +5230,7 @@ function Pokeball(x, y, isVoltorb, openingFn){
             width: 1,
             height: 1
         }
-        if(objIntersectBoth(this, pichu) && pichuTest.full_y < this.y + this.height){
+        if(objIntersectBoth(this, pichuTest) && pichuTest.full_y < this.y + this.height){
             this.drawn = true;
         } else {
             this.drawn = false;
@@ -5311,6 +5323,44 @@ pichu = {
     level: pichuLoad.level,
     exp: pichuLoad.exp,
     slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow them down temporarily
+    hitbox: function(){
+        var newPichu = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        switch(this.direction){
+            case "down":
+                newPichu.x += 23;
+                newPichu.width = 54;
+                newPichu.y += 28;
+                newPichu.height = 67;
+                break;
+            case "up":
+                newPichu.x += 23;
+                newPichu.width = 54;
+                newPichu.y += 29;
+                newPichu.height = 67;
+                break;
+            case "left":
+                newPichu.x += 28;
+                newPichu.width = 52;
+                newPichu.y += 21;
+                newPichu.height = 71;
+                break;
+            case "right":
+                newPichu.x += 36;
+                newPichu.width = 52;
+                newPichu.y += 24;
+                newPichu.height = 71;
+                break;
+            default:
+                break;
+                
+        }
+        return newPichu;
+    },
     levelUpExp: function() {
         return 10*pichu.level;
     },
@@ -7091,13 +7141,7 @@ function SnoreSingle(x, y, direction){
                 width: this.width,
                 height: this.height
             }
-            var testPichu = {
-                x: pichu.x + 30,
-                y: pichu.y,
-                height: pichu.height-20,
-                width: pichu.width - 30
-            }
-            if(objIntersectBoth(newAreaOfAttack, testPichu) && this.status != "stop" && !pichu.damaged){
+            if(objIntersectBoth(newAreaOfAttack, pichu.hitbox()) && this.status != "stop" && !pichu.damaged){
                 this.status = "stop";
                 enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
                 pichu.damage(this.damage());
@@ -8221,13 +8265,7 @@ function Voltorb(x, y, priority){
         height: this.height - adjust,
         width: this.width - adjust
     }
-    var testPichu = {
-        x: pichu.x,
-        y: pichu.y,
-        height: pichu.height - adjust,
-        width: pichu.width - adjust
-    }
-    if(objIntersectBoth(testPichu, testVoltorb) && this.status==="active" && !pichu.damaged){
+    if(objIntersectBoth(pichu.hitbox(), testVoltorb) && this.status==="active" && !pichu.damaged){
         this.status = "succeeded";
         var damage = 5 + 10*(Math.max(0, pichu.level - 5));
         pichu.damage(damage);
@@ -8473,13 +8511,7 @@ function Wooper(x, y){
             height: this.height - adjust,
             width: this.width - adjust
         }
-        var testPichu = {
-            x: pichu.x,
-            y: pichu.y,
-            height: pichu.height - adjust,
-            width: pichu.width - adjust
-        }
-        if(objIntersectBoth(testPichu, testWooper) && this.status==="active" && !pichu.damaged){
+        if(objIntersectBoth(pichu.hitbox(), testWooper) && this.status==="active" && !pichu.damaged){
             var damage = 8; //return later
             pichu.damage(damage);
         }
@@ -8779,12 +8811,13 @@ function animate() {
     c.drawImage(floor, 0, 0, canvas.width, canvas.height);
     collidableDraw();
     pichu.update();
-    //boxing pichu
-    // c.beginPath();
-    // c.strokeStyle = "yellow";
-    // c.strokeRect(pichu.x, pichu.y, pichu.width, pichu.height);
-    // c.stroke();
-    collidableDelayDraw();
+    /********************** SHOW PICHU HITBOX
+    c.beginPath();
+    c.strokeStyle = "yellow";
+    c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
+    c.stroke();
+    // collidableDelayDraw();
+    ***********************/
     var target = pichu;
     for(var i = 0;i < attacks.length;i++){
         if(attacks[i].name === "Double Team"){
