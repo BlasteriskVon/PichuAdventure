@@ -964,7 +964,13 @@ function Thunderbolt(x, y, direction, radius){
             height: this.height
         }
         for(var i = 0;i < enemies.length;i++){
-            if(objIntersectBoth(newAreaOfAttack, enemies[i].hitbox()) && enemies[i].status === "active" && this.status != "stop"){
+            var enemyHitbox;
+            if(enemies[i].big){
+                enemyHitbox = enemies[i].hitbox();
+            } else {
+                enemyHitbox = enemies[i];
+            }
+            if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
                 this.status = "stop";
                 attacks.splice(attacks.indexOf(this), 1);
                 enemies[i].damage(this.damage());
@@ -1169,7 +1175,13 @@ function Thunderbolt(x, y, direction, radius){
                     height: this.height
                 }
                 for(var i = 0;i < enemies.length;i++){
-                    if(objIntersectBoth(newAreaOfAttack, enemies[i].hitbox()) && enemies[i].status === "active" && this.status != "stop"){
+                    var enemyHitbox;
+                    if(enemies[i].big){
+                        enemyHitbox = enemies[i].hitbox();
+                    } else {
+                        enemyHitbox = enemies[i];
+                    }
+                    if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
                         this.status = "stop";
                         attacks.splice(attacks.indexOf(this), 1);
                         enemies[i].damage(this.damage());
@@ -1207,15 +1219,42 @@ function Thunderbolt(x, y, direction, radius){
         c.drawImage(spritesheet, steps[0], steps[1], steps[2], steps[3], this.x, this.y, this.width, this.height);
     }
     this.update = function() {
+        var dtHitbox = {
+            x: this.x,
+            y: this.y,
+            height: this.height,
+            width: this.width
+        }
+        dtHitbox.x += 23;
+        dtHitbox.width = 54;
+        dtHitbox.y += 28;
+        dtHitbox.height = 67;
         for(var i = 0;i < enemies.length;i++){
-            if(objIntersectBoth(this, enemies[i].hitbox()) && enemies[i].status === "active" && this.status != "stop"){
+            var enemyHitbox;
+            if(enemies[i].big){
+                enemyHitbox = enemies[i].hitbox();
+            } else {
+                enemyHitbox = enemies[i];
+            }
+            if(objIntersectBoth(dtHitbox, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
                 this.status = "stop";
                 attacks.splice(attacks.indexOf(this), 1);
                 enemies[i].damage(this.damage());
             }
         }
         for(var i = 0;i < enemyAttacks.length;i++){
-            if(objIntersectBoth(this, enemyAttacks[i]) && enemyAttacks[i].status != "stop" && this.status != "stop"){
+            var enemyAttackHitbox;
+            if(enemyAttacks[i].name === "Snore"){
+                enemyAttackHitbox = {
+                    x: enemyAttacks[i].x - enemyAttacks[i].width/2,
+                    y: enemyAttacks[i].y - enemyAttacks[i].height,
+                    width: enemyAttacks[i].width,
+                    height: enemyAttacks[i].height
+                }
+            } else {
+                enemyAttackHitbox = enemyAttacks[i];
+            }
+            if(objIntersectBoth(dtHitbox, enemyAttackHitbox) && enemyAttacks[i].status != "stop" && this.status != "stop"){
                 this.status = "stop";
                 attacks.splice(attacks.indexOf(this), 1);
             }
@@ -1783,6 +1822,7 @@ function HyperBeam(x, y, direction, user){
 function Voltorb(x, y, priority){
     this.status = "active";
     this.health = 8;
+    this.big = false; //trait to determine whether attacks will use regular position or hitbox stats to determine intersection
     this.x = x;
     this.y = y;
     this.speed = 3;
@@ -2018,6 +2058,7 @@ function Voltorb(x, y, priority){
 function Wooper(x, y){
     this.status = "active";
     this.health = 20;
+    this.big = false;
     this.x = x;
     this.y = y;
     this.speed = 2;
@@ -2353,6 +2394,7 @@ function Snorlax(x, y, priority){
     this.status = "active";
     this.health = 300 + 100*((rushModeCount/5) - 3);
     this.statesWithoutAttacking = 0;
+    this.big = true;
     this.x = x;
     this.y = y;
     this.attacking = false;
@@ -2819,6 +2861,9 @@ function Snorlax(x, y, priority){
         }
     }
 }
+
+
+/**************************************** GAME MODE FUNCTIONS **************************************************************/
 
 function startRush() {
     canvas = document.querySelector("canvas");
@@ -4532,7 +4577,7 @@ pichu = {
                 break;
         }
     },
-    attacks: ["Thunderbolt", "Swift", "Hyper Beam", "Cry (testing for Swift)"],
+    attacks: ["Thunderbolt", "Swift", "Double Team", "Hyper Beam", "Cry (testing for Swift)"],
     attack: function(z) {
         var atkNum;
         if(z){
@@ -5949,152 +5994,6 @@ function frontOfEnemy(enemy){
             break;
     }
     return result;
-}
-
-function Snore(x, y){
-    for(var i = 0;i < 8;i++){
-        var direction, newX, newY;
-        switch(i){
-            case 0:
-                direction = "up";
-                newX = x;
-                newY = y--;
-                break;
-            case 1:
-                direction = "down";
-                newX = x;
-                newY = y++;
-                break;
-            case 2:
-                direction = "left";
-                newX = x--;
-                newY = y;
-                break;
-            case 3:
-                direction = "right";
-                newX = x++;
-                newY = y;
-                break;
-            case 4:
-                direction = "upper-left";
-                newX = x--;
-                newY = y--;
-                break;
-            case 5:
-                direction = "upper-right";
-                newX = x++;
-                newY = y--;
-                break;
-            case 6:
-                direction = "lower-left";
-                newX = x--;
-                newY = y++;
-                break;
-            case 7:
-                direction = "lower-right";
-                newX = x++;
-                newY = y++;
-                break;
-            default:
-                break;
-        }
-        var newSnore = new SnoreSingle(newX, newY, direction);
-        enemyAttacks.push(newSnore);
-    }
-}
-
-function SnoreSingle(x, y, direction){
-    this.name = "Snore";
-    this.type = "Normal";
-    this.x = x;
-    this.y = y;
-    this.direction = direction;
-    this.damage = function() {
-        return 5 + 5*(Math.max(0, pichu.level - 5));
-    }
-    this.width = 85;
-    this.height = 49.5;
-    this.status = "go";
-    this.size_i = 0;
-    this.size_Delay = 10;
-    this.bigTime = true;
-    this.draw = function(){
-        if(this.status != "stop"){
-            var font;
-            if(this.bigTime){
-                font = "75px Impact";
-            } else {
-                font = "70px Impact";
-            }
-            c.font = font;
-            c.textAlign = "center"
-            c.fillStyle = "black";
-            c.fillText("zzz", this.x, this.y);
-            c.beginPath();
-            c.strokeStyle = "yellow";
-            c.strokeRect(this.x - this.width/2, this.y-this.height, this.width, this.height);
-            c.stroke();
-        }
-    }
-    this.update = function() {
-        switch(this.direction){
-            case "up":
-                this.y--;
-                break;
-            case "down":
-                this.y++;
-                break;
-            case "right":
-                this.x++;
-                break;
-            case "left":
-                this.x--;
-                break;
-            case "upper-left":
-                this.y--;
-                this.x--;
-                break;
-            case "upper-right":
-                this.y--;
-                this.x++;
-                break;
-            case "lower-left":
-                this.y++;
-                this.x--;
-                break;
-            case "lower-right":
-                this.y++;
-                this.x++;
-        }
-        if(this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
-            this.status = "stop";
-            enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
-        } else {
-            var newAreaOfAttack = {
-                x: this.x - this.width/2,
-                y: this.y - this.height,
-                width: this.width,
-                height: this.height
-            }
-            if(objIntersectBoth(newAreaOfAttack, pichu.hitbox()) && this.status != "stop" && !pichu.damaged){
-                this.status = "stop";
-                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
-                pichu.damage(this.damage());
-            }
-            this.draw();
-            if(!this.bigTime){
-                this.size_i++;
-                if(this.size_i > this.size_Delay){
-                    this.bigTime = true;
-                }
-            } else {
-                this.size_i--;
-                if(this.size_i <= 0){
-                    this.bigTime = false;
-                }
-            }
-        }
-    }
 }
 
 function PichuCry(x, y){
