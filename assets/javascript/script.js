@@ -1345,9 +1345,6 @@ function Thunder(x, y, direction){
         c.stroke();
         c.fillStyle = "rgb(255, 255, 0)";
         c.fill();
-        c.lineWidth = 1;
-        //c.strokeRect(this.x - this.width, this.y - this.height + 30, this.width*2, this.height*2);
-
     }
     this.update = function(){
         var newAreaOfAttack = {
@@ -1453,6 +1450,183 @@ function Thunder(x, y, direction){
                 break;
         }
         
+    }
+}
+
+function VoltTackle(x, y){
+    this.x = x;
+    this.y = y;
+    this.dx = 0;
+    this.dy = 0;
+    this.radius = 60;
+    this.big = true;
+    this.width = 120;
+    this.height = 120;
+    this.status = "go";
+    this.hits = 8 + 8 * Math.floor(pichu.level/4);
+    this.speed = 10;
+    this.targetEnemyIndex = undefined;
+    this.targetPhase = 0;
+    this.draw = function(){
+        c.beginPath();
+        //var radius = !this.flip ? 53 : 75;
+        c.arc(this.x, this.y, this.radius, Math.PI*2, false);
+        c.strokeStyle = "rgb(255, 255, 120)";
+        c.stroke();
+        c.fillStyle = "rgb(255, 255, 120)";
+        c.fill();
+
+        //inner bolt
+        c.beginPath();
+        c.arc(this.x, this.y, 50, Math.PI*2, false);
+        c.strokeStyle = "rgb(255, 255, 0)"; //potential colors: gold, lightgoldenrodyellow, palegoldenrod, lightyellow
+        c.stroke();
+        c.fillStyle = "rgb(255, 255, 0)";
+        c.fill();
+    }
+    this.chooseEnemy = function(exclusion) {
+        console.log("at choosing enemy");
+        var distanceArray = [];
+        var closestIndex = 0;
+        var smallestDistance = undefined;
+        for(var i = 0;i < enemies.length;i++){
+            var distance = Math.sqrt(Math.pow((this.x - enemies[i].x),2) + Math.pow((this.y - enemies[i].y),2));
+            distanceArray.push(distance);
+            if((distance < smallestDistance || !smallestDistance) && enemies[i].status === "active"){
+                if(i != exclusion || enemies.length === 1){
+                    smallestDistance = distance;
+                    closestIndex = i;
+                }
+            }
+        }
+        this.targetEnemyIndex = closestIndex;
+        this.targetPhase = 0;
+        if(!smallestDistance){
+            this.status = "stop";
+        }
+    }
+    this.update = function(){
+        var newAreaOfAttack = {
+            x: this.x - this.radius,
+            y: this.y - this.radius,
+            width: this.width,
+            height: this.height
+        }
+        for(var i = 0;i < enemies.length;i++){
+            var enemyHitbox;
+            if(enemies[i].big){
+                enemyHitbox = enemies[i].hitbox();
+            } else {
+                enemyHitbox = enemies[i];
+            }
+            if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
+                enemies[i].health-=0.1;
+                if(enemies[i].health <= 0){
+                    if(i === this.targetEnemyIndex){
+                        console.log("killed enemy and it was target");
+                        this.chooseEnemy(i);
+                        this.targetPhase = 0;
+                    } else {
+                        console.log("killed enemy and it was not target");
+                    }
+                    enemies[i].damage(1);
+                }
+            }
+        }
+        var target = enemies[this.targetEnemyIndex];
+        if(!target && enemies.length > 0){
+            this.chooseEnemy();
+            target = enemies[this.targetEnemyIndex];
+            this.targetPhase = 0;
+        }
+        if(enemies.length === 0){
+            this.status = "stop";
+        }
+        if(target){
+            var target_x, target_y;
+            // var targetSpots = [
+            //     {x: target.x + target.width, y: target.y + target.height},
+            //     {x: target.x, y: target.y + target.height/2},
+            //     {x: target.x + target.width, y: target.y + target.height/2},
+            //     {x: target.x, y: target.y},
+            //     {x: target.x + target.width, y: target.y},
+            //     {x: target.x, y: target.y + target.height/2},
+            //     {x: target.x + target.width, y: target.y + target.height/2},
+            //     {x: target.x, y: target.y + target.height},
+            //     {x: target.x + target.width, y: target.y + target.height}
+            // ]
+            var targetSpots = [
+                {x: target.x + target.width/2, y: target.y + target.height},
+                {x: target.x, y: target.y + target.height/2},
+                {x: target.x + target.width/2, y: target.y},
+                {x: target.x + target.width, y: target.y + target.height/2},
+                {x: target.x + target.width/2, y: target.y + target.height},
+                {x: target.x, y: target.y + target.height/2},
+                {x: target.x + target.width/2, y: target.y},
+                {x: target.x + target.width, y: target.y + target.height/2}
+            ]
+            target_x = targetSpots[this.targetPhase].x;
+            target_y = targetSpots[this.targetPhase].y;
+            console.log(this.x, this.y, target_x, target_y);
+            if(!(Math.abs(this.x - target_x) >= this.speed || Math.abs(this.y - target_y) >= this.speed)){
+                console.log("hit target");
+                this.dx = 0; //meaning it reached its target
+                this.dy = 0;
+                this.targetPhase++;
+                if(this.targetPhase >= targetSpots.length){
+                    this.chooseEnemy(this.targetEnemyIndex);
+                }
+                this.hits--;
+                if(this.hits <= 0){
+                    console.log("stopping"); //count is often around 435 or 483
+                    this.status = "stop";
+                }
+            } else {
+                if(this.x != target_x){
+                    if(this.x > target_x){
+                        if(Math.abs(this.x - target_x) > this.speed){
+                            this.dx = -1 * this.speed;
+                        } else {
+                            this.dx = -1 * Math.abs(this.x - target_x);
+                        }
+                    } else {
+                        if(Math.abs(this.x - target_x) > this.speed){
+                            this.dx = this.speed;
+                        } else {
+                            this.dx =  Math.abs(this.x - target_x);
+                        }
+                    }
+                } else {
+                    this.dx = 0;
+                }
+                if(this.y != target_y){
+                    if(this.y > target_y){
+                        if(Math.abs(this.y - target_y) > this.speed){
+                            this.dy = -1 * this.speed;
+                        } else {
+                            this.dy = -1 * Math.abs(this.y - target_y);
+                        }
+                    } else {
+                        if(Math.abs(this.y - target_y) > this.speed){
+                            this.dy = this.speed;
+                        } else {
+                            this.dy =  Math.abs(this.y - target_y);
+                        }
+                    }
+                } else {
+                    this.dy = 0;
+                }
+            }
+            this.x += this.dx;
+            this.y += this.dy;
+        }
+        if(this.status === "stop"){
+            this.status = "stop";
+            attacks.splice(attacks.indexOf(this), 1);
+        } else {
+            this.draw();
+        }
+
     }
 }
 
@@ -2055,6 +2229,12 @@ function Voltorb(x, y, priority){
     }
     return answer;
     }
+    this.hitWall = function() {
+        var test1 = this.x < 0 || (this.x + this.width) >= canvas.width;
+        var test2 = this.y < 0 || (this.y + this.height) >= canvas.height;
+        //console.log(test1 || test2);        
+        return test1 || test2;
+    }
     this.hitbox = function(){
         var answer = {
             x: this.x,
@@ -2094,24 +2274,6 @@ function Voltorb(x, y, priority){
         this.status = "succeeded";
         var damage = 5 + 10*(Math.max(0, pichu.level - 5));
         pichu.damage(damage);
-    }
-    if(target != pichu){
-        if(objIntersectBoth(testTarget, this.hitbox()) && this.status==="active"){
-            this.status = "succeeded";
-        }
-    }
-    for(var i = 0;i < attacks.length;i++){
-        var areaOfAttack = {
-            x: attacks[i].givenX,
-            y: attacks[i].givenY,
-            width: attacks[i].width,
-            height: attacks[i].height
-        }
-        if(objIntersectBoth(areaOfAttack, this.hitbox()) && this.status==="active" && attacks[i].status!="stop"){
-            attacks[i].status = "stop";
-            attacks.splice(i, 1);
-            this.damage(attacks[i].damage());
-        }
     }
     if(this.priority === 0){
         if(Math.abs(this.x - target.x) >= 30){
@@ -2183,25 +2345,25 @@ function Voltorb(x, y, priority){
         switch(this.direction){
             case "up":
                 this.y -= this.speed;
-                if(this.intersect() || picMenu || !pichu.live){
+                if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
                     this.y += this.speed;
                 }
                 break;
             case "down":
                 this.y += this.speed;
-                if(this.intersect() || picMenu || !pichu.live){
+                if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
                     this.y -= this.speed;
                 }
                 break;
             case "left":
                 this.x -= this.speed;
-                if(this.intersect() || picMenu || !pichu.live){
+                if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
                     this.x += this.speed;
                 }
                 break;
             case "right":
                 this.x += this.speed;
-                if(this.intersect() || picMenu || !pichu.live){
+                if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
                     this.x -= this.speed;
                 }
                 break;
@@ -2318,6 +2480,12 @@ function Wooper(x, y){
         }
         return answer;
     }
+    this.hitWall = function() {
+        var test1 = this.x < 0 || (this.x + this.width) >= canvas.width;
+        var test2 = this.y < 0 || (this.y + this.height) >= canvas.height;
+        //console.log(test1 || test2);        
+        return test1 || test2;
+    }
     this.attack = function() {
         if(this.status === "active" || this.status === "damaged"){
             var frontWooper = frontOfEnemy(this);
@@ -2397,7 +2565,7 @@ function Wooper(x, y){
                                 var distance = this.speed;
                                 this.x += distance;
                                 this.y -= distance;
-                                if(this.intersect()){
+                                if(this.intersect() || this.hitWall()){
                                     this.x -= distance;
                                     this.y += distance;
                                 }
@@ -2406,7 +2574,7 @@ function Wooper(x, y){
                                 var distance = this.speed;
                                 this.x += distance;
                                 this.y += distance;
-                                if(this.intersect()){
+                                if(this.intersect() || this.hitWall()){
                                     this.x -= distance;
                                     this.y -= distance;
                                 }
@@ -2415,7 +2583,7 @@ function Wooper(x, y){
                                 var distance = this.speed;
                                 this.x -= distance;
                                 this.y += distance;
-                                if(this.intersect()){
+                                if(this.intersect() || this.hitWall()){
                                     this.x += distance;
                                     this.y -= distance;
                                 }
@@ -2424,7 +2592,7 @@ function Wooper(x, y){
                                 var distance = this.speed;
                                 this.x -= distance;
                                 this.y -= distance;
-                                if(this.intersect()){
+                                if(this.intersect() || this.hitWall()){
                                     this.x += distance;
                                     this.y += distance;
                                 }
@@ -3082,6 +3250,7 @@ pichu = {
     mode: "default",
     direction: "down",
     motion: false,
+    freeRoam: false, //this allows Pichu to move even if he is off the map or overlapping a collidable object. this is to avoid issues when Volt Tackle lands him in an inconvinient spot
     x: pichuLoad.x,
     y: pichuLoad.y,
     pichuSheet: spritesheet,
@@ -3095,6 +3264,189 @@ pichu = {
     level: pichuLoad.level,
     exp: pichuLoad.exp,
     slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow them down temporarily
+    voltTackle: {
+        active: false,
+        dx: 0,
+        dy: 0,
+        radius: 60,
+        width: 120,
+        height: 120,
+        hits: 8,
+        speed: 10,
+        big: false,
+        bigMeter: 0,
+        targetEnemyIndex: undefined,
+        targetPhase: 0,
+        end: function(){
+            pichu.voltTackle.active = false;
+            pichu.freeRoam = true;
+            pichu.voltTackle.hits = 8;
+            pichu.voltTackle.bigMeter = 0;
+            pichu.voltTackle.big = false;
+        },
+        draw: function(){
+            c.beginPath();
+            var r = !this.big ? pichu.voltTackle.radius : pichu.voltTackle.radius * 1.5;
+            c.arc(pichu.x, pichu.y, r, Math.PI*2, false);
+            c.strokeStyle = "rgb(255, 255, 120)";
+            c.stroke();
+            c.fillStyle = "rgb(255, 255, 120)";
+            c.fill();
+    
+            //inner bolt
+            c.beginPath();
+            c.arc(pichu.x, pichu.y, 30, Math.PI*2, false);
+            c.strokeStyle = "rgb(255, 255, 0)"; //potential colors: gold, lightgoldenrodyellow, palegoldenrod, lightyellow
+            c.stroke();
+            c.fillStyle = "rgb(255, 255, 0)";
+            c.fill();
+        },
+        chooseEnemy: function(exclusion) {
+            console.log("pichu choosing enemy");
+            var distanceArray = [];
+            var closestIndex = 0;
+            var smallestDistance = undefined;
+            for(var i = 0;i < enemies.length;i++){
+                var distance = Math.sqrt(Math.pow((pichu.x - enemies[i].x),2) + Math.pow((pichu.y - enemies[i].y),2));
+                distanceArray.push(distance);
+                if((distance < smallestDistance || !smallestDistance) && enemies[i].status === "active"){
+                    if(i != exclusion || enemies.length === 1){
+                        smallestDistance = distance;
+                        closestIndex = i;
+                    }
+                }
+            }
+            pichu.voltTackle.targetEnemyIndex = closestIndex;
+            pichu.voltTackle.targetPhase = 0;
+            if(!smallestDistance){
+                pichu.voltTackle.end();
+            }
+        },
+        update: function(){
+            var newAreaOfAttack = {
+                x: pichu.x - pichu.voltTackle.radius,
+                y: pichu.y - pichu.voltTackle.radius,
+                width: pichu.voltTackle.width,
+                height: pichu.voltTackle.height
+            }
+            for(var i = 0;i < enemies.length;i++){
+                var enemyHitbox;
+                if(enemies[i].big){
+                    enemyHitbox = enemies[i].hitbox();
+                } else {
+                    enemyHitbox = enemies[i];
+                }
+                if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && pichu.voltTackle.active){
+                    enemies[i].health-= 0.1;
+                    if(enemies[i].health <= 0){
+                        if(i === pichu.voltTackle.targetEnemyIndex){
+                            console.log("killed enemy and it was target");
+                            pichu.voltTackle.chooseEnemy(i);
+                            pichu.voltTackle.targetPhase = 0;
+                        } else {
+                            console.log("killed enemy and it was not target");
+                        }
+                        enemies[i].damage(1);
+                    }
+                }
+            }
+            if(!this.big){
+                this.bigMeter++;
+                if(this.bigMeter >= 20){
+                    this.big = true;
+                }
+            } else {
+                this.bigMeter -= 2;
+                if(this.bigMeter <= 0){
+                    this.big = false;
+                }
+            }
+            var target = enemies[pichu.voltTackle.targetEnemyIndex];
+            if(!target && enemies.length > 0){
+                pichu.voltTackle.chooseEnemy();
+                target = enemies[pichu.voltTackle.targetEnemyIndex];
+                pichu.voltTackle.targetPhase = 0;
+            }
+            if(enemies.length === 0){
+                pichu.voltTackle.end();
+            }
+            if(target){
+                var target_x, target_y;
+                var targetSpots = [
+                    {x: target.x + target.width/2, y: target.y + target.height},
+                    {x: target.x, y: target.y + target.height/2},
+                    {x: target.x + target.width/2, y: target.y},
+                    {x: target.x + target.width, y: target.y + target.height/2},
+                    {x: target.x + target.width/2, y: target.y + target.height},
+                    {x: target.x, y: target.y + target.height/2},
+                    {x: target.x + target.width/2, y: target.y},
+                    {x: target.x + target.width, y: target.y + target.height/2}
+                ]
+                target_x = targetSpots[pichu.voltTackle.targetPhase].x;
+                target_y = targetSpots[pichu.voltTackle.targetPhase].y;
+                console.log(pichu.x, pichu.y, target_x, target_y);
+                if(!(Math.abs(pichu.x - target_x) >= pichu.voltTackle.speed || Math.abs(pichu.y - target_y) >= pichu.voltTackle.speed)){
+                    console.log("hit target");
+                    pichu.voltTackle.dx = 0; //meaning it reached its target
+                    pichu.voltTackle.dy = 0;
+                    pichu.voltTackle.targetPhase++;
+                    if(pichu.voltTackle.targetPhase >= targetSpots.length){
+                        pichu.voltTackle.chooseEnemy(pichu.voltTackle.targetEnemyIndex);
+                    }
+                    pichu.voltTackle.hits--;
+                    if(pichu.voltTackle.hits <= 0){
+                        console.log("stopping"); //count is often around 435 or 483
+                        pichu.voltTackle.end();
+                    }
+                } else {
+                    if(pichu.x != target_x){
+                        if(pichu.x > target_x){
+                            if(Math.abs(pichu.x - target_x) > pichu.voltTackle.speed){
+                                pichu.voltTackle.dx = -1 * pichu.voltTackle.speed;
+                            } else {
+                                pichu.voltTackle.dx = -1 * Math.abs(pichu.x - target_x);
+                            }
+                        } else {
+                            if(Math.abs(pichu.x - target_x) > pichu.voltTackle.speed){
+                                pichu.voltTackle.dx = pichu.voltTackle.speed;
+                            } else {
+                                pichu.voltTackle.dx =  Math.abs(pichu.x - target_x);
+                            }
+                        }
+                    } else {
+                        pichu.voltTackle.dx = 0;
+                    }
+                    if(pichu.y != target_y){
+                        if(pichu.y > target_y){
+                            if(Math.abs(pichu.y - target_y) > pichu.voltTackle.speed){
+                                pichu.voltTackle.dy = -1 * pichu.voltTackle.speed;
+                            } else {
+                                pichu.voltTackle.dy = -1 * Math.abs(pichu.y - target_y);
+                            }
+                        } else {
+                            if(Math.abs(pichu.y - target_y) > pichu.voltTackle.speed){
+                                pichu.voltTackle.dy = pichu.voltTackle.speed;
+                            } else {
+                                pichu.voltTackle.dy =  Math.abs(pichu.y - target_y);
+                            }
+                        }
+                    } else {
+                        pichu.voltTackle.dy = 0;
+                    }
+                }
+                console.log(target_x, target_y);
+                console.log("above is target");
+                pichu.x += pichu.voltTackle.dx;
+                pichu.y += pichu.voltTackle.dy;
+            }
+            if(!pichu.voltTackle.active){
+                pichu.voltTackle.end();
+            } else {
+                pichu.voltTackle.draw();
+            }
+    
+        }
+    },
     hitbox: function(){
         var newPichu = {
             x: this.x,
@@ -3169,6 +3521,7 @@ pichu = {
     health: 10,
     max_Health: function() {
         return 10 + 10*this.level;
+        //return 1000000;
     },
     speed: function() {
         //return 5;
@@ -3240,7 +3593,7 @@ pichu = {
         //console.log(pichuTest);
         var test1 = pichuTest.x < 0 || (pichuTest.x + pichuTest.width) >= canvas.width;
         var test2 = pichuTest.y < 0 || (pichuTest.y + pichuTest.height) >= canvas.height;
-        //console.log(test1 || test2);
+        //console.log(test1 || test2);        
         return test1 || test2;
     },
     damage: function(amount){
@@ -3361,6 +3714,7 @@ pichu = {
                 break;
         }
     },
+    //attacks: ["Thunderbolt", "Volt Tackle", "Thunder"], this one is for testing these attacks
     attacks: ["Thunderbolt"],
     attack: function(z) {
         var atkNum;
@@ -3368,6 +3722,9 @@ pichu = {
             atkNum = this.z_attackNumber;
         } else {
             atkNum = this.attackNumber;
+        }
+        if(pichu.voltTackle.active){
+            atkNum = -10; //making sure that if Pichu is using Volt Tackle that no other attacks can be used
         }
         switch(atkNum){
             case 0:
@@ -3401,195 +3758,252 @@ pichu = {
                     }
                 }
                 break;
+            case 3:
+                if(this.live && (this.charge >= 1)){
+                    var front = {
+                        x: pichu.x + pichu.width/2,
+                        y: pichu.y + pichu.height/2
+                    }
+                    switch(this.direction){
+                        case "right":
+                            front.x = pichu.x + pichu.width*1.5;
+                            front.y = pichu.y;
+                            break;
+                        case "left":
+                            front.x = pichu.x - pichu.width/3;
+                            front.y = pichu.y;
+                            break;
+                        case "up":
+                            front.y = pichu.y - pichu.height/1.5;
+                        default:
+                            break;
+                    }
+                    var newThunder = new Thunder(front.x, front.y, this.direction);
+                    this.idle_i = 0;
+                    this.loseCharge(1);
+                    this.attckWindDown = 10;
+                    attacks.push(newThunder);
+                }
+                break;
+            case 4:
+                if(this.live && (this.charge >= 1)){
+                    this.idle_i = 0;
+                    this.loseCharge(1);
+                    this.attckWindDown = 10;
+                    pichu.voltTackle.active = true;
+                    pichu.voltTackle.hits = 8 + 8 * Math.floor(pichu.level/4);
+                    pichu.damaged = true;
+                }
+                break;
             default:
-                console.log("No attack here!");
+                console.log("No attack here... or you're using Volt Tackle");
                 break;
         }
     },
     update: function() {
         if(this.live){
-            if(this.attckWindDown > 0){
-                this.mode = "attack";
-                switch(this.direction){
-                    case "up":
-                        this.myArray = this.upAttackArray;
-                        break;
-                    case "down":
-                        this.myArray = this.downAttackArray;
-                        break;
-                    case "left":
-                        this.myArray = this.leftAttackArray;
-                        break;
-                    case "right":
-                        this.myArray = this.rightAttackArray;
-                        break;
-                    default:
-                        break;
-                }
-                this.attckWindDown--;
-            } else {
-                this.mode = "default";
-                if(this.motion){
+            if(!pichu.voltTackle.active){
+                if(this.attckWindDown > 0){
+                    this.mode = "attack";
                     switch(this.direction){
                         case "up":
-                            this.myArray = this.upArrays;
+                            this.myArray = this.upAttackArray;
                             break;
                         case "down":
-                            this.myArray = this.downArrays;
+                            this.myArray = this.downAttackArray;
                             break;
                         case "left":
-                            this.myArray = this.leftArrays;
+                            this.myArray = this.leftAttackArray;
                             break;
                         case "right":
-                            this.myArray = this.rightArrays;
+                            this.myArray = this.rightAttackArray;
                             break;
                         default:
                             break;
                     }
+                    this.attckWindDown--;
                 } else {
+                    this.mode = "default";
+                    if(this.motion){
+                        switch(this.direction){
+                            case "up":
+                                this.myArray = this.upArrays;
+                                break;
+                            case "down":
+                                this.myArray = this.downArrays;
+                                break;
+                            case "left":
+                                this.myArray = this.leftArrays;
+                                break;
+                            case "right":
+                                this.myArray = this.rightArrays;
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        switch(this.direction){
+                            case "up":
+                                this.myArray = this.upIdleArrays;
+                                break;
+                            case "down":
+                                this.myArray = this.downIdleArrays;
+                                break;
+                            case "left":
+                                this.myArray = this.leftIdleArrays;
+                                break;
+                            case "right":
+                                this.myArray = this.rightIdleArrays;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                if(this.motion){
+                    this.motionDelay++;
+                    if(this.motionDelay >= this.desiredDelay){
+                        this.i++;
+                        this.motionDelay = 0;
+                        if(this.i >= this.myArray.length){
+                            this.i = 0;
+                        }
+                    }
                     switch(this.direction){
                         case "up":
-                            this.myArray = this.upIdleArrays;
-                            break;
-                        case "down":
-                            this.myArray = this.downIdleArrays;
-                            break;
-                        case "left":
-                            this.myArray = this.leftIdleArrays;
-                            break;
-                        case "right":
-                            this.myArray = this.rightIdleArrays;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-            if(this.motion){
-                this.motionDelay++;
-                if(this.motionDelay >= this.desiredDelay){
-                    this.i++;
-                    this.motionDelay = 0;
-                    if(this.i >= this.myArray.length){
-                        this.i = 0;
-                    }
-                }
-                switch(this.direction){
-                    case "up":
-                        var distance = this.speed();
-                        if(this.slowed_Down > 0){
-                            distance /= 3;
-                        }
-                        this.y -= distance;
-                        if(this.intersect()[0] || this.hitWall()){
-                            var index = -5;
-                            if(this.intersect()[0]){
-                                if(this.intersect()[1] >= 0){
-                                index = this.intersect()[1];
-                                }
-                            }
-                            this.y += distance;
-                            if(index >= 0){
-                                collidables[index].approach();
-                            }
-                        }
-                        break;
-                    case "down":
-                        var distance = this.speed();
-                        if(this.slowed_Down > 0){
-                            distance /= 3;
-                        }
-                        this.y += distance;
-                        if(this.intersect()[0] || this.hitWall()){
-                            var index = -5;
-                            if(this.intersect()[0]){
-                                if(this.intersect()[1] >= 0){
-                                index = this.intersect()[1];
-                                collidables[index].drawn = true;
-                                }
+                            var distance = this.speed();
+                            if(this.slowed_Down > 0){
+                                distance /= 3;
                             }
                             this.y -= distance;
-                            if(index >= 0){
-                                collidables[index].approach();
-                            }
-                        }
-                        break;
-                    case "left":
-                        var distance = this.speed();
-                        console.log("distance is " + this.speed());
-                        if(this.slowed_Down > 0){
-                            distance /= 3;
-                        }
-                        this.x -= distance;
-                        if(this.intersect()[0] || this.hitWall()){
-                            var index = -5;
-                            if(this.intersect()[0]){
-                                if(this.intersect()[1] >= 0){
-                                index = this.intersect()[1];
+                            if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                var index = -5;
+                                if(this.intersect()[0]){
+                                    if(this.intersect()[1] >= 0){
+                                    index = this.intersect()[1];
+                                    }
+                                }
+                                this.y += distance;
+                                if(index >= 0){
+                                    collidables[index].approach();
+                                }
+                            } else {
+                                if(!this.intersect()[0] && !this.hitWall()){
+                                    pichu.freeRoam = false;
                                 }
                             }
-                            this.x += distance;
-                            if(index >= 0){
-                                collidables[index].approach();
+                            break;
+                        case "down":
+                            var distance = this.speed();
+                            if(this.slowed_Down > 0){
+                                distance /= 3;
                             }
-                        }
-                        break;
-                    case "right":
-                        var distance = this.speed();
-                        if(this.slowed_Down > 0){
-                            distance /= 3;
-                        }
-                        this.x += distance;
-                        if(this.intersect()[0] || this.hitWall()){
-                            var index = -5;
-                            if(this.intersect()[0]){
-                                if(this.intersect()[1] >= 0){
-                                index = this.intersect()[1];
+                            this.y += distance;
+                            if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                var index = -5;
+                                if(this.intersect()[0]){
+                                    if(this.intersect()[1] >= 0){
+                                    index = this.intersect()[1];
+                                    collidables[index].drawn = true;
+                                    }
                                 }
+                                this.y -= distance;
+                                if(index >= 0){
+                                    collidables[index].approach();
+                                }
+                            } else {
+                                if(!this.intersect()[0] && !this.hitWall()){
+                                    pichu.freeRoam = false;
+                                }
+                            }
+                            break;
+                        case "left":
+                            var distance = this.speed();
+                            console.log("distance is " + this.speed());
+                            if(this.slowed_Down > 0){
+                                distance /= 3;
                             }
                             this.x -= distance;
-                            if(index >= 0){
-                                collidables[index].approach();
+                            if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                var index = -5;
+                                if(this.intersect()[0]){
+                                    if(this.intersect()[1] >= 0){
+                                    index = this.intersect()[1];
+                                    }
+                                }
+                                this.x += distance;
+                                if(index >= 0){
+                                    collidables[index].approach();
+                                }
+                            } else {
+                                if(!this.intersect()[0] && !this.hitWall()){
+                                    pichu.freeRoam = false;
+                                }
                             }
+                            break;
+                        case "right":
+                            var distance = this.speed();
+                            if(this.slowed_Down > 0){
+                                distance /= 3;
+                            }
+                            this.x += distance;
+                            if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                var index = -5;
+                                if(this.intersect()[0]){
+                                    if(this.intersect()[1] >= 0){
+                                    index = this.intersect()[1];
+                                    }
+                                }
+                                this.x -= distance;
+                                if(index >= 0){
+                                    collidables[index].approach();
+                                }
+                            } else {
+                                if(!this.intersect()[0] && !this.hitWall()){
+                                    pichu.freeRoam = false;
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                    this.idleDelay++;
+                    if(this.idleDelay >= this.idleDesiredDelay){
+                        this.idle_i++;
+                        this.idleDelay = 0;
+                        this.idleDesiredDelay = 10;
+                        if(this.idle_i >= this.myArray.length){
+                            this.idle_i = 0;
+                            this.idleDesiredDelay = 100;
                         }
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                this.idleDelay++;
-                if(this.idleDelay >= this.idleDesiredDelay){
-                    this.idle_i++;
-                    this.idleDelay = 0;
-                    this.idleDesiredDelay = 10;
-                    if(this.idle_i >= this.myArray.length){
-                        this.idle_i = 0;
-                        this.idleDesiredDelay = 100;
                     }
                 }
-            }
-            // getBox();
-            /*if(objIntersectBoth(pichu, entry)){
-                phaseCheck();
-            }*/
-            if(this.charge < this.charge_Max()){
-                if(this.motion){
-                    this.charge+=0.15;
-                } else {
-                    this.charge+=0.05;
+                // getBox();
+                /*if(objIntersectBoth(pichu, entry)){
+                    phaseCheck();
+                }*/
+                if(this.charge < this.charge_Max()){
+                    if(this.motion){
+                        this.charge+=0.15;
+                    } else {
+                        this.charge+=0.05;
+                    }
                 }
-            }
-            if(this.damaged){
-                this.damageCooldown--;
-                if(this.damageCooldown < 0){
-                    this.damaged = false;
-                    this.damageCooldown = 50;
+                if(this.damaged){
+                    this.damageCooldown--;
+                    if(this.damageCooldown < 0){
+                        this.damaged = false;
+                        this.damageCooldown = 50;
+                    }
                 }
+                if(this.slowed_Down > 0){
+                    this.slowed_Down--;
+                }
+                this.draw();
+            } else {
+                pichu.voltTackle.update();
             }
-            if(this.slowed_Down > 0){
-                this.slowed_Down--;
-            }
-            this.draw();            
         } else {
             this.defeat();
         }
@@ -3828,6 +4242,22 @@ function pauseMenu() {
                         optionsArray[i] = optionsArray[i].concat("**");
                     }
                     break;
+                 case "Thunder":
+                    if(pichu.attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Volt Tackle":
+                    if(pichu.attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
                 default:
                     break;
 
@@ -3859,6 +4289,22 @@ function pauseMenu() {
                     case "Double Team":
                         if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
                             pichu.attackNumber = 2;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Thunder":
+                        if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
+                            pichu.z_attackNumber = 3;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Volt Tackle":
+                        if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
+                            pichu.z_attackNumber = 4;
                             option.target.innerText = "Done!";
                         } else {
                             option.target.innerText = "Already being used!";
@@ -3901,6 +4347,22 @@ function pauseMenu() {
                         optionsArray[i] = optionsArray[i].concat("**");
                     }
                     break;
+                case "Thunder":
+                    if(pichu.attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Volt Tackle":
+                    if(pichu.attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
                 default:
                     break;
 
@@ -3938,6 +4400,22 @@ function pauseMenu() {
                             option.target.innerText = "Already being used!";
                         }
                         break;
+                    case "Thunder":
+                        if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
+                            pichu.z_attackNumber = 3;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Volt Tackle":
+                        if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
+                            pichu.z_attackNumber = 4;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
                     default:
                         $("#optionRow").remove();
                         pauseMenu();
@@ -3955,31 +4433,39 @@ window.onkeydown = function(event) {
     } else {
     switch(event.key){
         case "ArrowUp":
-            if(pichu.direction != "up"){
-                pichu.turnUp();
+            if(!pichu.voltTackle.active){
+                if(pichu.direction != "up"){
+                    pichu.turnUp();
+                }
+                pichu.startMoving();
             }
-            pichu.startMoving();
             break;
         case "ArrowDown":
-            if(pichu.direction != "down"){
-                pichu.i = 1;
-                pichu.turnDown();
+            if(!pichu.voltTackle.active){
+                if(pichu.direction != "down"){
+                    pichu.i = 1;
+                    pichu.turnDown();
+                }
+                pichu.startMoving();
             }
-            pichu.startMoving();
             break;
         case "ArrowLeft":
-            if(pichu.direction != "left"){
-                pichu.i = 1;
-                pichu.turnLeft();
+            if(!pichu.voltTackle.active){
+                if(pichu.direction != "left"){
+                    pichu.i = 1;
+                    pichu.turnLeft();
+                }
+                pichu.startMoving();
             }
-            pichu.startMoving();
             break;
         case "ArrowRight":
-            if(pichu.direction != "right"){
-                pichu.i = 1;
-                pichu.turnRight();
+            if(!pichu.voltTackle.active){
+                if(pichu.direction != "right"){
+                    pichu.i = 1;
+                    pichu.turnRight();
+                }
+                pichu.startMoving();
             }
-            pichu.startMoving();
             break;
         case "Enter":
             if(pauseReady){
@@ -4031,8 +4517,8 @@ function enemyRush(number){
                 var voltorb_y_coordinate;
                 for(var j = 0;j < 1;j++){
                     var randomCoordinate = {
-                        x: Math.floor(Math.random()*canvas.width),
-                        y: Math.floor(Math.random()*canvas.height),
+                        x: Math.floor(Math.random()*(canvas.width - 200)),
+                        y: Math.floor(Math.random()*(canvas.height - 200)),
                         height: 100,
                         width: 100
                     }
@@ -4074,8 +4560,8 @@ function enemyRush(number){
                 var wooper_y_coordinate;
                 for(var j = 0;j < 1;j++){
                     var randomCoordinate = {
-                        x: Math.floor(Math.random()*canvas.width),
-                        y: Math.floor(Math.random()*canvas.height),
+                        x: Math.floor(Math.random()*(canvas.width - 200)),
+                        y: Math.floor(Math.random()*(canvas.height - 200)),
                         height: 100,
                         width: 100
                     }
@@ -4108,8 +4594,8 @@ function enemyRush(number){
                     var enemy_y_coordinate;
                     for(var j = 0;j < 1;j++){
                         var randomCoordinate = {
-                            x: Math.floor(Math.random()*canvas.width),
-                            y: Math.floor(Math.random()*canvas.height),
+                            x: Math.floor(Math.random()*(canvas.width - 200)),
+                            y: Math.floor(Math.random()*(canvas.height - 200)),
                             height: 300,
                             width: 300
                         }
@@ -4181,8 +4667,8 @@ function enemyRush(number){
                     var enemy_y_coordinate;
                     for(var j = 0;j < 1;j++){
                         var randomCoordinate = {
-                            x: Math.floor(Math.random()*canvas.width),
-                            y: Math.floor(Math.random()*canvas.height),
+                            x: Math.floor(Math.random()*(canvas.width - 200)),
+                            y: Math.floor(Math.random()*(canvas.height - 200)),
                             height: 100,
                             width: 100
                         }
@@ -4255,6 +4741,9 @@ function animate() {
                 break;
         }
     }
+    if(pichu.voltTackle.active){
+        pichu.voltTackle.draw();
+    }
     for(var i = 0;i < attacks.length;i++){
         switch(attacks[i].name){
             case "Thunderbolt":
@@ -4286,7 +4775,7 @@ function animate() {
 }
 
 function rushMode() {
-    pichu.health = 10;
+    pichu.health = pichu.max_Health();
     pichu.level = 0;
     pichu.exp = 0;
     var directionsRemove = false;
@@ -4860,7 +5349,6 @@ pichu = {
                     this.attckWindDown = 10;
                     attacks.push(newThunder);
                 }
-                break;
                 break;
             case 10:
                 if(this.live && (this.charge >= 10)){
