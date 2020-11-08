@@ -919,6 +919,7 @@ function Thunderbolt(x, y, direction, radius){
         rad = this.radius * 0.8
     }
     c.beginPath();
+    c.lineWidth = 1;
     c.arc(this.x, this.y, rad, Math.PI*2, false);
     c.strokeStyle = "aqua";
     c.stroke();
@@ -1268,6 +1269,193 @@ function Thunderbolt(x, y, direction, radius){
 
 }
 
+function Thunder(x, y, direction){
+    this.x = x;
+    this.y = y;
+    this.big = true;
+    this.increment = 30;
+    this.width = 53;
+    this.height = 53;
+    this.direction = direction;
+    this.flip = false;
+    this.flipMeter = 0;
+    this.changeIndex = 0;
+    this.status = "go";
+    this.changeOptions = [0, 1, 2, 3, 2, 1, 0, -1, -2, -3, -2, -1];
+    this.damage = function(){
+        return 20 + 0.5*pichu.level;
+    }
+    this.draw = function(){
+        var left = true;
+        var targetX = this.x + this.changeOptions[this.changeIndex];
+        var target = {
+            x: targetX,
+            y: this.y,
+        }
+        this.changeIndex++;
+        if(this.changeIndex >= this.changeOptions.length){
+            this.changeIndex = 0;
+        }
+        c.beginPath();
+        c.lineWidth = 30;
+        c.moveTo(target.x, target.y);
+        if(this.direction === "right" || this.direction === "down"){
+            while(target.y > -10){
+                if(left){
+                    target.x -= this.increment;
+                    left = !left;
+                    target.y -= 67;
+                    c.strokeStyle = "rgb(255, 255, 120)";
+                } else {
+                    target.x += this.increment;
+                    target.y += 1;
+                    left = !left;
+                }
+                c.lineTo(target.x, target.y);
+                c.stroke();
+            }
+        } else {
+            while(target.y > -10){
+                if(left){
+                    target.x -= this.increment;
+                    left = !left;
+                    target.y += 1;
+                    c.strokeStyle = "rgb(255, 255, 120)";
+                } else {
+                    target.x += this.increment;
+                    target.y -= 67;
+                    left = !left;
+                }
+                c.lineTo(target.x, target.y);
+                c.stroke();
+            }
+        }
+        c.beginPath();
+        var radius = !this.flip ? 53 : 75;
+        c.arc(this.x, this.y + 30, radius, Math.PI*2, false);
+        c.strokeStyle = "rgb(255, 255, 120)";
+        c.stroke();
+        c.fillStyle = "rgb(255, 255, 120)";
+        c.fill();
+
+        //inner bolt
+        c.beginPath();
+        c.arc(this.x, this.y + 30, 20, Math.PI*2, false);
+        c.strokeStyle = "rgb(255, 255, 0)"; //potential colors: gold, lightgoldenrodyellow, palegoldenrod, lightyellow
+        c.stroke();
+        c.fillStyle = "rgb(255, 255, 0)";
+        c.fill();
+        c.lineWidth = 1;
+        //c.strokeRect(this.x - this.width, this.y - this.height + 30, this.width*2, this.height*2);
+
+    }
+    this.update = function(){
+        var newAreaOfAttack = {
+            x: this.x - this.width,
+            y: this.y - this.height + 30,
+            width: this.width * 2,
+            height: this.height*2
+        }
+        for(var i = 0;i < enemies.length;i++){
+            var enemyHitbox;
+            if(enemies[i].big){
+                enemyHitbox = enemies[i].hitbox();
+            } else {
+                enemyHitbox = enemies[i];
+            }
+            if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
+                enemies[i].damage(this.damage());
+            }
+        }
+        switch(this.direction){
+            case "right":
+                this.x++;
+                if(!this.flip){
+                    this.flipMeter++;
+                    if(this.flipMeter >= 30){
+                        this.flip = true;
+                    }
+                } else {
+                    this.flipMeter -= 10;
+                    if(this.flipMeter <= 0){
+                        this.flip = false;
+                    }
+                }
+                if(this.x-this.increment >= canvas.width){
+                    this.status = "stop";
+                    attacks.splice(attacks.indexOf(this), 1);
+                } else {
+                    this.draw();
+                }
+                break;
+            case "left":
+                this.x--;
+                if(!this.flip){
+                    this.flipMeter++;
+                    if(this.flipMeter >= 30){
+                        this.flip = true;
+                    }
+                } else {
+                    this.flipMeter -= 10;
+                    if(this.flipMeter <= 0){
+                        this.flip = false;
+                    }
+                }
+                if(this.x < 0){
+                    this.status = "stop";
+                    attacks.splice(attacks.indexOf(this), 1);
+                } else {
+                    this.draw();
+                }
+                break;
+            case "down":
+                this.y++;
+                if(!this.flip){
+                    this.flipMeter++;
+                    if(this.flipMeter >= 30){
+                        this.flip = true;
+                    }
+                } else {
+                    this.flipMeter -= 10;
+                    if(this.flipMeter <= 0){
+                        this.flip = false;
+                    }
+                }
+                console.log(this.y, canvas.height);
+                if(this.y >= canvas.height){
+                    this.status = "stop";
+                    attacks.splice(attacks.indexOf(this), 1);
+                } else {
+                    this.draw();
+                }
+                break;
+            case "up":
+                this.y--;
+                if(!this.flip){
+                    this.flipMeter++;
+                    if(this.flipMeter >= 30){
+                        this.flip = true;
+                    }
+                } else {
+                    this.flipMeter -= 10;
+                    if(this.flipMeter <= 0){
+                        this.flip = false;
+                    }
+                }
+                if(this.y + 75 <= 0){
+                    this.status = "stop";
+                    attacks.splice(attacks.indexOf(this), 1);
+                } else {
+                    this.draw();
+                }
+                break;
+            default:
+                break;
+        }
+        
+    }
+}
+
 function Mudshot(x, y, direction, radius){
     this.name = "Mudshot";
     this.type = "Ground";
@@ -1295,6 +1483,7 @@ function Mudshot(x, y, direction, radius){
                second_radius = this.radius;
            }
            c.beginPath();
+           c.lineWidth = 1;
            c.ellipse(this.x, this.y, first_radius, second_radius, 0, 0, Math.PI*2);
            c.strokeStyle = "sandybrown";
            c.stroke();
@@ -1508,6 +1697,7 @@ function HyperBeam(x, y, direction, user){
     this.name = "Hyper Beam";
     this.type = "Normal";
     this.finishing = false;
+    this.big = true;
     this.status = "go";
     this.random_placement_because_I_didnt_want_to_relocate_the_beam = Math.floor(Math.random() * 2);
     this.finishDelay = 0;
@@ -1798,8 +1988,10 @@ function HyperBeam(x, y, direction, user){
                 width: attacks[i].width
             }
             if((objIntersectBoth(secondBeam, areaOfAttack) || objIntersectBoth(firstBeam, areaOfAttack)) && this.status!="stop"){
-                attacks[i].status = "stop";
-                attacks.splice(i,1);
+                if(!attacks[i].big){
+                    attacks[i].status = "stop";
+                    attacks.splice(i,1);
+                }
             }
         }
         var test1 = this.end.x < 0 || this.end.x >= canvas.width;
@@ -3936,7 +4128,7 @@ function enemyRush(number){
                     continueRush = false;
                     var pokeball = new Pokeball(300, 300, false, function() {
                         var options = ["oran", "leppa", "Swift", "Double Team"];
-                        if(pichu.attacks.includes("Swift") && options.includes("SWift")){
+                        if(pichu.attacks.includes("Swift") && options.includes("Swift")){
                             options.splice(options.indexOf("Swift"),1);
                         }
                         if(pichu.attacks.includes("Double Team") && options.includes("Double Team")){
@@ -4577,7 +4769,7 @@ pichu = {
                 break;
         }
     },
-    attacks: ["Thunderbolt", "Swift", "Double Team", "Hyper Beam", "Cry (testing for Swift)"],
+    attacks: ["Thunderbolt", "Swift", "Double Team", "Thunder", "Hyper Beam", "Cry (testing for Swift)"],
     attack: function(z) {
         var atkNum;
         if(z){
@@ -4641,6 +4833,34 @@ pichu = {
                         attacks.push(doubleTeam);
                     }
                 }
+                break;
+            case 4:
+                if(this.live && (this.charge >= 1)){
+                    var front = {
+                        x: pichu.x + pichu.width/2,
+                        y: pichu.y + pichu.height/2
+                    }
+                    switch(this.direction){
+                        case "right":
+                            front.x = pichu.x + pichu.width*1.5;
+                            front.y = pichu.y;
+                            break;
+                        case "left":
+                            front.x = pichu.x - pichu.width/3;
+                            front.y = pichu.y;
+                            break;
+                        case "up":
+                            front.y = pichu.y - pichu.height/1.5;
+                        default:
+                            break;
+                    }
+                    var newThunder = new Thunder(front.x, front.y, this.direction);
+                    this.idle_i = 0;
+                    this.loseCharge(50);
+                    this.attckWindDown = 10;
+                    attacks.push(newThunder);
+                }
+                break;
                 break;
             case 10:
                 if(this.live && (this.charge >= 10)){
@@ -5720,6 +5940,14 @@ function pauseMenu() {
                         optionsArray[i] = optionsArray[i].concat("**");
                     }
                     break;
+                case "Thunder":
+                    if(pichu.attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
                 default:
                     break;
 
@@ -5773,6 +6001,14 @@ function pauseMenu() {
                             option.target.innerText = "Already being used!";
                         }
                         break;
+                    case "Thunder":
+                        if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
+                            pichu.attackNumber = 4;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
                     default:
                         $("#optionRow").remove();
                         pauseMenu();
@@ -5807,6 +6043,14 @@ function pauseMenu() {
                         optionsArray[i] = optionsArray[i].concat("*");
                     }
                     if(pichu.z_attackNumber === 3){
+                        optionsArray[i] = optionsArray[i].concat("**");
+                    }
+                    break;
+                case "Thunder":
+                    if(pichu.attackNumber === 4){
+                        optionsArray[i] = optionsArray[i].concat("*");
+                    }
+                    if(pichu.z_attackNumber === 4){
                         optionsArray[i] = optionsArray[i].concat("**");
                     }
                     break;
@@ -5858,6 +6102,14 @@ function pauseMenu() {
                     case "Hyper Beam":
                         if(pichu.attackNumber != 11 && pichu.z_attackNumber != 11){
                             pichu.z_attackNumber = 11;
+                            option.target.innerText = "Done!";
+                        } else {
+                            option.target.innerText = "Already being used!";
+                        }
+                        break;
+                    case "Thunder":
+                        if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
+                            pichu.z_attackNumber = 4;
                             option.target.innerText = "Done!";
                         } else {
                             option.target.innerText = "Already being used!";
@@ -6147,542 +6399,6 @@ function PichuCrySingle(x, y, direction){
 }
 
 
-function Mudshot(x, y, direction, radius){
-    this.name = "Mudshot";
-    this.type = "Ground";
-    this.x = x;
-    this.y = y;
-    this.direction = direction;
-    this.radius = radius;
-    this.horizontal = true;
-    this.change_i = 0;
-    this.change_Delay = 15;
-    this.damage = function() {
-        return 5;
-    }
-    this.draw = function() {
-        if(this.status != "stop"){
-            /*
-            context.save();
-         context.translate(c.width / 2, c.height / 2);
-         context.scale(2, 1);
-         context.beginPath();
-         context.arc(cX, cY, radius, 0, 2 * Math.PI, false);
-         context.restore();
-         context.fillStyle = '#000000';
-         context.fill();
-         context.lineWidth = 2;
-         context.strokeStyle = 'yellow';
-         context.stroke();
-            */
-           var first_radius;
-           var second_radius;
-           var divisor = 1.15;
-           if(this.horizontal){
-               first_radius = this.radius;
-               second_radius = this.radius/divisor;
-           } else {
-               first_radius = this.radius/divisor;
-               second_radius = this.radius;
-           }
-        //    c.save();
-        //    c.translate(canvas.width/2, canvas.height/2);
-           //c.scale(scale_x,scale_y);
-           c.beginPath();
-           //c.arc(this.x, this.y, this.radius, Math.PI*2, false);
-           c.ellipse(this.x, this.y, first_radius, second_radius, 0, 0, Math.PI*2);
-        //    c.restore();
-           c.strokeStyle = "sandybrown";
-           c.stroke();
-           c.fillStyle = "sandybrown";
-           c.fill();
-
-        //    c.save();
-        //    c.translate(canvas.width/2, canvas.height/2);
-        //    c.scale(scale_x,scale_y);
-            c.beginPath();
-            //c.arc(this.x, this.y, this.radius/2, Math.PI*2, false);
-            c.ellipse(this.x, this.y, first_radius/2, second_radius/2, 0, 0, Math.PI*2);
-        //    c.restore();
-            c.strokeStyle = "sienna";
-            c.stroke();
-            c.fillStyle = "sienna";
-            c.fill();
-        }
-    }
-    this.update = function() {
-        var movement = 4;
-        switch(this.direction){
-            case "up":
-                this.y-=movement;
-                break;
-            case "down":
-                this.y+=movement;
-                break;
-            case "right":
-                this.x+=movement;
-                break;
-            case "left":
-                this.x-=movement;
-                break;
-        }
-        if(this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
-            this.status = "stop";
-            enemyAttacks.splice(enemyAttacks.indexOf(this),1);
-        } else {
-            var newAreaOfAttack = {
-                x: this.x,
-                y: this.y,
-                width: this.width,
-                height: this.height
-            }
-            if(objIntersectBoth(newAreaOfAttack, pichu) && this.status!="stop" && !pichu.damaged){
-                this.status = "stop";
-                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
-                pichu.damage(this.damage());
-                pichu.slowed_Down = 150;
-
-            }
-            this.draw();
-            if(!this.horizontal){
-                this.change_i++;
-                if(this.change_i > this.change_Delay){
-                    this.horizontal = true;
-                }
-            } else {
-                this.change_i--;
-                if(this.change_i <= 0){
-                    this.horizontal = false;
-                }
-            }
-        }
-    }
-}
-
-function HyperBeam(x, y, direction, user){
-    this.name = "Hyper Beam";
-    this.type = "Normal";
-    this.finishing = false;
-    this.status = "go";
-    this.random_placement_because_I_didnt_want_to_relocate_the_beam = Math.floor(Math.random() * 2);
-    this.finishDelay = 0;
-    this.radius = 40;
-    this.speed = 5;
-    this.start = {
-        x: x,
-        y: y
-    }
-    this.end = {
-        x: x,
-        y: y
-    }
-    this.direction = direction;
-    this.damage = function(){
-        var secondBeamDamage = 20 + 5*(Math.max(0, pichu.level - 5));
-        var firstBeamDamage = 25 + 5*(Math.max(0, pichu.level - 5));
-        if(this.finishing){
-            firstBeamDamage = secondBeamDamage;
-        }
-        return [firstBeamDamage, secondBeamDamage];
-    }
-    this.draw = function() {
-        var multiplier = this.finishing ? 1 : 2/1.5;
-        //outer beam
-        if(!this.finishing){
-            c.beginPath();
-            c.arc(this.start.x, this.start.y, this.radius, Math.PI*2, false);
-            c.strokeStyle = "yellow";
-            c.stroke();
-            c.fillStyle = "yellow";
-            c.fill();
-        }
-
-        switch(this.direction){
-            case "left":
-                // for(var i = 1;inc_x-i > this.end.x;i++){
-                //     c.beginPath();
-                //     c.strokeStyle = "orange";
-                //     c.strokeRect(inc_x-i, inc_y-smallerRadius/1.5, 1, smallerRadius*2/1.5);
-                //     c.stroke();
-                // }
-                c.beginPath();
-                c.fillStyle = "yellow";
-                c.fillRect(this.end.x, this.end.y-this.radius/1.5, this.start.x - this.end.x, this.radius*2/1.5);
-                c.fill();
-                break;
-            case "right":
-                c.beginPath();
-                c.fillStyle = "yellow";
-                c.fillRect(this.start.x, this.start.y-this.radius/1.5, this.end.x - this.start.x, this.radius*2/1.5);
-                c.fill();
-                break;
-            case "up":
-                // for(var i = 1;inc_y-i > this.end.y;i++){
-                //     c.beginPath();
-                //     c.strokeStyle = "orange";
-                //     c.strokeRect(inc_x-smallerRadius/1.5, inc_y-i, smallerRadius*2/1.5, 1);
-                //     c.stroke();
-                // }
-                c.beginPath();
-                c.fillStyle = "yellow";
-                c.fillRect(this.end.x-this.radius/1.5, this.end.y, this.radius*2/1.5, this.start.y - this.end.y);
-                c.fill();
-                break;
-            case "down":
-                c.beginPath();
-                c.fillStyle = "yellow";
-                c.fillRect(this.start.x-this.radius/1.5, this.start.y, this.radius*2/1.5, this.end.y - this.start.y);
-                c.fill();
-                break;
-            default:
-                break;
-        }
-
-        c.beginPath();
-        c.arc(this.end.x, this.end.y, this.radius*multiplier, Math.PI*2, false);
-        c.strokeStyle = "yellow";
-        c.stroke();
-        c.fillStyle = "yellow";
-        c.fill();
-
-        //inner beam
-
-        var smallerRadius = this.radius/1.5;
-        if(!this.finishing){
-            c.beginPath();
-            c.arc(this.start.x, this.start.y, smallerRadius, Math.PI*2, false);
-            c.strokeStyle = "orange";
-            c.stroke();
-            c.fillStyle = "orange";
-            c.fill();
-        }
-        
-        switch(this.direction){
-            case "left":
-                // for(var i = 1;inc_x-i > this.end.x;i++){
-                //     c.beginPath();
-                //     c.strokeStyle = "orange";
-                //     c.strokeRect(inc_x-i, inc_y-smallerRadius/1.5, 1, smallerRadius*2/1.5);
-                //     c.stroke();
-                // }
-                c.beginPath();
-                c.fillStyle = "orange";
-                c.fillRect(this.end.x, this.end.y-smallerRadius/1.5, this.start.x - this.end.x, smallerRadius*2/1.5);
-                c.fill();
-                break;
-            case "right":
-                c.beginPath();
-                c.fillStyle = "orange";
-                c.fillRect(this.start.x, this.start.y-smallerRadius/1.5, this.end.x - this.start.x, smallerRadius*2/1.5);
-                c.fill();
-                break;
-            case "up":
-                // for(var i = 1;inc_y-i > this.end.y;i++){
-                //     c.beginPath();
-                //     c.strokeStyle = "orange";
-                //     c.strokeRect(inc_x-smallerRadius/1.5, inc_y-i, smallerRadius*2/1.5, 1);
-                //     c.stroke();
-                // }
-                c.beginPath();
-                c.fillStyle = "orange";
-                c.fillRect(this.end.x-smallerRadius/1.5, this.end.y, smallerRadius*2/1.5, this.start.y - this.end.y);
-                c.fill();
-                break;
-            case "down":
-                c.beginPath();
-                c.fillStyle = "orange";
-                c.fillRect(this.start.x-smallerRadius/1.5, this.start.y, smallerRadius*2/1.5, this.end.y - this.start.y);
-                c.fill();
-                break;
-            default:
-                break;
-        }
-
-        c.beginPath();
-        c.arc(this.end.x, this.end.y, smallerRadius*multiplier, Math.PI*2, false);
-        c.strokeStyle = "orange";
-        c.stroke();
-        c.fillStyle = "orange";
-        c.fill();
-        if(this.direction === "up"){
-            user.draw();
-        }
-
-        var smallX = Math.min(this.start.x, this.end.x);
-        var smallY = Math.min(this.start.y, this.end.y);
-        var bigX = Math.max(this.start.x, this.end.x);
-        var bigY = Math.max(this.start.y, this.end.y); 
-
-        // switch(this.direction){
-        //     case "left":
-        //         if(!this.finishing){
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(smallX - this.radius, smallY-this.radius, this.radius*2, this.radius*2);
-        //             c.stroke();
-        //         } else {
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(smallX, smallY-this.radius/1.5, this.radius, this.radius*2/1.5);
-        //             c.stroke();
-        //         }
-
-        //         c.beginPath();
-        //         c.strokeStyle = "blue";
-        //         c.strokeRect(smallX + this.radius, smallY-this.radius/1.5, bigX - smallX, this.radius*2/1.5);
-        //         c.stroke();
-        //         break;
-        //     case "right":
-        //         if(!this.finishing){
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(bigX - this.radius, bigY-this.radius, this.radius*2, this.radius*2);
-        //             c.stroke();
-        //         } else {
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(bigX - this.radius, bigY-this.radius/1.5, this.radius, this.radius*2/1.5);
-        //             c.stroke();
-        //         }
-
-        //         c.beginPath();
-        //         c.strokeStyle = "blue";
-        //         c.strokeRect(smallX - this.radius, smallY-this.radius/1.5, bigX - smallX, this.radius*2/1.5);
-        //         c.stroke();
-        //         break;
-            
-        //     case "up":
-        //         if(!this.finishing){
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(smallX - this.radius, smallY-this.radius, this.radius*2, this.radius*2);
-        //             c.stroke();
-        //         } else {
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(smallX - this.radius/1.5, smallY, this.radius*2/1.5, this.radius);
-        //             c.stroke();
-        //         }
-
-        //         c.beginPath();
-        //         c.strokeStyle = "blue";
-        //         c.strokeRect(smallX - this.radius/1.5, smallY+this.radius, this.radius*2/1.5, bigY - smallY);
-        //         c.stroke();
-        //         break;
-
-        //     case "down":
-        //         if(!this.finishing){
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(bigX - this.radius, bigY-this.radius, this.radius*2, this.radius*2);
-        //             c.stroke();
-        //         } else {
-        //             c.beginPath();
-        //             c.strokeStyle = "blue";
-        //             c.strokeRect(bigX - this.radius/1.5, bigY-this.radius, this.radius*2/1.5, this.radius);
-        //             c.stroke();
-        //         }
-
-        //         c.beginPath();
-        //         c.strokeStyle = "blue";
-        //         c.strokeRect(smallX - this.radius/1.5, smallY-this.radius, this.radius*2/1.5, bigY - smallY);
-        //         c.stroke();
-        //         break;
-
-        //     default:
-        //         break;
-        // }
-    }
-    this.update = function() {
-        if(!this.finishing){
-            switch(this.direction){
-                case "left":
-                    this.end.x -= this.speed;
-                    break;
-                case "right":
-                    this.end.x += this.speed;
-                    break;
-                case "up":
-                    this.end.y -= this.speed;
-                    break;
-                case "down":
-                    this.end.y += this.speed;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            if(this.finishDelay < 50){
-                this.finishDelay++;
-            } else {
-                this.finishDelay++;
-                if(this.finishDelay >= 60){
-                    user.attacking = false;
-                }
-                switch(this.direction){
-                    case "left":
-                        this.end.x -= this.speed;
-                        break;
-                    case "right":
-                        this.end.x += this.speed;
-                        break;
-                    case "up":
-                        this.end.y -= this.speed;
-                        break;
-                    case "down":
-                        this.end.y += this.speed;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        var smallX = Math.min(this.start.x, this.end.x);
-        var smallY = Math.min(this.start.y, this.end.y);
-        var bigX = Math.max(this.start.x, this.end.x);
-        var bigY = Math.max(this.start.y, this.end.y); 
-
-        var firstBeam;
-        var secondBeam;
-        switch(this.direction){
-            case "left":
-                if(!this.finishing){
-                    firstBeam = {
-                        x: smallX - this.radius,
-                        y: smallY-this.radius,
-                        width: this.radius*2,
-                        height: this.radius*2
-                    }
-                } else {
-                    firstBeam = {
-                        x: smallX,
-                        y: smallY-this.radius/1.5,
-                        width: this.radius,
-                        height: this.radius*2/1.5
-                    }
-                }
-
-                secondBeam = {
-                    x: smallX + this.radius,
-                    y: smallY - this.radius/1.5,
-                    width: bigX - smallX,
-                    height: this.radius*2/1.5
-                }
-                break;
-            case "right":
-                if(!this.finishing){
-                    firstBeam = {
-                        x: bigX - this.radius,
-                        y: bigY-this.radius,
-                        width: this.radius*2,
-                        height: this.radius*2
-                    }
-                } else {
-                    firstBeam = {
-                        x: bigX - this.radius,
-                        y: bigY - this.radius,
-                        width: this.radius,
-                        height: this.radius*2/1.5
-                    }
-                }
-
-                secondBeam = {
-                    x: smallX - this.radius,
-                    y: smallY - this.radius/1.5,
-                    width: bigX - smallX,
-                    height: this.radius*2/1.5
-                }
-                break;
-            
-            case "up":
-                if(!this.finishing){
-                    firstBeam = {
-                        x: smallX - this.radius,
-                        y: smallY - this.radius,
-                        width: this.radius*2,
-                        height: this.radius*2
-                    }
-                } else {
-                    firstBeam = {
-                        x: smallX - this.radius/1.5,
-                        y: smallY,
-                        width: this.radius*2/1.5,
-                        height: this.radius
-                    }
-                }
-
-                secondBeam = {
-                    x: smallX - this.radius/1.5,
-                    y: smallY + this.radius,
-                    width: this.radius*2/1.5,
-                    height: bigY - smallY
-                }
-                break;
-
-            case "down":
-                if(!this.finishing){
-                    firstBeam = {
-                        x: bigX - this.radius,
-                        y: bigY - this.radius,
-                        width: this.radius*2,
-                        height: this.radius*2
-                    }
-                } else {
-                    firstBeam = {
-                        x: bigX - this.radius/1.5,
-                        y: bigY - this.radius,
-                        width: this.radius*2/1.5,
-                        height: this.radius
-                    }
-                }
-
-                secondBeam = {
-                    x: smallX - this.radius/1.5,
-                    y: smallY - this.radius,
-                    width: this.radius*2/1.5,
-                    height: bigY - smallY
-                }
-                break;
-
-            default:
-                break;
-        }
-        if(objIntersectBoth(firstBeam, pichu) && this.status!="stop" && !pichu.damaged){
-            pichu.damage(this.damage()[0]);
-        }
-        if(objIntersectBoth(secondBeam, pichu) && this.status!="stop" && !pichu.damaged){
-            pichu.damage(this.damage()[1]);
-        }
-        for(var i = 0;i < attacks.length;i++){
-            var areaOfAttack = {
-                x: attacks[i].x,
-                y: attacks[i].y,
-                height: attacks[i].height,
-                width: attacks[i].width
-            }
-            if((objIntersectBoth(secondBeam, areaOfAttack) || objIntersectBoth(firstBeam, areaOfAttack)) && this.status!="stop"){
-                attacks[i].status = "stop";
-                attacks.splice(i,1);
-            }
-        }
-        var test1 = this.end.x < 0 || this.end.x >= canvas.width;
-        var test2 = this.end.y < 0 || this.end.y >= canvas.height;
-        if(!this.finishing && (test1 || test2)){
-            this.finishing = true;
-            var tempEnd = this.end;
-            this.end = this.start;
-            this.start = tempEnd;
-        } else {
-            if(this.finishing && (test1 || test2)){
-                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
-            }
-        }
-        this.draw();
-    }
-}
-
-
 
 
 
@@ -6708,8 +6424,10 @@ canvas.addEventListener("click", function(event){
 // enemies.push(newWooper);
 // var newTM = new Tm(event.layerX, event.layerY, "Double Team");
 // collidables.push(newTM);
-var newSnorlax = new Snorlax(event.layerX, event.layerY, Math.floor(Math.random() * 2));
-enemies.push(newSnorlax);
+// var d = ["up"];
+// var direction = Math.random() > 0.5 ? "right" : "left";
+// var b = new Thunder(event.layerX, event.layerY, d[Math.floor(Math.random()*d.length)]);
+// attacks.push(b);
 // var newBerry = new leppaBerry(event.layerX, event.layerY, (3 + Math.floor(Math.random()*5)));
 // collidables.push(newBerry);
     // var chance = Math.floor(Math.random() * 2);
@@ -6748,8 +6466,9 @@ function animate() {
     c.strokeStyle = "yellow";
     c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
     c.stroke();
-    // collidableDelayDraw();
+    // 
     ***********************/
+    collidableDelayDraw();
     var target = pichu;
     for(var i = 0;i < attacks.length;i++){
         if(attacks[i].name === "Double Team"){
