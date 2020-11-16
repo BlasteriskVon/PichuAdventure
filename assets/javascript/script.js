@@ -4811,13 +4811,13 @@ function enemyRush(number){
                         if(pichu.attacks.length > 3 || rushModeCount >= 20){
                             isShiny = rand >= 0.7;
                             if(pichu.attacks.length > 4){
-                                isShiny = rand >= 0.5;
+                                isShiny = rand >= 0.3;
                             }
                         }
                     }
                     if(rushModeCount >= 15 && pichu.attacks.length < 3){
                         var rand = Math.random();
-                        isShiny = rand > 0.75;
+                        isShiny = rand > 0.7;
                     }
                     switch(enemyChoice){
                         case 0:
