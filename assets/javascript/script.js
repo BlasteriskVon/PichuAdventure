@@ -19,6 +19,7 @@ var snorlaxSpritesheet = new Image(); //made the snorlax sprites too big so had 
 var gengarSpritesheet = new Image();
 var dragoniteSpritesheet = new Image();
 var miscItemsSpritesheet = new Image();
+var shinySpritesheet = new Image();
 var floor, basicFloor, grassFloor, battleFloor;
 var entry1, entry2, entry3, entry4;
 var canvas;
@@ -225,6 +226,15 @@ function rushModenize() {
         map.append(newCanvas);
         startRush();
     }
+    option1.oncontextmenu = function(event) {
+        event.preventDefault();
+        startMeBaby = true;
+        var newCanvas = document.createElement("canvas");
+        var map = document.getElementById("map");
+        map.textContent = "";
+        map.append(newCanvas);
+        startRush(true);
+    }
     option2.onclick = mainMenunize;
 }
 
@@ -404,6 +414,12 @@ $("#welcomeRow").append(welcomeText);*/
 function loadSpritesheets(){
     spritesheet.src = "assets/images/spritesheet.png";
     spritesheet.addEventListener("load", function() {
+        loadShinies();
+    })
+}
+function loadShinies() {
+    shinySpritesheet.src = "assets/images/special_spritesheet.png";
+    shinySpritesheet.addEventListener("load", function() {
         miscItemsSpritesheet.src = "assets/images/miscItems.png";
         miscItemsSpritesheet.addEventListener("load", function() {
             loadFloors();
@@ -720,12 +736,13 @@ function berryPlace(berry){
     }
 }
 
-function Tm(x, y, move, additionalFunction){
+function Tm(x, y, move, additionalFunction, special){
     this.myArray = [[1396, 1236, 292, 292], [1714, 1251, 292, 292], [2016, 1252, 292, 292], [2306, 1259, 292, 292], [2661, 1265, 292, 292], [2306, 1259, 292, 292], [2016, 1252, 292, 292], [1714, 1251, 292, 292]];
     this.i = 0;
     this.iDelay = 0;
     this.x = x;
     this.y = y;
+    this.special = special;
     this.drawn = false;
     this.desiredDelay = 10;
     this.height = 100;
@@ -740,7 +757,8 @@ function Tm(x, y, move, additionalFunction){
     this.draw = function() {
         i = this.i;
         steps = this.myArray;
-        c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+        var sheet = this.special ? shinySpritesheet : spritesheet;
+        c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
         this.drawn = false;
     }
     this.update = function() {
@@ -892,13 +910,17 @@ function Pokeball(x, y, isVoltorb, openingFn){
 }
 
 /**************************************** ATTACK FUNCTIONS **************************************************************/
-function Thunderbolt(x, y, direction, radius){
+function Thunderbolt(x, y, direction, radius, enemyAttack){
     this.name = "Thunderbolt";
     this.type = "Electric";
     this.x = x;
     this.y = y;
     this.damage = function() {
-        return 9 + 0.5*pichu.level;
+        if(enemyAttack){
+            return 6 + 0.5*(pichu.level - 5);
+        } else {
+            return 9 + 0.5*pichu.level;
+        }
     }
     this.width = 1;
     this.height = 1;
@@ -955,8 +977,13 @@ function Thunderbolt(x, y, direction, radius){
         height: this.radius * 2
     }
     if(this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
-        this.status = "stop";
-        attacks.splice(attacks.indexOf(this), 1);
+        if(enemyAttack){
+            this.status = "stop";
+            enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+        } else {
+            this.status = "stop";
+            attacks.splice(attacks.indexOf(this), 1);
+        }
     } else {
         var newAreaOfAttack = {
             x: this.x,
@@ -964,17 +991,25 @@ function Thunderbolt(x, y, direction, radius){
             width: this.width,
             height: this.height
         }
-        for(var i = 0;i < enemies.length;i++){
-            var enemyHitbox;
-            if(enemies[i].big){
-                enemyHitbox = enemies[i].hitbox();
-            } else {
-                enemyHitbox = enemies[i];
-            }
-            if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
+        if(enemyAttack){
+            if(objIntersectBoth(newAreaOfAttack, pichu.hitbox()) && this.status!="stop" && !pichu.damaged){
                 this.status = "stop";
-                attacks.splice(attacks.indexOf(this), 1);
-                enemies[i].damage(this.damage());
+                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+                pichu.damage(this.damage());
+            }
+        } else {
+            for(var i = 0;i < enemies.length;i++){
+                var enemyHitbox;
+                if(enemies[i].big){
+                    enemyHitbox = enemies[i].hitbox();
+                } else {
+                    enemyHitbox = enemies[i];
+                }
+                if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && this.status != "stop"){
+                    this.status = "stop";
+                    attacks.splice(attacks.indexOf(this), 1);
+                    enemies[i].damage(this.damage());
+                }
             }
         }
         this.draw();
@@ -1270,6 +1305,7 @@ function Thunderbolt(x, y, direction, radius){
 }
 
 function Thunder(x, y, direction){
+    this.name = "Thunder";
     this.x = x;
     this.y = y;
     this.big = true;
@@ -1453,7 +1489,9 @@ function Thunder(x, y, direction){
     }
 }
 
+//this function isn't being used in the program but it was the basis for the Volt Tackle object attached to the Pichu object
 function VoltTackle(x, y){
+    this.name = "Volt Tackle";
     this.x = x;
     this.y = y;
     this.dx = 0;
@@ -1642,7 +1680,11 @@ function Mudshot(x, y, direction, radius){
     this.change_i = 0;
     this.change_Delay = 15;
     this.damage = function() {
-        return 5 + 1*(Math.max(0, pichu.level - 5));
+        if(this.radius <= 30){
+            return 5;
+        } else {
+            return 5 + 1*(Math.max(0, pichu.level - 5));
+        }
     }
     this.draw = function() {
         if(this.status != "stop"){
@@ -2185,15 +2227,17 @@ function HyperBeam(x, y, direction, user){
 }
 
 /**************************************** ENEMY FUNCTIONS **************************************************************/
-function Voltorb(x, y, priority){
+function Voltorb(x, y, priority, shiny){
     this.status = "active";
-    this.health = 8;
+    this.health = shiny ? 16 : 8;
+    this.shiny = shiny;
     this.big = false; //trait to determine whether attacks will use regular position or hitbox stats to determine intersection
     this.x = x;
     this.y = y;
-    this.speed = 3;
+    this.speed = shiny ? 3 : 2;
+    this.attackCoolDown = 0;
     this.radius = 5;
-    this.exp = 6;
+    this.exp = shiny ? 12 : 6;
     this.innerRadius = 0.1;
     this.height = 100;
     this.width = 100;
@@ -2253,13 +2297,14 @@ function Voltorb(x, y, priority){
     this.myArray = this.myArray ? this.myArray : this.downArrays;
     steps = this.myArray;
     damageSteps = this.damageArray;
+    var sheet = this.shiny ? shinySpritesheet : spritesheet;
 
 
     //c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
     if(this.status === "damaged" && this.damageCooldown%2 === 0){
-        c.drawImage(spritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
+        c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
     } else {
-        c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+        c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
     }
     }
     this.update = function(target) {
@@ -2272,7 +2317,7 @@ function Voltorb(x, y, priority){
     }
     if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status==="active" && !pichu.damaged){
         this.status = "succeeded";
-        var damage = 5 + 10*(Math.max(0, pichu.level - 5));
+        var damage = this.shiny ? 5 + 10*(Math.max(0, pichu.level - 5)) : 5;
         pichu.damage(damage);
     }
     if(this.priority === 0){
@@ -2378,6 +2423,19 @@ function Voltorb(x, y, priority){
                 console.log(this.status);
             }
         }
+        if(this.shiny && pichu.live){
+            if(this.attackCoolDown <= 0){
+                var oneToAttack = [0, 0, 0, 1];
+                var attackOption = oneToAttack[Math.floor(Math.random()*oneToAttack.length)];
+                if(attackOption === 1){
+                    var newThunderbolt = new Thunderbolt(this.x + this.width/2, this.y + this.height/2, this.direction, 20, true);
+                    enemyAttacks.push(newThunderbolt);
+                    this.attackCoolDown = 150;
+                }
+            } else {
+                this.attackCoolDown--;
+            }
+        }
         this.draw();
     } else if(this.status === "eliminated"){
         if(this.radius <= 50){
@@ -2409,16 +2467,17 @@ function Voltorb(x, y, priority){
     }
 }
 
-function Wooper(x, y){
+function Wooper(x, y, shiny){
     this.status = "active";
-    this.health = 20;
+    this.health = shiny ? 40 : 20;
     this.big = false;
+    this.shiny = shiny;
     this.x = x;
     this.y = y;
-    this.speed = 2;
+    this.speed = shiny ? 3 : 2;
     this.radius = 5;
     this.resistElectric = true;
-    this.exp = 8;
+    this.exp = shiny ? 16 : 8;
     this.direction = "down";
     this.diagonalArray = ["Northeast", "Southeast", "Southwest", "Northwest"];
     this.diagonal = "Northeast";
@@ -2489,7 +2548,8 @@ function Wooper(x, y){
     this.attack = function() {
         if(this.status === "active" || this.status === "damaged"){
             var frontWooper = frontOfEnemy(this);
-            var newMudshot = new Mudshot(frontWooper.x, frontWooper.y, this.direction, 30);
+            var radius = this.shiny ? 31 : 30;
+            var newMudshot = new Mudshot(frontWooper.x, frontWooper.y, this.direction, radius);
             this.attckWindDown = 10;
             enemyAttacks.push(newMudshot);
         }
@@ -2499,10 +2559,11 @@ function Wooper(x, y){
         this.myArray = this.myArray ? this.myArray : this.downIdleArrays;
         steps = this.myArray;
         damageSteps = this.damageArray;
+        var sheet = this.shiny ? shinySpritesheet : spritesheet;
         if(this.status === "damaged" && this.damageCooldown%2 === 0){
-            c.drawImage(spritesheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
+            c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
         } else {
-            c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+            c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
         }
     }
     this.update = function(target) {
@@ -2514,7 +2575,7 @@ function Wooper(x, y){
             width: target.width - adjust
         }
         if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status==="active" && !pichu.damaged){
-            var damage = 8 + 1*(Math.max(0, pichu.level - 5)); //return later
+            var damage = this.shiny ? 8 + 1*(Math.max(0, pichu.level - 5)) : 8; //return later
             pichu.damage(damage);
         }
         for(var i = 0;i < attacks.length;i++){
@@ -3225,7 +3286,7 @@ function Snorlax(x, y, priority){
 
 /**************************************** GAME MODE FUNCTIONS **************************************************************/
 
-function startRush() {
+function startRush(test) {
     canvas = document.querySelector("canvas");
     var mappy = document.getElementById("map");
     map.css("background-image","none");
@@ -3244,7 +3305,7 @@ var phase = 1;
 rushModeCount = -1;
 continueRush = true;
 floor = grassFloor;
-document.getElementById("player-pic").className = "options";
+document.getElementById("player-pic").className = "pictureSelect";
 
 pichu = {
     mode: "default",
@@ -3256,6 +3317,8 @@ pichu = {
     pichuSheet: spritesheet,
     attackNumber: 0,
     z_attackNumber: undefined,
+    thunderCost: 1,
+    voltTackleCost: 1,
     radius: 5,
     height: 100,
     width: 100,
@@ -3277,12 +3340,20 @@ pichu = {
         bigMeter: 0,
         targetEnemyIndex: undefined,
         targetPhase: 0,
+        damage: function(){
+            return 0.1 * (1 + pichu.level);
+        },
         end: function(){
             pichu.voltTackle.active = false;
             pichu.freeRoam = true;
             pichu.voltTackle.hits = 8;
             pichu.voltTackle.bigMeter = 0;
             pichu.voltTackle.big = false;
+            if(pichu.health <= 0){
+                pichu.live = false;
+                pichu.damaged = false;
+                gameOver();
+            }
         },
         draw: function(){
             c.beginPath();
@@ -3337,7 +3408,7 @@ pichu = {
                     enemyHitbox = enemies[i];
                 }
                 if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && pichu.voltTackle.active){
-                    enemies[i].health-= 0.1;
+                    enemies[i].health-= pichu.voltTackle.damage();
                     if(enemies[i].health <= 0){
                         if(i === pichu.voltTackle.targetEnemyIndex){
                             console.log("killed enemy and it was target");
@@ -3346,6 +3417,7 @@ pichu = {
                         } else {
                             console.log("killed enemy and it was not target");
                         }
+                        pichu.health -= pichu.voltTackle.damage()*10;
                         enemies[i].damage(1);
                     }
                 }
@@ -3498,7 +3570,14 @@ pichu = {
         }
     },
     levelUp: function(remainingExp){
-        pichu.health = pichu.max_Health();
+        if(pichu.voltTackle.active){
+            pichu.health *= 1.5;
+            if(pichu.health > pichu.max_Health()){
+                pichu.health = pichu.max_Health();
+            }
+        } else {
+            pichu.health = pichu.max_Health();
+        }
         pichu.charge = pichu.charge_Max();
         $("#level-label").text("");
         $("#pichu_level").attr("status", "levelingUp");
@@ -3511,7 +3590,7 @@ pichu = {
     checkClones: function(){
         var answer = 0;
         for(var i = 0;i < attacks.length;i++){
-            if(attacks[i].name === "Double-Team"){
+            if(attacks[i].name === "Double Team"){
                 answer++;
             }
         }
@@ -3715,7 +3794,7 @@ pichu = {
         }
     },
     //attacks: ["Thunderbolt", "Volt Tackle", "Thunder"], this one is for testing these attacks
-    attacks: ["Thunderbolt"],
+    attacks: !test ? ["Thunderbolt"] : ["Thunderbolt", "Volt Tackle", "Thunder"],
     attack: function(z) {
         var atkNum;
         if(z){
@@ -3759,7 +3838,7 @@ pichu = {
                 }
                 break;
             case 3:
-                if(this.live && (this.charge >= 1)){
+                if(this.live && (this.charge >= this.thunderCost)){
                     var front = {
                         x: pichu.x + pichu.width/2,
                         y: pichu.y + pichu.height/2
@@ -3780,18 +3859,19 @@ pichu = {
                     }
                     var newThunder = new Thunder(front.x, front.y, this.direction);
                     this.idle_i = 0;
-                    this.loseCharge(1);
+                    this.loseCharge(this.thunderCost);
                     this.attckWindDown = 10;
                     attacks.push(newThunder);
                 }
                 break;
             case 4:
-                if(this.live && (this.charge >= 1)){
+                if(this.live && (this.charge >= this.voltTackleCost)){
                     this.idle_i = 0;
-                    this.loseCharge(1);
+                    this.loseCharge(this.voltTackleCost);
+                    this.health -= pichu.max_Health()/3;
                     this.attckWindDown = 10;
                     pichu.voltTackle.active = true;
-                    pichu.voltTackle.hits = 8 + 8 * Math.floor(pichu.level/4);
+                    pichu.voltTackle.hits = 8 + 4 * Math.floor(pichu.level/4);
                     pichu.damaged = true;
                 }
                 break;
@@ -3984,10 +4064,20 @@ pichu = {
                     phaseCheck();
                 }*/
                 if(this.charge < this.charge_Max()){
-                    if(this.motion){
-                        this.charge+=0.15;
+                    var currentThunder = false;
+                    for(var i = 0;i < attacks.length;i++){
+                        if(attacks[i].name === "Thunder"){
+                            currentThunder = true;
+                        }
+                    }
+                    if(!currentThunder){
+                        if(this.motion){
+                            this.charge+=0.15;
+                        } else {
+                            this.charge+=0.05;
+                        }
                     } else {
-                        this.charge+=0.05;
+                        this.charge+=0.02;
                     }
                 }
                 if(this.damaged){
@@ -4122,7 +4212,7 @@ function pictureMenu() {
         method: "GET"
     }).then(function(response) {
         var index = -1;
-        var limiter = Math.min(pichu.level + 1, 12);
+        var limiter = Math.min(pichu.level + 1, 11);
         for(var i = 0;i < 3;i++){
             var newRow = $("<div>", {"class":"row"});
             for(var j = 0;j < 4;j++){
@@ -4278,6 +4368,7 @@ function pauseMenu() {
                         } else {
                             option.target.innerText = "Already being used!";
                         }
+                        break;
                     case "Swift":
                         if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
                             pichu.attackNumber = 1;
@@ -4296,7 +4387,7 @@ function pauseMenu() {
                         break;
                     case "Thunder":
                         if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
-                            pichu.z_attackNumber = 3;
+                            pichu.attackNumber = 3;
                             option.target.innerText = "Done!";
                         } else {
                             option.target.innerText = "Already being used!";
@@ -4304,7 +4395,7 @@ function pauseMenu() {
                         break;
                     case "Volt Tackle":
                         if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
-                            pichu.z_attackNumber = 4;
+                            pichu.attackNumber = 4;
                             option.target.innerText = "Done!";
                         } else {
                             option.target.innerText = "Already being used!";
@@ -4620,10 +4711,27 @@ function enemyRush(number){
                         if(pichu.attacks.includes("Double Team") && options.includes("Double Team")){
                             options.splice(options.indexOf("Double Team"),1);
                         }
-                        if(pichu.health >= pichu.max_Health() && pichu.attacks.length < 3){
+                        if(pichu.health >= pichu.max_Health()){
                             options.splice(options.indexOf("oran"),1);
                             options.splice(options.indexOf("leppa"),1)
                         }
+                        if(options.length === 0){
+                            if(pichu.thunderCost === 1){
+                                pichu.thunderCost = pichu.charge_Max() * 0.95;
+                                pichu.voltTackleCost = pichu.charge_Max() * 0.6;
+                            }
+                            if(!pichu.attacks.includes("Thunder")){
+                                options.push("Thunder");
+                            }
+                            if(!pichu.attacks.includes("Volt Tackle")){
+                                options.push("Volt Tackle");
+                            }
+                            if(options.length === 0){
+                                options.push("leppa");
+                                options.push("oran");
+                            }
+                        }
+
                         var option = options[Math.floor(Math.random() * options.length)];
                         switch(option){
                             case "Swift":
@@ -4645,6 +4753,18 @@ function enemyRush(number){
                             case "leppa":
                                 var newBerry = new leppaBerry(300, 300, 3);
                                 collidables.push(newBerry);
+                                break;
+                            case "Thunder":
+                                var thunderTM = new Tm(300, 300, "Thunder", function(){
+                                    pichu.z_attackNumber = 3;
+                                }, true);
+                                collidables.push(thunderTM);
+                                break;
+                            case "Volt Tackle":
+                                var voltTackleTM = new Tm(300, 300, "Volt Tackle", function(){
+                                    pichu.z_attackNumber = 4;
+                                }, true);
+                                collidables.push(voltTackleTM);
                                 break;
                             default: 
                                 break;
@@ -4684,12 +4804,27 @@ function enemyRush(number){
                     if(rushModeCount < 15 && i > 2){
                         enemyChoice = 0;
                     }
+                    var isShiny = false;
+                    if(pichu.attacks.length >= 3){
+                        var rand = Math.random();
+                        isShiny = rand > 0.9;
+                        if(pichu.attacks.length > 3 || rushModeCount >= 20){
+                            isShiny = rand >= 0.7;
+                            if(pichu.attacks.length > 4){
+                                isShiny = rand >= 0.5;
+                            }
+                        }
+                    }
+                    if(rushModeCount >= 15 && pichu.attacks.length < 3){
+                        var rand = Math.random();
+                        isShiny = rand > 0.75;
+                    }
                     switch(enemyChoice){
                         case 0:
-                            newEnemy = new Voltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
+                            newEnemy = new Voltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2), isShiny);
                             break;
                         case 1:
-                            newEnemy = new Wooper(enemy_x_coordinate, enemy_y_coordinate);
+                            newEnemy = new Wooper(enemy_x_coordinate, enemy_y_coordinate, isShiny);
                             break;
                         default:
                             break;
@@ -4830,7 +4965,11 @@ function gameOver(){
         paused = false;
         startMeBaby = true;
         $("#directions").text("");
-        startRush();
+        if(test){
+            startRush(true);
+        } else {
+            startRush();
+        }
     }
     option2.onclick = function() {
         canvas.remove();
@@ -4963,7 +5102,7 @@ function setPichu(){
     pichu.width = testWidth;
 }
 
-document.getElementById("player-pic").className = "options";
+document.getElementById("player-pic").className = "pictureSelect";
 
 
 pichu = {
@@ -5048,7 +5187,7 @@ pichu = {
     checkClones: function(){
         var answer = 0;
         for(var i = 0;i < attacks.length;i++){
-            if(attacks[i].name === "Double-Team"){
+            if(attacks[i].name === "Double Team"){
                 answer++;
             }
         }
