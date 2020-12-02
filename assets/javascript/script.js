@@ -1209,7 +1209,7 @@ function Pokeball(x, y, isVoltorb, openingFn){
     }
 }
 
-function spikyEarOrb(x, y, additionalFunction){
+function SpikyEarOrb(x, y, additionalFunction){
     this.x = x;
     this.y = y;
     this.width = 100;
@@ -1255,7 +1255,7 @@ function spikyEarOrb(x, y, additionalFunction){
     }
 }
 
-function paintBucket(x, y, paint, additionalFunction){
+function PaintBucket(x, y, paint, additionalFunction){
     this.x = x;
     this.y = y;
     this.width = 75; //75 * 4/3
@@ -1300,6 +1300,45 @@ function paintBucket(x, y, paint, additionalFunction){
         if(additionalFunction){
             additionalFunction();
         }
+    }
+}
+
+function Blank(x, y){
+    this.x = x;
+    this.y = y;
+    this.width = 1;
+    this.height = 91;
+    this.intangible = true;
+    this.drawn = false;
+    this.test = {
+        x: this.x,
+        y: this.y,
+        width: 1,
+        height: 1
+    }
+    this.draw = function(){
+        c.drawImage(spritesheet, 0, 0, 1, 1, this.x, this.y, this.width, this.height);
+        this.drawn = false;
+    }
+    this.update = function(){
+        var pichuTest = {
+            x: pichu.x + pichu.width/2,
+            y: pichu.y + pichu.height/2,
+            full_y: pichu.y + pichu.height,
+            width: 1,
+            height: 1
+        }
+        if(objIntersectBoth(this, pichu) && pichuTest.full_y < this.y + this.height){
+            this.drawn = true;
+        } else {
+            this.drawn = false;
+        }
+        if(!this.drawn){
+            this.draw();
+        }
+    }
+    this.approach = function(){
+        return;
     }
 }
 
@@ -3978,13 +4017,16 @@ pichu = {
             pichu.health = pichu.max_Health();
         }
         pichu.charge = pichu.charge_Max();
-        $("#level-label").text("");
-        $("#pichu_level").attr("status", "levelingUp");
-        rollingText("pichu_level", "Level Up!", function() {
-            $("#level-label").text("Level");
-            $("#pichu_level").attr("status", "level");
-            pichu.gainExp(remainingExp);
-        })
+        var levelTag = document.getElementById("pichu_level");
+        if(levelTag.getAttribute("status") === "level"){
+            $("#level-label").text("");
+            $("#pichu_level").attr("status", "levelingUp");
+            rollingText("pichu_level", "Level Up!", function() {
+                $("#level-label").text("Level");
+                $("#pichu_level").attr("status", "level");
+            })
+        }
+        pichu.gainExp(remainingExp);
     },
     checkClones: function(){
         var answer = 0;
@@ -4213,6 +4255,18 @@ pichu = {
                     this.loseCharge(15);
                     this.attckWindDown = 10;
                     attacks.push(newThunderbolt);
+                } else {
+                    if(this.charge < 15){
+                        var levelTag = document.getElementById("pichu_level");
+                        if(levelTag.getAttribute("status") === "level"){
+                            $("#level-label").text("");
+                            $("#pichu_level").attr("status", "notEnoughCharge");
+                            rollingText("pichu_level", "Not enough charge!", function() {
+                                $("#level-label").text("Level");
+                                $("#pichu_level").attr("status", "level");
+                            })
+                        }
+                    }
                 }
                 break;
             case 1:
@@ -4223,6 +4277,18 @@ pichu = {
                     pichu.loseCharge(20);
                     pichu.attckWindDown = 10;
                     attacks.push(newSwift);
+                } else {
+                    if(this.charge < 20){
+                        var levelTag = document.getElementById("pichu_level");
+                        if(levelTag.getAttribute("status") === "level"){
+                            $("#level-label").text("");
+                            $("#pichu_level").attr("status", "notEnoughCharge");
+                            rollingText("pichu_level", "Not enough charge!", function() {
+                                $("#level-label").text("Level");
+                                $("#pichu_level").attr("status", "level");
+                            })
+                        }
+                    }
                 }
                 break;
             case 2:
@@ -4233,6 +4299,18 @@ pichu = {
                         pichu.attckWindDown = 10;
                         var doubleTeam = new DoubleTeam(pichu.x, pichu.y);
                         attacks.push(doubleTeam);
+                    }
+                } else {
+                    if(this.charge < 15){
+                        var levelTag = document.getElementById("pichu_level");
+                        if(levelTag.getAttribute("status") === "level"){
+                            $("#level-label").text("");
+                            $("#pichu_level").attr("status", "notEnoughCharge");
+                            rollingText("pichu_level", "Not enough charge!", function() {
+                                $("#level-label").text("Level");
+                                $("#pichu_level").attr("status", "level");
+                            })
+                        }
                     }
                 }
                 break;
@@ -4261,6 +4339,18 @@ pichu = {
                     this.loseCharge(this.thunderCost);
                     this.attckWindDown = 10;
                     attacks.push(newThunder);
+                } else {
+                    if(this.charge < this.thunderCost){
+                        var levelTag = document.getElementById("pichu_level");
+                        if(levelTag.getAttribute("status") === "level"){
+                            $("#level-label").text("");
+                            $("#pichu_level").attr("status", "notEnoughCharge");
+                            rollingText("pichu_level", "Not enough charge!", function() {
+                                $("#level-label").text("Level");
+                                $("#pichu_level").attr("status", "level");
+                            })
+                        }
+                    }
                 }
                 break;
             case 4:
@@ -4272,6 +4362,18 @@ pichu = {
                     pichu.voltTackle.active = true;
                     pichu.voltTackle.hits = 8 + 4 * Math.floor(pichu.level/4);
                     pichu.damaged = true;
+                } else {
+                    if(this.charge < this.voltTackleCost){
+                        var levelTag = document.getElementById("pichu_level");
+                        if(levelTag.getAttribute("status") === "level"){
+                            $("#level-label").text("");
+                            $("#pichu_level").attr("status", "notEnoughCharge");
+                            rollingText("pichu_level", "Not enough charge!", function() {
+                                $("#level-label").text("Level");
+                                $("#pichu_level").attr("status", "level");
+                            })
+                        }
+                    }
                 }
                 break;
             default:
@@ -5181,12 +5283,13 @@ function enemyRush(number){
                                 collidables.push(voltTackleTM);
                                 break;
                             case "spikyEar":
-                                var orb = new spikyEarOrb(300, 300, function(){
-                                    $("#level-label").text("");
-                                    $("#pichu_level").attr("status", "newAttribute");
-                                    rollingText("pichu_level", "Spiky Ear Collected!", function() {
-                                        $("#level-label").text("Level");
-                                        $("#pichu_level").attr("status", "level");
+                                var orb = new SpikyEarOrb(300, 300, function(){
+                                    rollingText("directions", "Spiky Ear Collected!", function() {
+                                        var b = new Blank(0, 0);
+                                        collidables.push(b);
+                                        rollingText("directions", "Spiky Ear Collected! (Check it out in the Change Avatar section!)", function(){
+                                            collidables.pop();
+                                        });
                                     })
                                 });
                                 collidables.push(orb);
@@ -5201,18 +5304,17 @@ function enemyRush(number){
                                 }
                                 if(paintArrays.length > 0){
                                     var chosenPaint = paintArrays[Math.floor(Math.random() * paintArrays.length)];
-                                    var newBucket = new paintBucket(300, 300, chosenPaint, function(){
-                                        $("#level-label").text("");
-                                        $("#pichu_level").attr("status", "newAttribute");
-                                        rollingText("pichu_level", "Paint Collected!", function() {
-                                            $("#level-label").text("Level");
-                                            $("#pichu_level").attr("status", "level");
-                                        })
+                                    var newBucket = new PaintBucket(300, 300, chosenPaint, function(){
+                                        var b = new Blank(0, 0);
+                                        collidables.push(b);
+                                        rollingText("directions", "New Paint Collected! (Check it out in the Change Avatar section!)", function(){
+                                            collidables.pop();
+                                        });
                                     });
                                     collidables.push(newBucket);
                                     pichu.receivedItem = true;
                                 } else {
-                                    console.log("no point")
+                                    console.log("no paint")
                                     var newBerry = new oranBerry(300, 300, 3);
                                     collidables.push(newBerry);
                                 }
@@ -7535,11 +7637,11 @@ canvas.addEventListener("click", function(event){
     // var directionsArray = ["left", "right", "up", "down"];
     // var newHB = new HyperBeam(x, y, directionsArray[Math.floor(Math.random()*4)], pichu);
     // attacks.push(newHB);
-    // var orb = new spikyEarOrb(x, y);
+    // var orb = new SpikyEarOrb(x, y);
     // collidables.push(orb);
     // var paintArrays = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png"];
     // var chosenPaint = paintArrays[Math.floor(Math.random() * paintArrays.length)];
-    // var newBucket = new paintBucket(x, y, chosenPaint);
+    // var newBucket = new PaintBucket(x, y, chosenPaint);
     // collidables.push(newBucket);
 
 })
