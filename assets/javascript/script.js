@@ -20,20 +20,74 @@ var gengarSpritesheet = new Image();
 var dragoniteSpritesheet = new Image();
 var miscItemsSpritesheet = new Image();
 var shinySpritesheet = new Image();
-var floor, basicFloor, grassFloor, battleFloor;
+var floor;
+var basicFloor = new Image();
+var grassFloor = new Image();
+var battleFloor = new Image();
+var alolanRaichuSpritesheet = new Image();
+var aquaSpritesheet = new Image();
+var candySpritesheet = new Image();
+var grapeSpritesheet = new Image();
+var grayscaleSpritesheet = new Image();
+var pumpkinSpritesheet = new Image();
+var shadowSpritesheet = new Image();
+var snowSpritesheet = new Image();
+var togemaruSpritesheet = new Image();
+var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
 
-if(JSON.parse(localStorage.getItem("pichuSaveFile")) != null){
-    pichuLoad = JSON.parse(localStorage.getItem("pichuSaveFile"));
-} else {
-    pichuLoad = {
-        x: 100,
-        y: 500,
-        level: 0,
-        exp: 0,
-        picture: "assets/images/startingAvatar.png",
-        phase: 0
+
+var spikyEar = {
+    x_adjust: 0,
+    y_adjust: 0,
+    downArrays: [[2559, 29, 215, 215], [2543, 29, 215, 215], [2559, 29, 215, 215], [2549, 27, 215, 215]],
+    leftArrays: [[2559, 29, 215, 215], [2531, 24, 215, 215], [2559, 29, 215, 215], [2540, 24, 215, 215]],
+    upArrays: [[2338, 239, 215, 215], [2334, 240, 215, 215], [2338, 239, 215, 215], [2340, 239, 215, 215]],
+    rightArrays: [[0, 0, 1, 1]],
+    myArray: undefined,
+    draw: function(){
+        switch(pichu.direction){
+            case "down":
+                this.myArray = this.downArrays;
+                this.x_adjust = 32;
+                this.y_adjust = -44;
+                break;
+            case "left":
+                this.myArray = this.leftArrays;
+                this.x_adjust = 30;
+                this.y_adjust = -47;
+                break;
+            case "up":
+                this.myArray = this.upArrays;
+                this.x_adjust = -27;
+                this.y_adjust = -38;
+                break;
+            case "right":
+                this.myArray = this.rightArrays;
+                this.x_adjust = 0;
+                this.y_adjust = 0;
+                break;
+            default:
+                this.myArray = this.downArrays;
+                this.x_adjust = 32;
+                this.y_adjust = -44;
+                break;
+        }
+        if(pichu.damaged && pichu.damageCooldown%2 === 0){
+            this.myArray = this.rightArrays;
+        }
+        if(!pichu.live){
+            this.myArray = this.downArrays;
+            this.x_adjust = 32;
+            this.y_adjust = -44;
+        }
+        var i = pichu.motion ? pichu.i : pichu.idle_i;
+        if(i >= this.myArray.length || !pichu.motion || pichu.attacking){
+            i = 0;
+        }
+        steps = this.myArray;
+        c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], pichu.x + this.x_adjust, pichu.y + this.y_adjust, pichu.width, pichu.height);
     }
 }
 var map = $("#map");
@@ -144,7 +198,24 @@ function optionize(title, option1, option2, option3, option4, option5, option6){
         opt6 = document.querySelector("#option6");
 
         //clear out text and any associted events from the options
-        opt1.innerText = opt1.onclick = opt2.innerText = opt2.onclick = opt3.innerText = opt3.onclick = opt4.innerText = opt4.onclick = opt5.innerText = opt5.onclick = opt6.innerText = opt6.onclick = "";
+        if(opt1){
+            opt1.innerText = opt1.onclick = "";
+        }
+        if(opt2){
+            opt2.innerText = opt2.onclick = "";
+        }
+        if(opt3){
+            opt3.innerText = opt3.onclick = "";
+        }
+        if(opt4){
+            opt4.innerText = opt4.onclick = "";
+        }
+        if(opt5){
+            opt5.innerText = opt5.onclick = "";
+        }
+        if(opt6){
+            opt6.innerText = opt6.onclick = "";
+        }
     }
     optionsTitle = document.querySelector("#optionText");
     optionsTitle.innerText = title;
@@ -161,7 +232,9 @@ function optionize(title, option1, option2, option3, option4, option5, option6){
         optionThree.className = "col-md-4 options";
     } else {
         optionThree = document.querySelector("#option3");
-        optionThree.className = "col-md-4";
+        if(optionThree){
+            optionThree.className = "col-md-4";
+        }
     }
 
     if(option4 && option4.trim() != ""){
@@ -170,7 +243,9 @@ function optionize(title, option1, option2, option3, option4, option5, option6){
         optionFour.className = "col-md-4 options";
     } else {
         optionFour = document.querySelector("#option4");
-        optionFour.className = "col-md-4";
+        if(optionFour){
+            optionFour.className = "col-md-4";
+        }
     }
 
     if(option5 && option5.trim() != ""){
@@ -179,7 +254,9 @@ function optionize(title, option1, option2, option3, option4, option5, option6){
         optionFive.className = "col-md-4 options";
     } else {
         optionFive = document.querySelector("#option5");
-        optionFive.className = "col-md-4";
+        if(optionFive){
+            optionFive.className = "col-md-4";
+        }
     }
 
     if(option6 && option6.trim() != ""){
@@ -188,22 +265,210 @@ function optionize(title, option1, option2, option3, option4, option5, option6){
         optionSix.className = "col-md-4 options";
     } else {
         optionSix = document.querySelector("#option6");
-        optionSix.className = "col-md-4";
+        if(optionSix){
+            optionSix.className = "col-md-4";
+        }
     }
 
     //clear out any events assigned to these options for now
-    optionOne.onclick = optionTwo.onclick = optionThree.onclick = optionFour.onclick = optionFive.onclick = optionSix.onclick = "";
+    optionOne.onclick = optionTwo.onclick =  "";
+    if(optionThree){
+        optionThree.onclick = "";
+    }
+    if(optionFour){
+        optionFour.onclick = "";
+    }
+    if(optionFive){
+        optionFive.onclick = "";
+    }
+    if(optionSix){
+        optionSix.onclick = "";
+    }
     $(".options").css("background-color", "black");
 }
 
+function modifyPichu() {
+    $("#optionRow").remove();
+    var optionsArray = [];
+    optionsArray.push("Change Color");
+    var spikyEars = pichuLoad.hasSpikyEar;
+    if(spikyEars){
+        var spikyEarText = "Spiky Ear: ";
+        if(pichuLoad.usingSpikyEar){
+            spikyEarText += "ON";
+        } else {
+            spikyEarText += "OFF";
+        }
+        optionsArray.push(spikyEarText);
+    }
+    optionsArray.push("Back");
+    optionizeArrayVer("Pichu Customization Area: Pick a look that best suits you!", optionsArray);
+    if(spikyEars){
+        var spikyEarDiv = $(".col-md-4")[5];
+        var spikyEarPic = document.createElement("img");
+        spikyEarPic.src = "assets/images/displays/spikyEar.png";
+        spikyEarPic.alt = "picture of spiky-eared Pichu";
+        spikyEarPic.height = "114";
+        spikyEarPic.width = "100";
+        spikyEarDiv.appendChild(spikyEarPic);
+    }
+    var paintedDiv = $(".col-md-4")[2];
+    var paintedPic = document.createElement("img");
+    paintedPic.src = "assets/images/displays/painty.png";
+    paintedPic.alt = "picture of spiky-eared Pichu";
+    paintedPic.height = "123";
+    paintedPic.width = "118";
+    paintedDiv.appendChild(paintedPic);
+
+    var option1 = document.getElementById("option1");
+    var option2 = document.getElementById("option2");
+    var option3 = document.getElementById("option3");
+    if(spikyEars){
+        option3.onclick = mainMenunize;
+        option1.onclick = changePaint;
+        option2.onclick = function(){
+            if(pichuLoad.usingSpikyEar){
+                pichuLoad.usingSpikyEar = false;
+                localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+                modifyPichu();
+            } else {
+                pichuLoad.usingSpikyEar = true;
+                localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+                modifyPichu();
+            }
+        }
+    } else {
+        option1.onclick = changePaint;
+        option2.onclick = mainMenunize;
+    }
+}
+
+function changePaint(){
+    $("#optionRow").remove();
+    $("#backToChangePaint").remove();
+    var optionRow = $("<div id=\"optionRow\" class=\"row\"></div>");
+    map.append(optionRow);
+    var optionText = $("<div id=\"optionText\" class=\"col-md-12 text-center\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\"></div>");
+    $("#optionRow").append(optionText);
+    var optionsTitle = document.querySelector("#optionText");
+    optionsTitle.innerText = "Pick the option that shows your true colors!";
+    optionsTitle.onclick = "";
+    var defaultDiv = $("<div class=\"col-md-2 options spritesheet\" style=\"font-size: 2em; color:white\"></div>");
+    var defaultPic = $("<img class='changePaint' value=\"assets/images/spritesheet.png\" src='assets/images/displays/default.png' style='width: 100%; height: auto'>");
+    defaultDiv.append(defaultPic);
+    $("#optionRow").append(defaultDiv);
+    //var paintArrays = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png"];
+    var paintArrays = pichuLoad.paintjobs;
+    for(var i = 0;i < paintArrays.length;i++){
+        var newDiv = $(`<div class=\"col-md-2 options ${paintArrays[i].replace(".png","")}\" style=\"font-size: 2em; color:white\"></div>`);
+        var newPic = $(`<img class='changePaint' value=${"assets/images/paintjobs/" + paintArrays[i]} src='assets/images/displays/${paintArrays[i]}' style='width: 100%; height: auto'>`);
+        newDiv.append(newPic);
+        $("#optionRow").append(newDiv);
+    }
+    var chosenDiv = document.querySelector(`.${pichuLoad.pichuSheet}`);
+    chosenDiv.style.borderColor = "red";
+    chosenDiv.style.borderWidth = "0.2em";
+    var paintDivs = document.querySelectorAll(".changePaint");
+    for(var i = 0;i < paintDivs.length;i++){
+        var pd = paintDivs[i];
+        if(pd){
+            pd.onclick = function(){
+                var self = this;
+                pichuLoad.pichuSheet = self.getAttribute("value").replace("assets/images/","").replace("paintjobs/", "").replace(".png","");
+                localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+                changePaint();
+            }
+        }
+    }
+    var backToChangePaintDiv = $("<div class=\"row\" id=\"backToChangePaint\"></div>");
+    map.append(backToChangePaintDiv);
+    var backDiv = $("<div class=\"col-md-3 options\" style=\"font-size: 2em; color:white; background-color:black\">Back</div>");
+    backDiv.on("click", function(){
+        $("#optionRow").remove();
+        $("#backToChangePaint").remove();
+        modifyPichu();
+    })
+    $("#backToChangePaint").append(backDiv);
+}
+
+function sheetSelector(sheetname){
+    var sheet;
+    switch(sheetname){
+        case "spritesheet":
+            sheet = spritesheet;
+            break;
+        case "alolanRaichu":
+            sheet = alolanRaichuSpritesheet;
+            break;
+        case "aqua":
+            sheet = aquaSpritesheet;
+            break;
+        case "candy":
+            sheet = candySpritesheet;
+            break;
+        case "grape":
+            sheet = grapeSpritesheet;
+            break;
+        case "grayscale":
+            sheet = grayscaleSpritesheet;
+            break;
+        case "pumpkin":
+            sheet = pumpkinSpritesheet;
+            break;
+        case "shadow":
+            sheet = shadowSpritesheet;
+            break;
+        case "snow":
+            sheet = snowSpritesheet;
+            break;
+        case "togemaru":
+            sheet = togemaruSpritesheet;
+            break;
+        default:
+            sheet = spritesheet;
+            break;
+    }
+    return sheet;
+}
+
+function pichuSheet(){
+    return sheetSelector(pichuLoad.pichuSheet);
+}
+
 function mainMenunize() {
+    if(pichuLoad.pichuSheet === undefined){
+        console.log("source not found")
+        console.log(pichuLoad);
+        pichuLoad.pichuSheet = "spritesheet";
+        localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+    }
+    if(typeof pichuLoad.pichuSheet != "string"){
+        console.log("string not found");
+        pichuLoad.pichuSheet = "spritesheet";
+        localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+    }
+    if(!pichuLoad.paintjobs || pichuLoad.paintjobs === undefined){
+        pichuLoad.paintjobs = [];
+        localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+    }
+    $("#player-pic").attr("src", pichuLoad.picture);
     map.css({"background-image":"url('assets/images/picMenuBG.png'", "background-repeat": "repeat"});
-    optionize("Pichu's Adventure: Main Menu", "Story Mode (still in construction!)", "Rush Mode", "How to Play", "Sprite Testing");
+    //optionize("Pichu's Adventure: Main Menu", "Story Mode (still in construction!)", "Rush Mode", "How to Play", "Sprite Testing");
+    var mainMenuArray = ["Story Mode (still in construction)", "Rush Mode", "How to Play", "Sprite Testing"];
+    var loadChangeOption = pichuLoad.hasSpikyEar || pichuLoad.paintjobs.length > 0;
+    if(loadChangeOption){
+        mainMenuArray.push("Change Avatar");
+    }
+    optionizeArrayVer("Pichu's Adventure: Main Menu", mainMenuArray);
     $(".options").css("background-color", "black");
     var option1 = document.getElementById("option1");
     var option2 = document.getElementById("option2");
     var option3 = document.getElementById("option3");
     var option4 = document.getElementById("option4");
+    var option5 = document.getElementById("option5");
+    if(option5){
+        option5.onclick = modifyPichu;
+    }
 
     option2.onclick = rushModenize;
     option3.onclick = function() {
@@ -457,14 +722,49 @@ function loadBosses(){
         })
     })
 }
+var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, basicFloor, grassFloor, battleFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet];
+var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png"];
 function loadSprites() {
-    var loadingText = $("<div id='loadingText'><h1>Loading spritesheet...</h1></div>");
+    var loadingText = $("<div id='loadingText'><h1>Loading spritesheets...</h1></div>");
     map.append(loadingText);
-    loadSpritesheets();
+    // loadSpritesheets();
+    loadImages(arraySheets, arraySources, function(){
+        $("#loadingText").html("<h1>Done!</h1>");
+        $("#loadingText").remove();
+        mainMenunize();
+    });
+}
+function loadImages(names, files, onAllLoaded){
+    var i, numLoading = names.length;
+    const onload = () => --numLoading === 0 && onAllLoaded(); //if numLoading (minus 1) is 0, it performs the onAllLoaded function
+    for(i = 0;i < names.length;i++){
+        if(names[i] === undefined){
+            names[i] = new Image();
+        }
+        names[i].src = files[i];
+        console.log(names[i]);
+        names[i].onload = onload;
+    }
 }
 var mobileUsage = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 console.log(mobileUsage);
 if(!mobileUsage){
+    if(JSON.parse(localStorage.getItem("pichuSaveFile")) != null){
+        pichuLoad = JSON.parse(localStorage.getItem("pichuSaveFile"));
+        console.log(pichuLoad);
+    } else {
+        pichuLoad = {
+            x: 100,
+            y: 500,
+            level: 0,
+            exp: 0,
+            picture: "assets/images/startingAvatar.png",
+            hasSpikyEar: false,
+            usingSpikyEar: false,
+            paintjobs: [],
+            pichuSheet: undefined
+        }
+    }
     loadSprites();
 } else {
     var welcomeRow = $("<div id=\"welcomeRow\" class=\"row\"></div>");
@@ -909,6 +1209,100 @@ function Pokeball(x, y, isVoltorb, openingFn){
     }
 }
 
+function spikyEarOrb(x, y, additionalFunction){
+    this.x = x;
+    this.y = y;
+    this.width = 100;
+    this.height = 100;
+    this.intangible = true;
+    this.drawn = false;
+    this.test = {
+        x: this.x + this.width/2 - 30,
+        y: this.y + this.height/2 - 30,
+        width: 60,
+        height: 60
+    }
+    this.draw = function(){
+        c.drawImage(spritesheet, 2370, 760, 150, 150, this.x, this.y, this.width, this.height);
+        this.drawn = false;
+    }
+    this.update = function(){
+        var pichuTest = {
+            x: pichu.x + pichu.width/2,
+            y: pichu.y + pichu.height/2,
+            full_y: pichu.y + pichu.height,
+            width: 1,
+            height: 1
+        }
+        if(objIntersectBoth(this, pichu) && pichuTest.full_y < this.y + this.height){
+            this.drawn = true;
+        } else {
+            this.drawn = false;
+        }
+        if(!this.drawn){
+            this.draw();
+        }
+    }
+    this.approach = function(){
+        if(!pichuLoad.hasSpikyEar){
+            pichuLoad.hasSpikyEar = true;
+            localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+        }
+        collidables.splice(collidables.indexOf(this), 1);
+        if(additionalFunction){
+            additionalFunction();
+        }
+    }
+}
+
+function paintBucket(x, y, paint, additionalFunction){
+    this.x = x;
+    this.y = y;
+    this.width = 75; //75 * 4/3
+    this.height = 90; //90 * 4/3
+    this.paint = paint;
+    this.sheet = sheetSelector(paint.replace(".png", ""));
+    this.intangible = true;
+    this.drawn = false;
+    this.test = {
+        x: this.x + this.width/2 - 20,
+        y: this.y + this.height/2 - 20,
+        width: 40,
+        height: 40
+    }
+    this.draw = function(){
+        c.drawImage(this.sheet, 2425, 798, 75, 90, this.x, this.y, this.width, this.height);
+        this.drawn = false;
+    }
+    this.update = function(){
+        var pichuTest = {
+            x: pichu.x + pichu.width/2,
+            y: pichu.y + pichu.height/2,
+            full_y: pichu.y + pichu.height,
+            width: 1,
+            height: 1
+        }
+        if(objIntersectBoth(this, pichu) && pichuTest.full_y < this.y + this.height){
+            this.drawn = true;
+        } else {
+            this.drawn = false;
+        }
+        if(!this.drawn){
+            this.draw();
+        }
+    }
+    this.approach = function(){
+        if(!pichuLoad.paintjobs.includes(this.paint)){
+            pichuLoad.paintjobs.push(this.paint);
+            localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+        }
+        collidables.splice(collidables.indexOf(this), 1);
+        if(additionalFunction){
+            additionalFunction();
+        }
+    }
+}
+
 /**************************************** ATTACK FUNCTIONS **************************************************************/
 function Thunderbolt(x, y, direction, radius, enemyAttack){
     this.name = "Thunderbolt";
@@ -1247,12 +1641,15 @@ function Thunderbolt(x, y, direction, radius, enemyAttack){
             this.moodIndex = Math.floor(Math.random() * 4); //should produce an integer between 0 and 3
         }
         var steps;
+        var spikyEarDT = pichu.spikyEared ? [2559, 29, 215, 215] : [0, 0, 1, 1];
         if(this.i < 1){
             steps = this.arraysArray[this.moodIndex];
         } else {
             steps = [0, 0, 1, 1];
+            spikyEarDT = [0, 0, 1, 1];
         }
-        c.drawImage(spritesheet, steps[0], steps[1], steps[2], steps[3], this.x, this.y, this.width, this.height);
+        c.drawImage(pichu.pichuSheet, steps[0], steps[1], steps[2], steps[3], this.x, this.y, this.width, this.height);
+        c.drawImage(pichu.pichuSheet, spikyEarDT[0], spikyEarDT[1], spikyEarDT[2], spikyEarDT[3], this.x + 32, this.y - 44, this.width, this.height);
     }
     this.update = function() {
         var dtHitbox = {
@@ -3314,7 +3711,8 @@ pichu = {
     freeRoam: false, //this allows Pichu to move even if he is off the map or overlapping a collidable object. this is to avoid issues when Volt Tackle lands him in an inconvinient spot
     x: pichuLoad.x,
     y: pichuLoad.y,
-    pichuSheet: spritesheet,
+    spikyEared: pichuLoad.usingSpikyEar ? true : false,
+    pichuSheet: pichuSheet(),
     attackNumber: 0,
     z_attackNumber: undefined,
     thunderCost: 1,
@@ -3326,7 +3724,8 @@ pichu = {
     damageCooldown: 50,
     level: pichuLoad.level,
     exp: pichuLoad.exp,
-    slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow them down temporarily
+    receivedItem: false,
+    slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow him down temporarily
     voltTackle: {
         active: false,
         dx: 0,
@@ -4091,11 +4490,17 @@ pichu = {
                     this.slowed_Down--;
                 }
                 this.draw();
+                if(this.spikyEared){
+                    spikyEar.draw();
+                }
             } else {
                 pichu.voltTackle.update();
             }
         } else {
             this.defeat();
+            if(this.spikyEared){
+                spikyEar.draw();
+            }
         }
     }
 }
@@ -4187,13 +4592,14 @@ function pictureMenu() {
         return;
     }
     if(picMenu){
-    var menu = document.getElementsByClassName("bison");
-    $(".bison").empty();
-    $(".bison").remove();
-    $("#map").css("background-color", "black");
-    canvas.style.position = "absolute";
-    canvas.style.zIndex = 1;
-    picMenu = false
+        var menu = document.getElementsByClassName("bison");
+        $(".bison").empty();
+        $(".bison").remove();
+        $("#map").css("background-color", "black");
+        canvas.style.position = "absolute";
+        canvas.style.zIndex = 1;
+        picMenu = false
+        animateID = requestAnimationFrame(animate);
     } else {
     picMenu = true;
     cancelAnimationFrame(animateID);
@@ -4731,6 +5137,14 @@ function enemyRush(number){
                                 options.push("oran");
                             }
                         }
+                        if(pichu.attacks.length >= 2 && !pichu.receivedItem){
+                            if(!pichuLoad.hasSpikyEar){
+                                options.push("spikyEar");
+                            }
+                            if(pichuLoad.paintjobs.length < arrayOfPaints.length){
+                                options.push("paint");
+                            }
+                        }
 
                         var option = options[Math.floor(Math.random() * options.length)];
                         switch(option){
@@ -4765,6 +5179,43 @@ function enemyRush(number){
                                     pichu.z_attackNumber = 4;
                                 }, true);
                                 collidables.push(voltTackleTM);
+                                break;
+                            case "spikyEar":
+                                var orb = new spikyEarOrb(300, 300, function(){
+                                    $("#level-label").text("");
+                                    $("#pichu_level").attr("status", "newAttribute");
+                                    rollingText("pichu_level", "Spiky Ear Collected!", function() {
+                                        $("#level-label").text("Level");
+                                        $("#pichu_level").attr("status", "level");
+                                    })
+                                });
+                                collidables.push(orb);
+                                pichu.receivedItem = true;
+                                break;
+                            case "paint":
+                                var paintArrays = [];
+                                for(var i = 0;i < arrayOfPaints.length;i++){
+                                    if(!pichuLoad.paintjobs.includes(arrayOfPaints[i])){
+                                        paintArrays.push(arrayOfPaints[i]);
+                                    }
+                                }
+                                if(paintArrays.length > 0){
+                                    var chosenPaint = paintArrays[Math.floor(Math.random() * paintArrays.length)];
+                                    var newBucket = new paintBucket(300, 300, chosenPaint, function(){
+                                        $("#level-label").text("");
+                                        $("#pichu_level").attr("status", "newAttribute");
+                                        rollingText("pichu_level", "Paint Collected!", function() {
+                                            $("#level-label").text("Level");
+                                            $("#pichu_level").attr("status", "level");
+                                        })
+                                    });
+                                    collidables.push(newBucket);
+                                    pichu.receivedItem = true;
+                                } else {
+                                    console.log("no point")
+                                    var newBerry = new oranBerry(300, 300, 3);
+                                    collidables.push(newBerry);
+                                }
                                 break;
                             default: 
                                 break;
@@ -4815,10 +5266,10 @@ function enemyRush(number){
                             }
                         }
                     }
-                    if(rushModeCount >= 15 && pichu.attacks.length < 3){
-                        var rand = Math.random();
-                        isShiny = rand > 0.7;
-                    }
+                    // if(rushModeCount >= 15 && pichu.attacks.length < 3){
+                    //     var rand = Math.random();
+                    //     isShiny = rand > 0.7;
+                    // } added this to make it more difficult if the player had yet to get 3 attacks, but realized making the game harder for struggling players is silly
                     switch(enemyChoice){
                         case 0:
                             newEnemy = new Voltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2), isShiny);
@@ -4914,7 +5365,6 @@ function rushMode() {
     pichu.level = 0;
     pichu.exp = 0;
     var directionsRemove = false;
-    $("#player-pic").attr("src", pichu.picture);
     // var testSign = new Sign(300, 300, "Attack and evade the enemies coming for you! You can click the picture at the bottom-left to change it. You obtain more options by leveling up! Once you close this box, the game will start! Good luck!", function() {
     //     collidables.splice(collidables.indexOf(testSign),1);
     //     $("#arrowDirections").text("");
@@ -5020,7 +5470,7 @@ spriteInput = false;
 var testDown, testUp, testLeft, testRight, testDownIdle, testUpIdle, testLeftIdle, testRightIdle, testDownAttack, testUpAttack, testLeftAttack, testRightAttack, testDamage, testHeight, testWidth;
 function resetSprites(){
     pichu.speed = pichu.mainSpeed;
-    pichu.pichuSheet = spritesheet;
+    pichu.pichuSheet = pichuSheet();
     testDown = [[0, 0, 215, 215], [230, 0, 215, 215], [0, 0, 215, 215], [467, 0, 215, 215]]; 
     testUp = [[0, 290, 215, 215], [240, 293, 215, 215], [0, 290, 215, 215], [480, 290, 215, 215]];
     testLeft = [[0, 610, 215, 215], [230, 610, 215, 215], [0, 610, 215, 215], [467, 610, 215, 215]];
@@ -5104,14 +5554,14 @@ function setPichu(){
 
 document.getElementById("player-pic").className = "pictureSelect";
 
-
 pichu = {
     mode: "default",
     direction: "down",
     motion: false,
+    spikyEared: pichuLoad.usingSpikyEar ? true : false,
     x: pichuLoad.x,
     y: pichuLoad.y,
-    pichuSheet: spritesheet,
+    pichuSheet: pichuSheet(),
     attackNumber: 0,
     z_attackNumber: 1,
     radius: 5,
@@ -5727,9 +6177,15 @@ pichu = {
             if(this.slowed_Down > 0){
                 this.slowed_Down--;
             }
-            this.draw();            
+            this.draw();
+            if(this.spikyEared){
+                spikyEar.draw();
+            }
         } else {
             this.defeat();
+            if(this.spikyEared){
+                spikyEar.draw();
+            }
         }
     }
 }
@@ -7079,6 +7535,13 @@ canvas.addEventListener("click", function(event){
     // var directionsArray = ["left", "right", "up", "down"];
     // var newHB = new HyperBeam(x, y, directionsArray[Math.floor(Math.random()*4)], pichu);
     // attacks.push(newHB);
+    // var orb = new spikyEarOrb(x, y);
+    // collidables.push(orb);
+    // var paintArrays = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png"];
+    // var chosenPaint = paintArrays[Math.floor(Math.random() * paintArrays.length)];
+    // var newBucket = new paintBucket(x, y, chosenPaint);
+    // collidables.push(newBucket);
+
 })
 
 
