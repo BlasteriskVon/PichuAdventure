@@ -33,7 +33,9 @@ var pumpkinSpritesheet = new Image();
 var shadowSpritesheet = new Image();
 var snowSpritesheet = new Image();
 var togemaruSpritesheet = new Image();
-var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png"];
+var shinxSpritesheet = new Image();
+var electrodeSpritesheet = new Image();
+var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png", "shinx.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
 
@@ -676,54 +678,54 @@ map.css({"background-color":"black", "color":"white"});
 map.append(welcomeRow);
 var welcomeText = $("<div id=\"welcomeText\" class=\"col-md-12\" style=\"font-size: 2em; border-style: solid; border-color: blue; background-color: aqua; color:black\"></div>");
 $("#welcomeRow").append(welcomeText);*/
-function loadSpritesheets(){
-    spritesheet.src = "assets/images/spritesheet.png";
-    spritesheet.addEventListener("load", function() {
-        loadShinies();
-    })
-}
-function loadShinies() {
-    shinySpritesheet.src = "assets/images/special_spritesheet.png";
-    shinySpritesheet.addEventListener("load", function() {
-        miscItemsSpritesheet.src = "assets/images/miscItems.png";
-        miscItemsSpritesheet.addEventListener("load", function() {
-            loadFloors();
-        })
-    })
-}
-function loadFloors(){
-    $("#loadingText").html("<h1>Loading floors...</h1>");
-    basicFloor = new Image();
-    basicFloor.src = "assets/images/floor.png";
-    basicFloor.addEventListener("load", function() {
-        grassFloor = new Image();
-        grassFloor.src = "assets/images/floor2.png";
-        grassFloor.addEventListener("load", function() {
-            battleFloor = new Image();
-            battleFloor.src = "assets/images/floor3.png";
-            battleFloor.addEventListener("load", function() {
-                loadBosses();
-            })
-        })
-    })
-}
-function loadBosses(){
-    $("#loadingText").html("<h1>Loading bosses...</h1>");
-    snorlaxSpritesheet.src = "assets/images/snorlaxSpritesheet.png";
-    snorlaxSpritesheet.addEventListener("load", function() {
-        gengarSpritesheet.src = "assets/images/gengarSpritesheet.png";
-        gengarSpritesheet.addEventListener("load", function() {
-            dragoniteSpritesheet.src = "assets/images/dragoniteSpritesheet.png";
-            dragoniteSpritesheet.addEventListener("load", function() {
-                $("#loadingText").html("<h1>Done!</h1>");
-                $("#loadingText").remove();
-                mainMenunize();
-            })
-        })
-    })
-}
-var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, basicFloor, grassFloor, battleFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet];
-var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png"];
+// function loadSpritesheets(){
+//     spritesheet.src = "assets/images/spritesheet.png";
+//     spritesheet.addEventListener("load", function() {
+//         loadShinies();
+//     })
+// }
+// function loadShinies() {
+//     shinySpritesheet.src = "assets/images/special_spritesheet.png";
+//     shinySpritesheet.addEventListener("load", function() {
+//         miscItemsSpritesheet.src = "assets/images/miscItems.png";
+//         miscItemsSpritesheet.addEventListener("load", function() {
+//             loadFloors();
+//         })
+//     })
+// }
+// function loadFloors(){
+//     $("#loadingText").html("<h1>Loading floors...</h1>");
+//     basicFloor = new Image();
+//     basicFloor.src = "assets/images/floor.png";
+//     basicFloor.addEventListener("load", function() {
+//         grassFloor = new Image();
+//         grassFloor.src = "assets/images/floor2.png";
+//         grassFloor.addEventListener("load", function() {
+//             battleFloor = new Image();
+//             battleFloor.src = "assets/images/floor3.png";
+//             battleFloor.addEventListener("load", function() {
+//                 loadBosses();
+//             })
+//         })
+//     })
+// }
+// function loadBosses(){
+//     $("#loadingText").html("<h1>Loading bosses...</h1>");
+//     snorlaxSpritesheet.src = "assets/images/snorlaxSpritesheet.png";
+//     snorlaxSpritesheet.addEventListener("load", function() {
+//         gengarSpritesheet.src = "assets/images/gengarSpritesheet.png";
+//         gengarSpritesheet.addEventListener("load", function() {
+//             dragoniteSpritesheet.src = "assets/images/dragoniteSpritesheet.png";
+//             dragoniteSpritesheet.addEventListener("load", function() {
+//                 $("#loadingText").html("<h1>Done!</h1>");
+//                 $("#loadingText").remove();
+//                 mainMenunize();
+//             })
+//         })
+//     })
+// }
+var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, basicFloor, grassFloor, battleFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet];
+var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png"];
 function loadSprites() {
     var loadingText = $("<div id='loadingText'><h1>Loading spritesheets...</h1></div>");
     map.append(loadingText);
@@ -5636,6 +5638,17 @@ function useSnorlaxSprites() {
     setPichu();
 }
 
+function useElectrodeSprites() {
+    pichu.pichuSheet = electrodeSpritesheet;
+    testDown = [[73, 76, 327, 327], [493, 80, 327, 327]];
+    testUp = [[103, 553, 327, 327], [546, 559, 327, 327]];
+    testDownIdle = [[73, 76, 327, 327]];
+    testUpIdle = [[103, 553, 327, 327]];
+    testDownAttack = [[2430, 97, 327, 327]];
+    rolling = [[878, 97, 327, 327], [1266, 96, 327, 327], [1656, 89, 327, 327], [2045, 90, 327, 327]];
+    setPichu();
+}
+
 function setPichu(){
     pichu.downArrays = testDown;
     pichu.upArrays = testUp;
@@ -7371,17 +7384,23 @@ switch(event.key){
         //     resetSprites();
         // }
         ///////////////////////use snorlax sprites
-        if(pichu.pichuSheet === spritesheet){
-            useSnorlaxSprites();
-        } else {
-            resetSprites();
-        }
-        ///////////////////////use gengar sprites
+        // if(pichu.pichuSheet === pichuSheet()){
+        //     useSnorlaxSprites();
+        // } else {
+        //     resetSprites();
+        // }
+        ///////////////////////use items sprites
         // if(pichu.pichuSheet === spritesheet){
         //     pichu.pichuSheet = miscItemsSpritesheet;
         // } else {
         //     resetSprites();
         // }
+        //use electrode sprites
+        if(pichu.pichuSheet === pichuSheet()){
+                useElectrodeSprites();
+            } else {
+                resetSprites();
+        }
         break;
     default:
         break;
