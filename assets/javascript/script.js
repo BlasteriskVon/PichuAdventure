@@ -5225,7 +5225,8 @@ function enemyRush(number){
                             options.splice(options.indexOf("oran"),1);
                             options.splice(options.indexOf("leppa"),1)
                         }
-                        if(options.length === 0){
+                        var healthConditional = pichu.max_Health()/2;
+                        if(pichu.attacks.length >= 3 && pichu.health >= healthConditional){
                             if(pichu.thunderCost === 1){
                                 pichu.thunderCost = pichu.charge_Max() * 0.95;
                                 pichu.voltTackleCost = pichu.charge_Max() * 0.6;
@@ -5235,10 +5236,6 @@ function enemyRush(number){
                             }
                             if(!pichu.attacks.includes("Volt Tackle")){
                                 options.push("Volt Tackle");
-                            }
-                            if(options.length === 0){
-                                options.push("leppa");
-                                options.push("oran");
                             }
                         }
                         if(pichu.attacks.length >= 2 && !pichu.receivedItem){
