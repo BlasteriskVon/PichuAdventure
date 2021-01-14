@@ -426,6 +426,9 @@ function sheetSelector(sheetname){
         case "togemaru":
             sheet = togemaruSpritesheet;
             break;
+        case "shinx":
+            sheet = shinxSpritesheet;
+            break;
         default:
             sheet = spritesheet;
             break;
