@@ -5142,7 +5142,13 @@ function enemyRush(number){
                 continueRush = false;
                 berryPlace("oran");
                 berryPlace("leppa");
-                rollingText("directions", "Eat berries to restore health/charge!", emptyFn);
+                rollingText("directions", "Eat berries to restore health/charge!", function(){
+                    if(!startMeBaby){
+                        $("#directions").text("");
+                    } else {
+                        emptyFn();
+                    } 
+                });
             }
             if(collidables.length === 0){
                 continueRush = true;
@@ -5193,7 +5199,13 @@ function enemyRush(number){
                 if(continueRush){
                     continueRush = false;
                     floor = battleFloor;
-                    rollingText("directions", "Snorlax wants to battle!", emptyFn);
+                    rollingText("directions", "Snorlax wants to battle!", function(){
+                        if(!startMeBaby){
+                            $("#directions").text("");
+                        } else {
+                            emptyFn();
+                        }
+                    });
                     var enemy_x_coordinate;
                     var enemy_y_coordinate;
                     for(var j = 0;j < 1;j++){
@@ -5287,11 +5299,19 @@ function enemyRush(number){
                             case "spikyEar":
                                 var orb = new SpikyEarOrb(300, 300, function(){
                                     rollingText("directions", "Spiky Ear Collected!", function() {
-                                        var b = new Blank(0, 0);
-                                        collidables.push(b);
-                                        rollingText("directions", "Spiky Ear Collected! (Check it out in the Change Avatar section!)", function(){
-                                            collidables.pop();
-                                        });
+                                        if(!startMeBaby){
+                                            $("#directions").text("");
+                                        } else {
+                                            var b = new Blank(0, 0);
+                                            collidables.push(b);
+                                            rollingText("directions", "Spiky Ear Collected! (Check it out in the Change Avatar section!)", function(){
+                                                if(!startMeBaby){
+                                                    $("#directions").text("");
+                                                } else {
+                                                    collidables.pop();
+                                                }                                            
+                                            });
+                                        }
                                     })
                                 });
                                 collidables.push(orb);
@@ -5310,7 +5330,11 @@ function enemyRush(number){
                                         var b = new Blank(0, 0);
                                         collidables.push(b);
                                         rollingText("directions", "New Paint Collected! (Check it out in the Change Avatar section!)", function(){
-                                            collidables.pop();
+                                            if(!startMeBaby){
+                                                $("#directions").text("");
+                                            } else {
+                                                collidables.pop();
+                                            }
                                         });
                                     });
                                     collidables.push(newBucket);
@@ -5326,7 +5350,13 @@ function enemyRush(number){
                         }
                     });
                     collidables.push(pokeball);
-                    rollingText("directions", "You defeated Snorlax! (Obtain the item to continue!)", emptyFn);
+                    rollingText("directions", "You defeated Snorlax! (Obtain the item to continue!)", function(){
+                        if(!startMeBaby){
+                            $("#directions").text("");
+                        } else {
+                            emptyFn();
+                        }
+                    });
                 }
                 if(collidables.length === 0){
                     //means the berries were eaten
@@ -5485,7 +5515,7 @@ function rushMode() {
         }
     })
     rollingText("directions", "Hit Enter to Pause!\nHit Spacebar to attack!\nAttack the Pokéball to begin!", function() {
-        if(directionsRemove){
+        if(directionsRemove || !startMeBaby){
             $("#directions").text("");
         } else {
             directionsRemove = true;
