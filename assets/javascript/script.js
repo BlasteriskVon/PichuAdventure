@@ -5674,11 +5674,19 @@ function useSnorlaxSprites() {
 
 function useElectrodeSprites() {
     pichu.pichuSheet = electrodeSpritesheet;
-    testDown = [[73, 76, 327, 327], [493, 80, 327, 327]];
+    testHeight = testWidth = 200;
+    testDown = [[73, 76, 327, 327], [493, 80, 327, 327], [73, 76, 327, 327], [493, 80, 327, 327]];
     testUp = [[103, 553, 327, 327], [546, 559, 327, 327]];
     testDownIdle = [[73, 76, 327, 327]];
     testUpIdle = [[103, 553, 327, 327]];
     testDownAttack = [[2430, 97, 327, 327]];
+    testUpAttack = [[103, 553, 327, 327]];
+    testLeftIdle = [[97, 981, 327, 327]];
+    testLeft = [[97, 981, 327, 327], [535, 998, 327, 327], [97, 981, 327, 327], [535, 998, 327, 327]];
+    testLeftAttack = [[991, 1007, 327, 327]];
+    testRightIdle = [[98, 1370, 327, 327]];
+    testRight = [[98, 1370, 327, 327], [525, 1386, 327, 327], [98, 1370, 327, 327], [525, 1386, 327, 327]];
+    testRightAttack = [[1006, 1405, 327, 327]];
     rolling = [[878, 97, 327, 327], [1266, 96, 327, 327], [1656, 89, 327, 327], [2045, 90, 327, 327]];
     setPichu();
 }
@@ -6046,6 +6054,7 @@ pichu = {
                     pichu.idle_i = 0;
                     pichu.loseCharge(5);
                     pichu.attckWindDown = 10;
+                    pichu.damaged = true;
                     var newCry = new Snore(front.x, front.y);
                     
                 }
@@ -7209,7 +7218,7 @@ function pauseMenu() {
                             option.target.innerText = "Already being used!";
                         }
                         break;
-                    case "Cry (testing for Swift)":
+                    case "Cry (testing for Snore)":
                         if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
                             pichu.attackNumber = 2;
                             option.target.innerText = "Done!";
