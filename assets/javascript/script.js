@@ -36,6 +36,7 @@ var togemaruSpritesheet = new Image();
 var shinxSpritesheet = new Image();
 var mintheSpritesheet = new Image();
 var electrodeSpritesheet = new Image();
+var shinyElectrodeSpritesheet = new Image();
 var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png", "shinx.png", "minthe.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
@@ -731,8 +732,8 @@ $("#welcomeRow").append(welcomeText);*/
 //         })
 //     })
 // }
-var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, basicFloor, grassFloor, battleFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
-var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
+var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, basicFloor, grassFloor, battleFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
+var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
 function loadSprites() {
     var loadingText = $("<div id='loadingText'><h1>Loading spritesheets...</h1></div>");
     map.append(loadingText);
@@ -2672,6 +2673,7 @@ function HyperBeam(x, y, direction, user){
 }
 
 /**************************************** ENEMY FUNCTIONS **************************************************************/
+//evolving sprite = [230, 1959, 210, 210]
 function Voltorb(x, y, priority, shiny){
     this.status = "active";
     this.health = shiny ? 16 : 8;
@@ -3726,6 +3728,320 @@ function Snorlax(x, y, priority){
             }
         }
     }
+}
+
+function EvolvingVoltorb(x, y, priority, shiny){
+    this.status = "active";
+    this.health = shiny ? 80 : 1;
+    this.shiny = shiny;
+    this.big = false; //trait to determine whether attacks will use regular position or hitbox stats to determine intersection
+    this.x = x;
+    this.y = y;
+    this.speed = shiny ? 3 : 2;
+    this.attackCoolDown = 0;
+    this.radius = 5;
+    this.exp = shiny ? 12 : 6;
+    this.innerRadius = 0.1;
+    this.height = 100;
+    this.width = 100;
+    this.priority = priority;
+    this.direction = "down";
+    this.i = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 10;
+    this.myArray = undefined;
+    this.damageCooldown = 50;
+    this.downArrays = [[44, 1166, 210, 210], [263, 1166, 210, 210]];
+    this.upArrays = [[470, 1166, 210, 210], [688, 1166, 210, 210]];
+    this.leftArrays = [[480, 1370, 210, 210], [694, 1370, 210, 210]];
+    this.rightArrays = [[50, 1370, 210, 210], [269, 1370, 210, 210]];
+    this.evolvingArray = [230, 1959, 210, 210]; //this is the main one
+    this.evolvingState = 0; //when Voltorb is evolving, this will be the tracker
+    this.evolvingPoint = 3; //when the above state reaches this point, Voltorb will "evolve", removing itself from the enemies array and adding Electrode
+    this.evolvingIncrement = 1.6;
+    this.evolvingArrayAdjusted = function(subtractState){
+        var plusOrMinus = subtractState ? -1 : 1;
+        var adjustedValue = this.evolvingArray[0] + (plusOrMinus * this.evolvingState);
+        return [adjustedValue, this.evolvingArray[1], this.evolvingArray[2], this.evolvingArray[3]];
+    }
+    this.damageArray = [[0, 0, 1, 1]];
+    this.damage = function(amount){
+        if(this.status === "active"){
+            this.status = "damaged";
+            this.health -= amount;
+            if(this.health <= 0){
+                this.status = "evolving";
+                this.i = 0;
+                this.motionDelay = 0;
+            }
+        }
+
+    }
+    this.intersect = function() {
+        var answer = false;
+        for(var i = 0;i < collidables.length;i++){
+            if(objIntersectBoth(this, collidables[i].test) && !collidables[i].intangible){
+                answer = true;
+            }
+        }
+        return answer;
+    }
+    this.hitWall = function() {
+        var test1 = this.x < 0 || (this.x + this.width) >= canvas.width;
+        var test2 = this.y < 0 || (this.y + this.height) >= canvas.height;
+        //console.log(test1 || test2);        
+        return test1 || test2;
+    }
+    this.hitbox = function(){
+        var answer = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        answer.x += 25;
+        answer.y += 15;
+        answer.width = 70;
+        answer.height = 70;
+        return answer;
+    }
+    this.draw = function() {
+        i = this.i;
+        this.myArray = this.myArray ? this.myArray : this.downArrays;
+        steps = this.myArray;
+        damageSteps = this.damageArray;
+        var sheet = this.shiny ? shinySpritesheet : spritesheet;
+        var modifier = (this.motionDelay > 4) ? 1 : -1; //will move the sprite back and forth (or up and down if I was adding it to the y coordinate)
+        var shakeEffect = this.evolvingState * modifier;
+        if(this.status === "evolving"){
+            sheet = electrodeSpritesheet;
+        }
+        if(this.status === "damaged" && this.damageCooldown%2 === 0){
+            c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x + shakeEffect, this.y, this.width, this.height);
+        } else {
+            c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x + shakeEffect, this.y, this.width, this.height);
+        }
+    }
+    this.update = function(target) {
+        if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status==="active" && !pichu.damaged){
+            var damage = this.shiny ? 5 + 10*(Math.max(0, pichu.level - 5)) : 5;
+            pichu.damage(damage);
+        }
+        if(this.priority === 0){
+            if(Math.abs(this.x - target.x) >= 30){
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.myArray = this.leftArrays;
+                    }
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.myArray = this.rightArrays;
+                    }
+                }
+            } else {
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.myArray = this.upArrays;
+                    }
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.myArray = this.downArrays;
+                    }
+                }
+            }
+        }
+        if(this.priority === 1){
+            if(Math.abs(this.y - target.y) >= 30){
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.myArray = this.upArrays;
+                    }
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.myArray = this.downArrays;
+                    }
+                }
+            } else {
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.myArray = this.leftArrays;
+                    }
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.myArray = this.rightArrays;
+                    }
+                }
+            }
+        }
+        if(!pichu.live){
+            this.direction = "down";
+            this.myArray = this.downArrays;
+        }
+        if(this.status === "active" || this.status === "damaged"){
+            this.motionDelay++;
+            if(this.motionDelay >= this.desiredDelay){
+                this.i++;
+                this.motionDelay = 0;
+                if(this.i >= this.myArray.length){
+                    this.i = 0;
+                }
+            }
+            switch(this.direction){
+                case "up":
+                    this.y -= this.speed;
+                    if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
+                        this.y += this.speed;
+                    }
+                    break;
+                case "down":
+                    this.y += this.speed;
+                    if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
+                        this.y -= this.speed;
+                    }
+                    break;
+                case "left":
+                    this.x -= this.speed;
+                    if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
+                        this.x += this.speed;
+                    }
+                    break;
+                case "right":
+                    this.x += this.speed;
+                    if(this.intersect() || picMenu || !pichu.live || this.hitWall()){
+                        this.x -= this.speed;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if(this.status === "damaged"){
+                this.damageCooldown--;
+                if(this.damageCooldown < 0){
+                    this.status = "active";
+                    this.damageCooldown = 50;
+                    console.log(this.status);
+                }
+            }
+            if(this.shiny && pichu.live){
+                if(this.attackCoolDown <= 0){
+                    var oneToAttack = [0, 0, 0, 1];
+                    var attackOption = oneToAttack[Math.floor(Math.random()*oneToAttack.length)];
+                    if(attackOption === 1){
+                        var newThunderbolt = new Thunderbolt(this.x + this.width/2, this.y + this.height/2, this.direction, 20, true);
+                        enemyAttacks.push(newThunderbolt);
+                        this.attackCoolDown = 150;
+                    }
+                } else {
+                    this.attackCoolDown--;
+                }
+            }
+            this.draw();
+        } else if(this.status === "evolving"){
+            this.myArray = [this.evolvingArray, this.evolvingArray, this.evolvingArray, this.evolvingArray];
+            this.motionDelay++;
+            if(this.motionDelay >= this.desiredDelay){
+                this.i++;
+                this.motionDelay = 0;
+                if(this.i >= this.myArray.length){
+                    this.i = 0;
+                    if(this.evolvingState <= this.evolvingPoint){
+                        this.evolvingState += this.evolvingIncrement;
+                        this.evolvingIncrement *= 2;
+                    } else {
+                        this.evolvingPoint--;
+                        if(this.evolvingPoint <= 0){
+                            //this.status = "inactive";
+                            enemies.splice(enemies.indexOf(this), 1);
+                        }
+                    }
+                }
+            }
+            this.draw();
+        }
+    }
+}
+
+function Electrode(x, y, priority, shiny){
+    this.status = "active";
+    this.health = shiny ? 2*(80 + 40*((rushModeCount/5) - 3)) : 80 + 40*((rushModeCount/5) - 3);
+    this.shiny = shiny;
+    this.x = x;
+    this.y = y;
+    this.speed = shiny ? 6 : 4;
+    this.exp = shiny ? 30 : 20;
+    this.height = 200;
+    this.width = 200;
+    this.priority = priority;
+    this.direction = "down";
+    this.i = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 10;
+    this.myArray = undefined;
+    this.damageCooldown = 50;
+    this.downArrays = [[73, 76, 327, 327], [493, 80, 327, 327], [73, 76, 327, 327], [493, 80, 327, 327]];
+    this.upArrays = [[103, 553, 327, 327], [546, 559, 327, 327]];
+    this.downIdleArrays = [[73, 76, 327, 327]];
+    this.upIdleArrays = [[103, 553, 327, 327]];
+    this.downAttackArray = [[2430, 97, 327, 327]];
+    this.upAttackArray = [[103, 553, 327, 327]];
+    this.leftIdleArrays = [[97, 981, 327, 327]];
+    this.leftArrays = [[97, 981, 327, 327], [535, 998, 327, 327], [97, 981, 327, 327], [535, 998, 327, 327]];
+    this.leftAttackArray = [[991, 1007, 327, 327]];
+    this.rightIdleArrays = [[98, 1370, 327, 327]];
+    this.rightArrays = [[98, 1370, 327, 327], [525, 1386, 327, 327], [98, 1370, 327, 327], [525, 1386, 327, 327]];
+    this.rightAttackArray = [[1006, 1405, 327, 327]];
+    this.rollingDownArrays = [[878, 97, 327, 327], [1266, 96, 327, 327], [1656, 89, 327, 327], [2045, 90, 327, 327]];
+    this.rollingUpArrays = [[546, 559, 327, 327], [2045, 90, 327, 327], [1656, 89, 327, 327], [1266, 96, 327, 327]];
+    this.rollingLeftArrays = [[1427, 991, 327, 327], [1958, 992, 327, 327], [2472, 990, 327, 327], [2962, 990, 327, 327]];
+    this.rollingRightArrays = [[1427, 991, 327, 327], [2962, 990, 327, 327], [2472, 990, 327, 327], [1958, 992, 327, 327]];
+    this.damageArray = [[0, 0, 1, 1]];
+    this.state = "chase";
+    this.stateArray = ["chase", "rollout", "attack"];
+    this.stateDelay = 0;
+    this.stateDesiredDelay = 100;
+    this.attckWindDown = 0;
+    this.hitbox = function(){
+        var answer = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        return answer;
+    }
+    this.damage = function(amount){
+        if(this.status === "active"){
+            this.status = "damaged";
+            this.health -= amount;
+            if(this.health <= 0){
+                this.status = "exploding";
+            }
+        }
+    }
+    this.intersect = function(){
+        var answer = false;
+        for(var i = 0;i < collidables.length;i++){
+            if(objIntersectBoth(this.hitbox(), collidables[i].test) && !collidables[i].intangible){
+                answer = true;
+            }
+        }
+        return answer;
+    }
+    this.attack = function(){
+        if(this.status === "active" || this.status === "damaged"){
+            var frontElectrode = frontOfEnemy(this);
+            //place variable for thunder wave
+        }
+    }
+    
 }
 
 
@@ -5687,7 +6003,10 @@ function useElectrodeSprites() {
     testRightIdle = [[98, 1370, 327, 327]];
     testRight = [[98, 1370, 327, 327], [525, 1386, 327, 327], [98, 1370, 327, 327], [525, 1386, 327, 327]];
     testRightAttack = [[1006, 1405, 327, 327]];
-    rolling = [[878, 97, 327, 327], [1266, 96, 327, 327], [1656, 89, 327, 327], [2045, 90, 327, 327]];
+    rollingDown = [[878, 97, 327, 327], [1266, 96, 327, 327], [1656, 89, 327, 327], [2045, 90, 327, 327]];
+    rollingUp = [[546, 559, 327, 327], [2045, 90, 327, 327], [1656, 89, 327, 327], [1266, 96, 327, 327]];
+    rollingLeft = [[1427, 991, 327, 327], [1958, 992, 327, 327], [2472, 990, 327, 327], [2962, 990, 327, 327]];
+    rollingRight = [[1427, 991, 327, 327], [2962, 990, 327, 327], [2472, 990, 327, 327], [1958, 992, 327, 327]];
     setPichu();
 }
 
@@ -7666,9 +7985,9 @@ window.onkeyup = function(event) {
 };
 
 canvas.addEventListener("click", function(event){
-//var newVoltorb = new Voltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
+var newVoltorb = new EvolvingVoltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
 // var newWooper = new Wooper(event.layerX, event.layerY);
-// enemies.push(newWooper);
+enemies.push(newVoltorb);
 // var newTM = new Tm(event.layerX, event.layerY, "Double Team");
 // collidables.push(newTM);
 // var d = ["up"];
