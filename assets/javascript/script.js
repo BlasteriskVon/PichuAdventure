@@ -3824,7 +3824,7 @@ function Snorlax(x, y, priority){
 
 function EvolvingVoltorb(x, y, priority, shiny){
     this.status = "active";
-    this.health = 1;//shiny ? 80 : 1;
+    this.health = shiny ? 80 : 1;
     this.shiny = shiny;
     this.big = false; //trait to determine whether attacks will use regular position or hitbox stats to determine intersection
     this.x = x;
@@ -4056,6 +4056,13 @@ function EvolvingVoltorb(x, y, priority, shiny){
                             enemies.push(newElectrode);
                             enemies.splice(enemies.indexOf(this), 1);
                             floor = whiteFloor;
+                            rollingText("directions", "Electrode wants to battle!", function(){
+                                if(!startMeBaby){
+                                    $("#directions").text("");
+                                } else {
+                                    emptyFn();
+                                }
+                            });
                         }
                     }
                 }
@@ -4067,12 +4074,16 @@ function EvolvingVoltorb(x, y, priority, shiny){
 
 function Electrode(x, y, priority, shiny){
     this.status = "active";
-    this.health = 10000;//shiny ? 2*(80 + 40*((rushModeCount/5) - 3)) : 80 + 40*((rushModeCount/5) - 3);
+    this.health = shiny ? 2*(80 + 40*((rushModeCount/5) - 3)) : 80 + 40*((rushModeCount/5) - 3);
     this.shiny = shiny;
     this.sheet = shiny ? shinyElectrodeSpritesheet : electrodeSpritesheet;
     this.x = x;
     this.y = y;
     this.flashEffect = 0;
+    this.radius = 0;
+    this.targetRadius = 200;
+    this.secondRadius = 0;
+    this.secondTargetRadius = 200;
     this.speed = shiny ? 4 : 3;
     this.exp = shiny ? 30 : 20;
     this.height = 200;
@@ -4126,6 +4137,23 @@ function Electrode(x, y, priority, shiny){
             y: this.y + 20,
             width: this.width - 40,
             height: this.height - 40
+        }
+        if(this.state === "exploding"){
+            answer = {
+                x: this.x + this.width/2 - 3*(this.radius + this.secondRadius)/4,
+                y: this.y + this.height/2 - 3*(this.radius + this.secondRadius)/4,
+                width: 3*(this.radius + this.secondRadius)/2,
+                height: 3*(this.radius + this.secondRadius)/2
+            }
+            if(this.secondRadius > this.secondTargetRadius){
+                let halfside = (this.secondTargetRadius + this.secondRadius) * Math.sqrt(2) / 2 + 50;
+                answer = {
+                    x: this.x + this.width/2 - halfside,
+                    y: this.y + this.height/2 - halfside,
+                    width: halfside * 2,
+                    height: halfside *2
+                }
+            }
         }
         return answer;
     }
@@ -4246,13 +4274,13 @@ function Electrode(x, y, priority, shiny){
     }
     this.update = function(target) {
         if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status === "active" && !pichu.damaged){
-            let damage = this.shiny ? 5 + 20*(Math.max(0, pichu.level - 5)) : 5 + 10*(Math.max(0, pichu.level - 5));
+            let damage = this.shiny ? 13 : 10;
             switch(this.state){
                 case "rollout":
-                    damage *= 2;
+                    damage = 5 + 10*(Math.max(0, pichu.level - 5));
                     break;
                 case "exploding":
-                    damage *= 3;
+                    damage = 5 + 20*(Math.max(0, pichu.level - 5));
                     break;
                 default:
                     break;
@@ -4326,7 +4354,7 @@ function Electrode(x, y, priority, shiny){
             this.direction = "down";
             this.myArray = this.downArrays;
         }
-        if(this.status === "active" || this.status === "damaged"){
+        if((this.status === "active" || this.status === "damaged") && this.state != "exploding"){
             if(this.state === "chase"){
                 this.motionDelay++;
                 if(this.motionDelay >= this.desiredDelay){
@@ -4580,6 +4608,61 @@ function Electrode(x, y, priority, shiny){
                     floor = battleFloor;
                 }
             }
+        } else if(this.state === "exploding"){
+            if(this.radius <= this.targetRadius){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "orange";
+                c.lineWidth = 2 * this.radius;
+                c.stroke();
+                this.radius += 2.5;
+            } else {
+                if(this.targetRadius >= 0){
+                    c.beginPath();
+                    c.arc(this.x + this.width/2, this.y + this.height/2, this.targetRadius, Math.PI*2, false);
+                    c.strokeStyle = "orange";
+                    c.lineWidth = 2 * this.radius;
+                    c.stroke();
+                    this.targetRadius -= 2;
+                }
+            }
+            if(this.secondRadius <= this.secondTargetRadius){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.secondRadius, Math.PI*2, false);
+                c.strokeStyle = "yellow";
+                c.lineWidth = 2 * this.secondRadius;
+                c.stroke();
+                this.secondRadius += 2;
+                if(this.secondRadius%40 === 0){
+                    floor = whiteFloor;
+                } else {
+                    floor = battleFloor;
+                }
+            } else {
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.secondTargetRadius, Math.PI*2, false);
+                c.strokeStyle = "yellow";
+                c.lineWidth = 2 * this.secondRadius;
+                c.stroke();
+                this.secondTargetRadius -= 2;
+                if(this.secondTargetRadius%40 === 0){
+                    floor = whiteFloor;
+                } else {
+                    floor = battleFloor;
+                }
+                if(this.secondTargetRadius <= 0){
+                    floor = battleFloor;
+                    this.status = "inactive";
+                    enemies.splice(enemies.indexOf(this), 1);
+                    pichu.gainExp(this.exp);
+                    continueRush = true;
+                }
+            }
+            // c.beginPath();
+            // c.lineWidth = 1;
+            // c.strokeStyle = "blue";
+            // c.strokeRect(this.hitbox().x, this.hitbox().y, this.hitbox().width, this.hitbox().height);
+            // c.stroke();
         }
 
     }
@@ -4606,6 +4689,7 @@ enemies = [];
 picMenu = false;
 var phase = 1;
 rushModeCount = -1;
+let bossPokemon;
 continueRush = true;
 floor = grassFloor;
 document.getElementById("player-pic").className = "pictureSelect";
@@ -6048,44 +6132,165 @@ function enemyRush(number){
                 enemies.push(newWooper);
             }
         } else {
-            var placeOranBerry = (((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2))) && rushModeCount % 5 != 1;
-            var placeLeppaBerry = (((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()))) && rushModeCount % 5 != 1;
-            if(placeOranBerry){
-                berryPlace("oran");
-            }
-            if(placeLeppaBerry){
-                berryPlace("leppa");
+            if(pichu.live){
+                var placeOranBerry = (((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2))) && rushModeCount % 5 != 1;
+                var placeLeppaBerry = (((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()))) && rushModeCount % 5 != 1;
+                if(placeOranBerry){
+                    berryPlace("oran");
+                }
+                if(placeLeppaBerry){
+                    berryPlace("leppa");
+                }
             }
             //endless mode (until I code in other stuff)
             if(rushModeCount % 5 === 0){
                 if(continueRush){
                     continueRush = false;
-                    floor = battleFloor;
-                    rollingText("directions", "Snorlax wants to battle!", function(){
-                        if(!startMeBaby){
-                            $("#directions").text("");
-                        } else {
-                            emptyFn();
+                    if(rushModeCount === 15){ //15 should be the first two boss levels
+                        floor = battleFloor;
+                        rollingText("directions", "Snorlax wants to battle!", function(){
+                            if(!startMeBaby){
+                                $("#directions").text("");
+                            } else {
+                                emptyFn();
+                            }
+                        });
+                        var enemy_x_coordinate;
+                        var enemy_y_coordinate;
+                        for(var j = 0;j < 1;j++){
+                            var randomCoordinate = {
+                                x: Math.floor(Math.random()*(canvas.width - 200)),
+                                y: Math.floor(Math.random()*(canvas.height - 200)),
+                                height: 300,
+                                width: 300
+                            }
+                            if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
+                                j--;
+                            } else {
+                                enemy_x_coordinate = randomCoordinate.x;
+                                enemy_y_coordinate = randomCoordinate.y;
+                            }
                         }
-                    });
-                    var enemy_x_coordinate;
-                    var enemy_y_coordinate;
-                    for(var j = 0;j < 1;j++){
-                        var randomCoordinate = {
-                            x: Math.floor(Math.random()*(canvas.width - 200)),
-                            y: Math.floor(Math.random()*(canvas.height - 200)),
-                            height: 300,
-                            width: 300
+                        var newSnorlax = new Snorlax(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
+                        bossPokemon = "Snorlax";
+                        enemies.push(newSnorlax);
+                    } else if(rushModeCount === 20){
+                        var enemy_x_coordinate;
+                        var enemy_y_coordinate;
+                        for(var j = 0;j < 1;j++){
+                            var randomCoordinate = {
+                                x: Math.floor(Math.random()*(canvas.width - 200)),
+                                y: Math.floor(Math.random()*(canvas.height - 200)),
+                                height: 300,
+                                width: 300
+                            }
+                            if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
+                                j--;
+                            } else {
+                                enemy_x_coordinate = randomCoordinate.x;
+                                enemy_y_coordinate = randomCoordinate.y;
+                            }
                         }
-                        if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
-                            j--;
-                        } else {
-                            enemy_x_coordinate = randomCoordinate.x;
-                            enemy_y_coordinate = randomCoordinate.y;
+                        let isShiny = false;
+                        var newVoltorb = new EvolvingVoltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2), isShiny);
+                        bossPokemon = "Electrode";
+                        enemies.push(newVoltorb);
+                    } else {
+                        let bossArray = ["Snorlax", "Electrode"];
+                        let bossChoice = bossArray[Math.floor(Math.random() * bossArray.length)];
+                        switch(bossChoice){
+                            case "Snorlax":
+                                floor = battleFloor;
+                                rollingText("directions", "Snorlax wants to battle!", function(){
+                                    if(!startMeBaby){
+                                        $("#directions").text("");
+                                    } else {
+                                        emptyFn();
+                                    }
+                                });
+                                var enemy_x_coordinate;
+                                var enemy_y_coordinate;
+                                for(var j = 0;j < 1;j++){
+                                    var randomCoordinate = {
+                                        x: Math.floor(Math.random()*(canvas.width - 200)),
+                                        y: Math.floor(Math.random()*(canvas.height - 200)),
+                                        height: 300,
+                                        width: 300
+                                    }
+                                    if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
+                                        j--;
+                                    } else {
+                                        enemy_x_coordinate = randomCoordinate.x;
+                                        enemy_y_coordinate = randomCoordinate.y;
+                                    }
+                                }
+                                var newSnorlax = new Snorlax(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
+                                bossPokemon = "Snorlax";
+                                enemies.push(newSnorlax);
+                                break;
+                            case "Electrode":
+                                var enemy_x_coordinate;
+                                var enemy_y_coordinate;
+                                for(var j = 0;j < 1;j++){
+                                    var randomCoordinate = {
+                                        x: Math.floor(Math.random()*(canvas.width - 200)),
+                                        y: Math.floor(Math.random()*(canvas.height - 200)),
+                                        height: 300,
+                                        width: 300
+                                    }
+                                    if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
+                                        j--;
+                                    } else {
+                                        enemy_x_coordinate = randomCoordinate.x;
+                                        enemy_y_coordinate = randomCoordinate.y;
+                                    }
+                                }
+                                let isShiny = false;
+                                if(pichu.attacks.length >= 3){
+                                    var rand = Math.random();
+                                    isShiny = rand > 0.9;
+                                    if(pichu.attacks.length > 3 || rushModeCount >= 20){
+                                        isShiny = rand >= 0.7;
+                                        if(pichu.attacks.length > 4){
+                                            isShiny = rand >= 0.3;
+                                        }
+                                    }
+                                }
+                                var newVoltorb = new EvolvingVoltorb(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2), isShiny);
+                                bossPokemon = "Electrode";
+                                enemies.push(newVoltorb);
+                                break;
+                            default:
+                                floor = battleFloor;
+                                rollingText("directions", "Snorlax wants to battle!", function(){
+                                    if(!startMeBaby){
+                                        $("#directions").text("");
+                                    } else {
+                                        emptyFn();
+                                    }
+                                });
+                                var enemy_x_coordinate;
+                                var enemy_y_coordinate;
+                                for(var j = 0;j < 1;j++){
+                                    var randomCoordinate = {
+                                        x: Math.floor(Math.random()*(canvas.width - 200)),
+                                        y: Math.floor(Math.random()*(canvas.height - 200)),
+                                        height: 300,
+                                        width: 300
+                                    }
+                                    if(objIntersectBoth(randomCoordinate, pichu) || ((randomCoordinate.x + randomCoordinate.width) >= canvas.width) || ((randomCoordinate.y + randomCoordinate.height) >= canvas.height)){
+                                        j--;
+                                    } else {
+                                        enemy_x_coordinate = randomCoordinate.x;
+                                        enemy_y_coordinate = randomCoordinate.y;
+                                    }
+                                }
+                                var newSnorlax = new Snorlax(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
+                                bossPokemon = "Snorlax";
+                                enemies.push(newSnorlax);
+                                break;
                         }
                     }
-                    var newSnorlax = new Snorlax(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));;
-                    enemies.push(newSnorlax);
                 }
             } else if(rushModeCount % 5 === 1){
                 if(continueRush){
@@ -6212,7 +6417,7 @@ function enemyRush(number){
                         }
                     });
                     collidables.push(pokeball);
-                    rollingText("directions", "You defeated Snorlax! (Obtain the item to continue!)", function(){
+                    rollingText("directions", "You defeated " + bossPokemon + "! (Obtain the item to continue!)", function(){
                         if(!startMeBaby){
                             $("#directions").text("");
                         } else {
@@ -8300,11 +8505,11 @@ switch(event.key){
         //     resetSprites();
         // }
         //use electrode sprites
-        if(pichu.pichuSheet === pichuSheet()){
-                useElectrodeSprites();
-            } else {
-                resetSprites();
-        }
+        // if(pichu.pichuSheet === pichuSheet()){
+        //         useElectrodeSprites();
+        //     } else {
+        //         resetSprites();
+        // }
         break;
     default:
         break;
@@ -8505,9 +8710,9 @@ window.onkeyup = function(event) {
 };
 
 canvas.addEventListener("click", function(event){
-var newVoltorb = new EvolvingVoltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
-// var newWooper = new Wooper(event.layerX, event.layerY);
-enemies.push(newVoltorb);
+// var newVoltorb = new EvolvingVoltorb(event.layerX, event.layerY, Math.floor(Math.random() * 2));
+// // var newWooper = new Wooper(event.layerX, event.layerY);
+// enemies.push(newVoltorb);
 // var newTM = new Tm(event.layerX, event.layerY, "Double Team");
 // collidables.push(newTM);
 // var d = ["up"];
