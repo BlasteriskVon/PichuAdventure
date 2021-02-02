@@ -6146,7 +6146,7 @@ function enemyRush(number){
             if(rushModeCount % 5 === 0){
                 if(continueRush){
                     continueRush = false;
-                    if(rushModeCount === 15){ //15 should be the first two boss levels
+                    if(rushModeCount <= 15){ //15 should be the first two boss levels
                         floor = battleFloor;
                         rollingText("directions", "Snorlax wants to battle!", function(){
                             if(!startMeBaby){
