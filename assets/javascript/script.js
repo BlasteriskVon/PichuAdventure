@@ -4091,6 +4091,10 @@ function Electrode(x, y, priority, shiny){
     this.priority = priority;
     this.direction = "down";
     this.rollingPath = undefined;
+    this.readyToRoll = false;
+    this.rollingPoint = 200;
+    this.defaultRollingPoint = 200;
+    this.rollingBuildUp = 0;
     this.i = 0;
     this.motionDelay = 0;
     this.desiredDelay = 15;
@@ -4118,7 +4122,7 @@ function Electrode(x, y, priority, shiny){
     this.stateDelay = 0;
     this.stateDesiredDelay = 100;
     this.attckWindDown = 0;
-    this.attackCoolDown = 500;
+    this.attackCoolDown = 400;
     this.hitWall = function() {
         var test1 = this.x < 0 || (this.x + this.width) >= canvas.width;
         var test2 = this.y < 0 || (this.y + this.height) >= canvas.height;
@@ -4209,48 +4213,17 @@ function Electrode(x, y, priority, shiny){
             let attackArray = ["Rollout", "Thunder Wave"];
             let attackChoice = attackArray[Math.floor(attackArray.length * Math.random())];
             if(attackChoice === "Thunder Wave"){
-                var frontElectrode = frontOfEnemy(this);
-                let newThunderWave;
-                switch(this.direction){
-                    case "left":
-                        if(pichu.y < this.y){
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "upper-left", this.shiny);
-                        }
-                        else{
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "lower-left", this.shiny);
-                        }
-                        break;
-                    case "right":
-                        if(pichu.y < this.y){
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "upper-right", this.shiny);
-                        }
-                        else{
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "lower-right", this.shiny);
-                        }
-                        break;
-                    case "up":
-                        if(pichu.x < this.x){
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "upper-left", this.shiny);
-                        }
-                        else{
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "upper-right", this.shiny);
-                        }
-                        break;
-                    case "down":
-                        if(pichu.x < this.x){
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "lower-left", this.shiny);
-                        }
-                        else{
-                            newThunderWave = new ThunderWave(frontElectrode.x, frontElectrode.y, "lower-right", this.shiny);
-                        }
-                        break;
-                    default:
-                        break;
+                if(this.shiny || enemyAttacks.length === 0){
+                    var frontElectrode = frontOfEnemy(this);
+                    let newThunderWaveArray = ["upper-left", "lower-left", "lower-right", "upper-right"];
+                    for(let i = 0;i < newThunderWaveArray.length;i++){
+                        let newThunderWave = new ThunderWave(this.x + this.width/2, this.y + this.height/2, newThunderWaveArray[i], this.shiny);
+                        enemyAttacks.push(newThunderWave);
+                    }
+                    this.attckWindDown = 9;
+                    this.state = "attack";
+                    this.attackCoolDown = shiny ? 150 : 200;
                 }
-                enemyAttacks.push(newThunderWave);
-                this.attckWindDown = 9;
-                this.state = "attack";
-                this.attackCoolDown = shiny ? 150 : 300;
             } else {
                 this.state = "rollout";
             }
@@ -4277,10 +4250,10 @@ function Electrode(x, y, priority, shiny){
             let damage = this.shiny ? 13 : 10;
             switch(this.state){
                 case "rollout":
-                    damage = 5 + 10*(Math.max(0, pichu.level - 5));
+                    damage = 5 + 5*(Math.max(0, pichu.level - 5));
                     break;
                 case "exploding":
-                    damage = 5 + 20*(Math.max(0, pichu.level - 5));
+                    damage = 5 + 10*(Math.max(0, pichu.level - 5));
                     break;
                 default:
                     break;
@@ -4401,194 +4374,286 @@ function Electrode(x, y, priority, shiny){
                 }
             }
             if(this.state != "rollout"){
+                let multiplier = 1;
+                if(this.status === "damaged"){
+                    multiplier = 0.75
+                }
                 switch(this.direction){
                     case "up":
-                        this.y -= this.speed;
+                        this.y -= this.speed * multiplier;
                         if(this.intersect() || picMenu || !pichu.live){
-                            this.y += this.speed;
+                            this.y += this.speed * multiplier;
                         }
                         break;
                     case "down":
-                        this.y += this.speed;
+                        this.y += this.speed * multiplier;
                         if(this.intersect() || picMenu || !pichu.live){
-                            this.y -= this.speed;
+                            this.y -= this.speed * multiplier;
                         }
                         break;
                     case "left":
-                        this.x -= this.speed;
+                        this.x -= this.speed * multiplier;
                         if(this.intersect() || picMenu || !pichu.live){
-                            this.x += this.speed;
+                            this.x += this.speed * multiplier;
                         }
                         break;
                     case "right":
-                        this.x += this.speed;
+                        this.x += this.speed * multiplier;
                         if(this.intersect() || picMenu || !pichu.live){
-                            this.x -= this.speed;
+                            this.x -= this.speed * multiplier;
                         }
                         break;
                     default:
                         break;
                 }
             } else {
-                let multiplier = 4;
-                let interval = 100;
-                switch(this.direction){
-                    case "up":
-                        this.myArray = this.rollingUpArrays;
-                        this.y -= this.speed * multiplier;
-                        if(this.intersect() || picMenu || !pichu.live){
-                            this.y += this.speed * multiplier;
-                            if(pichu.live && !picMenu){
-                                this.direction = "down";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            }
-                        }
-                        if(this.y + 200 <= 0){
-                            if(!this.rollingPath){
-                                if(pichu.x < this.x){
-                                    this.rollingPath = "left";
-                                } else {
-                                    this.rollingPath = "right";
-                                }
-                            }
-                            if(this.rollingPath === "left"){
-                                this.x -= interval;
-                                this.direction = "down";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            } else {
-                                this.x += interval;
-                                this.direction = "down";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            }
-                        }
-                        if(this.hitWallSpecific()[2] && ((this.hitWallSpecific()[0] && this.rollingPath === "left") || (this.hitWallSpecific()[1] && this.rollingPath === "right"))){
-                            this.state = "chase";
-                            this.rollingPath = undefined;
-                            this.attackCoolDown = shiny ? 150 : 450;
-                        }
-                        break;
-                    case "down":
-                        this.myArray = this.rollingDownArrays;
-                        this.y += this.speed * multiplier;
-                        if(this.intersect() || picMenu || !pichu.live){
+                if(this.readyToRoll){
+                    let multiplier = 4;
+                    let interval = 100;
+                    switch(this.direction){
+                        case "up":
+                            this.myArray = this.rollingUpArrays;
                             this.y -= this.speed * multiplier;
-                            if(pichu.live && !picMenu){
-                                this.direction = "up";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            }
-                        }
-                        if(this.y >= canvas.height){
-                            if(!this.rollingPath){
-                                if(pichu.x < this.x){
-                                    this.rollingPath = "left";
-                                } else {
-                                    this.rollingPath = "right";
+                            if(this.intersect() || picMenu || !pichu.live){
+                                this.y += this.speed * multiplier;
+                                if(pichu.live && !picMenu){
+                                    this.direction = "down";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
                                 }
                             }
-                            if(this.rollingPath === "left"){
-                                this.x -= interval;
-                                this.direction = "up";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            } else {
-                                this.x += interval;
-                                this.direction = "up";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            }
-                        }
-                        if(this.hitWallSpecific()[3] && (this.hitWallSpecific()[0] && this.rollingPath === "left") || (this.hitWallSpecific()[1] && this.rollingPath === "right")){
-                            this.state = "chase";
-                            this.rollingPath = undefined;
-                            this.attackCoolDown = shiny ? 150 : 450;
-                        }
-                        break;
-                    case "left":
-                        this.myArray = this.rollingLeftArrays;
-                        this.x -= this.speed * multiplier;
-                        if(this.intersect() || picMenu || !pichu.live){
-                            this.x += this.speed * multiplier;
-                            if(pichu.live && !picMenu){
-                                this.direction = "right";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            }
-                        }
-                        if(this.x + 200 <= 0){
-                            if(!this.rollingPath){
-                                if(pichu.y < this.y){
-                                    this.rollingPath = "up";
+                            if(this.y + 200 <= 0){
+                                if(!this.rollingPath){
+                                    if(pichu.x < this.x){
+                                        this.rollingPath = "left";
+                                    } else {
+                                        this.rollingPath = "right";
+                                    }
+                                }
+                                if(this.rollingPath === "left"){
+                                    this.x -= interval;
+                                    this.direction = "down";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
                                 } else {
-                                    this.rollingPath = "down";
+                                    this.x += interval;
+                                    this.direction = "down";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
                                 }
                             }
-                            if(this.rollingPath === "up"){
-                                this.y -= interval;
-                                this.direction = "right";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            } else {
-                                this.y += interval;
-                                this.direction = "right";
-                                this.i = 0;
-                                this.motionDelay = 0;
+                            if(this.hitWallSpecific()[2] && ((this.hitWallSpecific()[0] && this.rollingPath === "left") || (this.hitWallSpecific()[1] && this.rollingPath === "right"))){
+                                this.state = "chase";
+                                this.rollingPath = undefined;
+                                this.readyToRoll = false;
+                                this.attackCoolDown = shiny ? 100 : 200;
                             }
-                        }
-                        if(this.hitWallSpecific()[0] && (this.hitWallSpecific()[2] && this.rollingPath === "up") || (this.hitWallSpecific()[3] && this.rollingPath === "down")){
-                            this.state = "chase";
-                            this.rollingPath = undefined;
-                            this.attackCoolDown = shiny ? 150 : 450;
-                        }
-                        break;
-                    case "right":
-                        this.myArray = this.rollingRightArrays;
-                        this.x += this.speed * multiplier;
-                        if(this.intersect() || picMenu || !pichu.live){
+                            break;
+                        case "down":
+                            this.myArray = this.rollingDownArrays;
+                            this.y += this.speed * multiplier;
+                            if(this.intersect() || picMenu || !pichu.live){
+                                this.y -= this.speed * multiplier;
+                                if(pichu.live && !picMenu){
+                                    this.direction = "up";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                }
+                            }
+                            if(this.y >= canvas.height){
+                                if(!this.rollingPath){
+                                    if(pichu.x < this.x){
+                                        this.rollingPath = "left";
+                                    } else {
+                                        this.rollingPath = "right";
+                                    }
+                                }
+                                if(this.rollingPath === "left"){
+                                    this.x -= interval;
+                                    this.direction = "up";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                } else {
+                                    this.x += interval;
+                                    this.direction = "up";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                }
+                            }
+                            if(this.hitWallSpecific()[3] && (this.hitWallSpecific()[0] && this.rollingPath === "left") || (this.hitWallSpecific()[1] && this.rollingPath === "right")){
+                                this.state = "chase";
+                                this.rollingPath = undefined;
+                                this.readyToRoll = false;
+                                this.attackCoolDown = shiny ? 100 : 200;
+                            }
+                            break;
+                        case "left":
+                            this.myArray = this.rollingLeftArrays;
                             this.x -= this.speed * multiplier;
-                            if(pichu.live && !picMenu){
-                                this.direction = "left";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            }
-                        }
-                        if(this.x >= canvas.width){
-                            if(!this.rollingPath){
-                                if(pichu.y < this.y){
-                                    this.rollingPath = "up";
-                                } else {
-                                    this.rollingPath = "down";
+                            if(this.intersect() || picMenu || !pichu.live){
+                                this.x += this.speed * multiplier;
+                                if(pichu.live && !picMenu){
+                                    this.direction = "right";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
                                 }
                             }
-                            if(this.rollingPath === "up"){
-                                this.y -= interval;
-                                this.direction = "left";
-                                this.i = 0;
-                                this.motionDelay = 0;
-                            } else {
-                                this.y += interval;
-                                this.direction = "left";
-                                this.i = 0;
-                                this.motionDelay = 0;
+                            if(this.x + 200 <= 0){
+                                if(!this.rollingPath){
+                                    if(pichu.y < this.y){
+                                        this.rollingPath = "up";
+                                    } else {
+                                        this.rollingPath = "down";
+                                    }
+                                }
+                                if(this.rollingPath === "up"){
+                                    this.y -= interval;
+                                    this.direction = "right";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                } else {
+                                    this.y += interval;
+                                    this.direction = "right";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                }
                             }
-                        }
-                        if(this.hitWallSpecific()[1] && (this.hitWallSpecific()[2] && this.rollingPath === "up") || (this.hitWallSpecific()[3] && this.rollingPath === "down")){
-                            this.state = "chase";
-                            this.rollingPath = undefined;
-                            this.attackCoolDown = shiny ? 150 : 450;
-                        }
-                        break;
+                            if(this.hitWallSpecific()[0] && (this.hitWallSpecific()[2] && this.rollingPath === "up") || (this.hitWallSpecific()[3] && this.rollingPath === "down")){
+                                this.state = "chase";
+                                this.rollingPath = undefined;
+                                this.readyToRoll = false;
+                                this.attackCoolDown = shiny ? 100 : 200;
+                            }
+                            break;
+                        case "right":
+                            this.myArray = this.rollingRightArrays;
+                            this.x += this.speed * multiplier;
+                            if(this.intersect() || picMenu || !pichu.live){
+                                this.x -= this.speed * multiplier;
+                                if(pichu.live && !picMenu){
+                                    this.direction = "left";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                }
+                            }
+                            if(this.x >= canvas.width){
+                                if(!this.rollingPath){
+                                    if(pichu.y < this.y){
+                                        this.rollingPath = "up";
+                                    } else {
+                                        this.rollingPath = "down";
+                                    }
+                                }
+                                if(this.rollingPath === "up"){
+                                    this.y -= interval;
+                                    this.direction = "left";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                } else {
+                                    this.y += interval;
+                                    this.direction = "left";
+                                    this.i = 0;
+                                    this.motionDelay = 0;
+                                }
+                            }
+                            if(this.hitWallSpecific()[1] && (this.hitWallSpecific()[2] && this.rollingPath === "up") || (this.hitWallSpecific()[3] && this.rollingPath === "down")){
+                                this.state = "chase";
+                                this.rollingPath = undefined;
+                                this.readyToRoll = false;
+                                this.attackCoolDown = shiny ? 100 : 200;
+                            }
+                            break;
 
-                }
-                this.motionDelay += 1.5;
-                if(this.motionDelay >= this.desiredDelay){
-                    this.i++;
-                    this.motionDelay = 0;
-                    if(this.i >= this.myArray.length){
-                        this.i = 0;
+                    }
+                    this.motionDelay += 1.5;
+                    if(this.motionDelay >= this.desiredDelay){
+                        this.i++;
+                        this.motionDelay = 0;
+                        if(this.i >= this.myArray.length){
+                            this.i = 0;
+                        }
+                    }
+                } else {
+                    let multiplier = 1;
+                    let decreaseMultiplier = 4;
+                    switch(this.direction){
+                        case "up":
+                            this.myArray = this.rollingUpArrays;
+                            if(this.rollingBuildUp >= this.rollingPoint){
+                                this.rollingPoint -= decreaseMultiplier;
+                                if(this.rollingPoint <= 0){
+                                    this.rollingBuildUp = 0;
+                                    this.readyToRoll = true;
+                                    this.rollingPoint = this.defaultRollingPoint;
+                                }
+                            } else {
+                                this.y += this.speed * multiplier;
+                                if(this.intersect() || picMenu || !pichu.live){
+                                    this.y -= this.speed * multiplier;
+                                }
+                                this.rollingBuildUp += this.speed * multiplier;
+                            }
+                            break;
+                        case "down":
+                            this.myArray = this.rollingDownArrays;
+                            if(this.rollingBuildUp >= this.rollingPoint){
+                                this.rollingPoint -= decreaseMultiplier;
+                                if(this.rollingPoint <= 0){
+                                    this.rollingBuildUp = 0;
+                                    this.readyToRoll = true;
+                                    this.rollingPoint = this.defaultRollingPoint;
+                                }
+                            } else {
+                                this.y -= this.speed * multiplier;
+                                if(this.intersect() || picMenu || !pichu.live){
+                                    this.y += this.speed * multiplier;
+                                }
+                                this.rollingBuildUp += this.speed * multiplier;
+                            }
+                            break;
+                        case "left":
+                            this.myArray = this.rollingLeftArrays;
+                            if(this.rollingBuildUp >= this.rollingPoint){
+                                this.rollingPoint -= decreaseMultiplier;
+                                if(this.rollingPoint <= 0){
+                                    this.rollingBuildUp = 0;
+                                    this.readyToRoll = true;
+                                    this.rollingPoint = this.defaultRollingPoint;
+                                }
+                            } else {
+                                this.x += this.speed * multiplier;
+                                if(this.intersect() || picMenu || !pichu.live){
+                                    this.x -= this.speed * multiplier;
+                                }
+                                this.rollingBuildUp += this.speed * multiplier;
+                            }
+                            break;
+                        case "right":
+                            this.myArray = this.rollingRightArrays;
+                            if(this.rollingBuildUp >= this.rollingPoint){
+                                this.rollingPoint -= decreaseMultiplier;
+                                if(this.rollingPoint <= 0){
+                                    this.rollingBuildUp = 0;
+                                    this.readyToRoll = true;
+                                    this.rollingPoint = this.defaultRollingPoint;
+                                }
+                            } else {
+                                this.x -= this.speed * multiplier;
+                                if(this.intersect() || picMenu || !pichu.live){
+                                    this.x += this.speed * multiplier;
+                                }
+                                this.rollingBuildUp += this.speed * multiplier;
+                            }
+                            break;
+
+                    }
+                    this.motionDelay += 1.5;
+                    if(this.motionDelay >= this.desiredDelay){
+                        this.i++;
+                        this.motionDelay = 0;
+                        if(this.i >= this.myArray.length){
+                            this.i = 0;
+                        }
                     }
                 }
             }
@@ -6146,7 +6211,7 @@ function enemyRush(number){
             if(rushModeCount % 5 === 0){
                 if(continueRush){
                     continueRush = false;
-                    if(rushModeCount <= 15){ //15 should be the first two boss levels
+                    if(rushModeCount <= 15 && !test){ //15 should be the first two boss levels
                         floor = battleFloor;
                         rollingText("directions", "Snorlax wants to battle!", function(){
                             if(!startMeBaby){
@@ -6174,7 +6239,7 @@ function enemyRush(number){
                         var newSnorlax = new Snorlax(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2));
                         bossPokemon = "Snorlax";
                         enemies.push(newSnorlax);
-                    } else if(rushModeCount === 20){
+                    } else if(rushModeCount === 20 || test){
                         var enemy_x_coordinate;
                         var enemy_y_coordinate;
                         for(var j = 0;j < 1;j++){
