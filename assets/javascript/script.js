@@ -6822,6 +6822,25 @@ function useElectrodeSprites() {
     setPichu();
 }
 
+function useSeedotSprites(){
+    pichu.pichuSheet = shinySpritesheet;
+    testDownIdle = [[96, 2439, 210, 250]];
+    testDown = [[96, 2439, 210, 250], [423, 2433, 210, 250], [96, 2439, 210, 250], [722, 2438, 210, 250]];
+    testDownAttack = [[989, 2445, 210, 250]];
+    testUpIdle = [[1336, 2437, 210, 250]];
+    testUpAttack = [[1336, 2437, 210, 250]];
+    testUp = [[1336, 2437, 210, 250], [1644, 2429, 210, 250], [1336, 2437, 210, 250], [1955, 2431, 210, 250]];
+    testLeftIdle = [[2268, 2446, 210, 260]];
+    testLeft = [[2268, 2446, 210, 260], [2583, 2438, 215, 260], [2268, 2446, 210, 260], [2583, 2438, 215, 260]];
+    testLeftAttack = [[2268, 2721, 210, 260]];
+    testRightIdle = [[107, 2718, 210, 260]];
+    testRight = [[107, 2718, 210, 260], [456, 2717, 215, 260], [107, 2718, 210, 260], [456, 2717, 215, 260]];
+    testRightAttack = [[981, 2731, 210, 260]];
+    testHeight = 119;
+    testWidth = 100;
+    setPichu();
+}
+
 function setPichu(){
     pichu.downArrays = testDown;
     pichu.upArrays = testUp;
@@ -8575,6 +8594,14 @@ switch(event.key){
         //     } else {
         //         resetSprites();
         // }
+        //use electrode sprites
+        if(pichu.health != 999){
+                useSeedotSprites();
+                pichu.health = 999;
+            } else {
+                resetSprites();
+                pichu.health = pichu.max_Health();
+        }
         break;
     default:
         break;
