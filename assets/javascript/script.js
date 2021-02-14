@@ -4734,12 +4734,212 @@ function Electrode(x, y, priority, shiny){
 
 }
 
+function Seedot(x, y, priority, shiny){
+    this.x = x;
+    this.y = y;
+    this.status = "active";
+    this.height = 119;
+    this.width = 100;
+    this.exp = shiny ? 4 : 3;
+    this.health = shiny ? 300 : 200;
+    this.sheet = shiny ? shinySpritesheet : spritesheet;
+    this.downIdleArrays = [[96, 2439, 210, 250]];
+    this.downArrays = [[96, 2439, 210, 250], [423, 2433, 210, 250], [96, 2439, 210, 250], [722, 2438, 210, 250]];
+    this.downAttackArray = [[989, 2445, 210, 250]];
+    this.upIdleArrays = [[1336, 2437, 210, 250]];
+    this.upArrays = [[1336, 2437, 210, 250], [1644, 2429, 210, 250], [1336, 2437, 210, 250], [1955, 2431, 210, 250]];
+    this.upAttackArray = [[1336, 2437, 210, 250]];
+    this.leftIdleArrays = [[2268, 2446, 210, 260]];
+    this.leftArrays = [[2268, 2446, 210, 260], [2583, 2438, 215, 260], [2268, 2446, 210, 260], [2583, 2438, 215, 260]];
+    this.leftAttackArray = [[2268, 2721, 210, 260]];
+    this.rightIdleArrays = [[107, 2718, 210, 260]];
+    this.rightArrays = [[107, 2718, 210, 260], [456, 2717, 215, 260], [107, 2718, 210, 260], [456, 2717, 215, 260]];
+    this.rightAttackArray = [[981, 2731, 210, 260]];
+    this.priority = priority;
+    this.shiny = shiny;
+    this.speed = shiny ? 2 : 1;
+    this.direction = "down";
+    this.i = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 15;
+    this.myArray = undefined;
+    this.damageCooldown = 50;
+    this.damageArray = [[0, 0, 1, 1]];
+    this.attckWindDown = 0;
+    this.attackCoolDown = 400;
+    this.bide = false;
+    this.bideDamage = 0;
+    this.bideShake = 0;
+    this.bideCountDown = 0;
+    this.hitWall = function() {
+        var test1 = this.x < 0 || (this.x + this.width) >= canvas.width;
+        var test2 = this.y < 0 || (this.y + this.height) >= canvas.height;
+        return test1 || test2;
+    }
+    this.hitWallSpecific = function() {
+        var left = this.x < 0;
+        var right = (this.x + this.width) >= canvas.width;
+        var up = this.y < 0;
+        var down = (this.y + this.height) >= canvas.height;
+        return [left, right, up, down];
+    }
+    this.hitbox = function(){
+        var answer = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        return answer;
+    }
+    this.damage = function(amount){
+        if(this.status === "active"){
+            if(this.bide){
+                this.health -= amount/100;
+                this.bideDamage += amount;
+                this.bideShake += 0.5;
+            } else {
+                this.health -= amount;
+            }
+            if(this.health <= 0){
+                this.status = "eliminated";
+                pichu.gainExp(this.exp);
+            }
+        }
+    }
+    this.intersect = function() {
+        var answer = false;
+        for(var i = 0;i < collidables.length;i++){
+            if(objIntersectBoth(this.hitbox(), collidables[i].test) && !collidables[i].intangible){
+                answer = true;
+            }
+        }
+        return answer;
+    }
+    this.attack = function(){
+        if(this.status === "active" || this.status === "damaged"){
+            var attackArray = ["Bide"];
+            if(this.shiny){
+                attackArray.push("Bullet Seed");
+            }
+            var attackChoice = attackArray[Math.floor(attackArray.length * Math.random())];
+            if(attackChoice === "Bide"){
+                this.bide = true;
+                this.bideCountDown = 600;
+            } else {
+                var bounces = Math.floor(Math.random() * 4) + 2;
+                var newSeed = new BulletSeed(frontOfEnemy(this).x, frontOfEnemy(this).y, bounces);
+                enemyAttacks.push(newSeed);
+                this.attckWindDown = 10;
+                this.attackCoolDown = shiny ? 150 : 200;
+            }
+        }
+    }
+    this.draw = function() {
+        let i = this.i;
+        this.myArray = this.myArray ? this.myArray : this.downArrays;
+        let steps = this.myArray;
+        let damageSteps = this.damageArray;
+        let shake = this.bide ? this.bideShake : 0;
+        let shakeEffect = shake%0.2 === 0 ? shake : shake * -1;
+        let sheet = this.sheet;
+        if(this.status === "damaged" && this.damageCooldown%2 === 0){
+            c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
+        } else {
+            c.drawImage(sheet, steps[i][0] + shakeEffect, steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+        }
+        c.beginPath();
+        c.strokeStyle = "blue";
+        c.strokeRect(this.hitbox().x, this.hitbox().y, this.hitbox().width, this.hitbox().height);
+        c.stroke();
+    }
+    this.update = function(target){
+        if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status === "active" && !pichu.damaged){
+            let damage = this.shiny ? 6 + 1*(Math.max(0, pichu.level - 5)) : 6;
+            pichu.damage(damage);
+        }
+        let threshold = 30;
+        if(this.priority === 0){
+            if(Math.abs(this.x - target.x) >= threshold){
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.i = 0;
+                    }
+                    this.myArray = this.leftArrays;
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.i = 0;
+                    }
+                    this.myArray = this.rightArrays;
+                }
+            } else {
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.i = 0;
+                    }
+                    this.myArray = this.upArrays;
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.i = 0;
+                    }
+                    this.myArray = this.downArrays;
+                }
+            }
+        }
+        if(this.priority === 1){
+            if(Math.abs(this.y - target.y) >= threshold){
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.i = 0;
+                    }
+                    this.myArray = this.upArrays;
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.i = 0;
+                    }
+                    this.myArray = this.downArrays;
+                }
+            } else {
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.i = 0;
+                    }
+                    this.myArray = this.leftArrays;
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.i = 0;
+                    }
+                    this.myArray = this.rightArrays;
+                }
+            }
+        }
+        if(!pichu.live){
+            this.direction = "down";
+            this.myArray = this.downIdleArrays;
+        }
+        if(this.status != "eliminated" && this.status != "inactive"){
+            if(this.bide){
+
+            }
+        }
+    }
+
+}
+
 
 /**************************************** GAME MODE FUNCTIONS **************************************************************/
 
 function startRush(test) {
     canvas = document.querySelector("canvas");
-    var mappy = document.getElementById("map");
+    var mappy = document.getElementById("map");6 + 
     map.css("background-image","none");
 canvas.width = mappy.scrollWidth;
 canvas.height = mappy.scrollHeight;
@@ -4862,7 +5062,12 @@ pichu = {
                     enemyHitbox = enemies[i];
                 }
                 if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && pichu.voltTackle.active){
-                    enemies[i].health-= pichu.voltTackle.damage();
+                    if(enemies[i].bide){
+                        enemies[i].health-= pichu.voltTackle.damage()/100;
+                        enemies[i].bideDamage += pichu.voltTackle.damage();
+                    } else {
+                        enemies[i].health-= pichu.voltTackle.damage();
+                    }
                     if(enemies[i].health <= 0){
                         if(i === pichu.voltTackle.targetEnemyIndex){
                             console.log("killed enemy and it was target");
