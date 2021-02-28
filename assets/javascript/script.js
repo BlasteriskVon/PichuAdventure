@@ -1735,6 +1735,8 @@ function Thunderbolt(x, y, direction, radius, enemyAttack){
                     width: enemyAttacks[i].width,
                     height: enemyAttacks[i].height
                 }
+            } else if(enemyAttacks[i].name === "Bide"){
+                enemyAttackHitbox = enemyAttacks[i].hitbox();
             } else {
                 enemyAttackHitbox = enemyAttacks[i];
             }
@@ -2768,6 +2770,98 @@ function ThunderWave(x, y, direction, faster){
             }
         }
     }
+    
+}
+
+function Bide(x, y, damage, user){
+    this.name = "Bide";
+    this.type = "Normal";
+    this.x = x;
+    this.y = y;
+    this.damageDealt = damage;
+    this.radius = 0;
+    this.width = 0;
+    this.height = 0;
+    this.status = "go";
+    this.targetRadius = undefined;
+    this.user = user;
+    this.hitbox = function(){
+        let answer;
+        let factor = 1.75;
+        if(this.radius < this.targetRadius){
+            answer = {
+                x: this.x - this.radius*1.5,
+                y: this.y - this.radius*1.5,
+                width: this.radius * 3,
+                height: this.radius * 3
+            }
+        } else {
+            answer = {
+                x: this.x - this.targetRadius*factor,
+                y: this.y - this.targetRadius*factor,
+                width: this.targetRadius * 2*factor,
+                height: this.targetRadius * 2*factor
+            }
+        }
+        return answer;
+    }
+    this.targetRadiusCalc = function(){
+        if(this.damageDealt < 1){
+            return 10;
+        }
+        if(this.damageDealt <= 10){
+            return 40;
+        }
+        if(this.damageDealt <= 25){
+            return 60;
+        }
+        return 82;
+    }
+    this.damage = function(){
+        return this.damageDealt;
+    }
+    this.update = function(){
+        if(this.radius < 1){
+            this.targetRadius = this.targetRadiusCalc();
+        }
+        if(this.radius <= this.targetRadius){
+            c.beginPath();
+            c.strokeStyle = "red";
+            c.arc(this.x, this.y, this.radius, Math.PI*2, false);
+            c.lineWidth = 2 * this.radius;
+            c.stroke();
+            this.radius += 1.5;
+        } else {
+            if(this.targetRadius >= 0){
+                c.beginPath();
+                c.strokeStyle = "red";
+                c.arc(this.x, this.y, this.targetRadius, Math.PI*2, false);
+                c.lineWidth = 2 * this.radius;
+                c.stroke();
+                this.targetRadius -= 2;
+            } else {
+                this.user.bide = false;
+                this.user.biding = false;
+                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+                this.status = "stop";
+            }
+        }
+        if(objIntersectBoth(this.hitbox(), pichu.hitbox()) && this.status != "stop" && !pichu.damaged){
+            pichu.damage(this.damage());
+        }
+        // c.beginPath();
+        // c.strokeStyle = "blue";
+        // c.lineWidth = 1;
+        // c.strokeRect(this.hitbox().x, this.hitbox().y, this.hitbox().width, this.hitbox().height);
+        // c.stroke();
+    }
+}
+
+function BulletSeed(x, y, direction, bounces){
+    this.x = x;
+    this.y = y;
+    this.direction = direction;
+    this.bounces = bounces;
     
 }
 
@@ -3824,7 +3918,7 @@ function Snorlax(x, y, priority){
 
 function EvolvingVoltorb(x, y, priority, shiny){
     this.status = "active";
-    this.health = shiny ? 80 : 1;
+    this.health = shiny ? 80 : 40;
     this.shiny = shiny;
     this.big = false; //trait to determine whether attacks will use regular position or hitbox stats to determine intersection
     this.x = x;
@@ -4166,7 +4260,7 @@ function Electrode(x, y, priority, shiny){
             if(this.health > 0){
                 this.status = "damaged";
                 this.health -= amount;
-                if(this.state === "rollout"){
+                if(this.state === "rollout" && this.readyToRoll){
                     switch(this.direction){
                         case "up":
                             this.direction = "down";
@@ -4210,7 +4304,10 @@ function Electrode(x, y, priority, shiny){
     }
     this.attack = function(){
         if(this.status === "active" || this.status === "damaged"){
-            let attackArray = ["Rollout", "Thunder Wave"];
+            let attackArray = ["Rollout"];
+            if(this.shiny){
+                attackArray.push("Thunder Wave");
+            }
             let attackChoice = attackArray[Math.floor(attackArray.length * Math.random())];
             if(attackChoice === "Thunder Wave"){
                 if(this.shiny || enemyAttacks.length === 0){
@@ -4222,7 +4319,7 @@ function Electrode(x, y, priority, shiny){
                     }
                     this.attckWindDown = 9;
                     this.state = "attack";
-                    this.attackCoolDown = shiny ? 150 : 200;
+                    this.attackCoolDown = 150;
                 }
             } else {
                 this.state = "rollout";
@@ -4740,7 +4837,7 @@ function Seedot(x, y, priority, shiny){
     this.status = "active";
     this.height = 119;
     this.width = 100;
-    this.exp = shiny ? 4 : 3;
+    this.exp = shiny ? 2 : 1;
     this.health = shiny ? 300 : 200;
     this.sheet = shiny ? shinySpritesheet : spritesheet;
     this.downIdleArrays = [[96, 2439, 210, 250]];
@@ -4768,9 +4865,10 @@ function Seedot(x, y, priority, shiny){
     this.attckWindDown = 0;
     this.attackCoolDown = 400;
     this.bide = false;
+    this.biding = false;
     this.bideDamage = 0;
     this.bideShake = 0;
-    this.bideCountDown = 0;
+    this.bideCountDown = 10;
     this.hitWall = function() {
         var test1 = this.x < 0 || (this.x + this.width) >= canvas.width;
         var test2 = this.y < 0 || (this.y + this.height) >= canvas.height;
@@ -4790,6 +4888,10 @@ function Seedot(x, y, priority, shiny){
             width: this.width,
             height: this.height
         }
+        answer.y += 18;
+        answer.height -= 32;
+        answer.x += 10;
+        answer.width -= 20;
         return answer;
     }
     this.damage = function(amount){
@@ -4800,6 +4902,7 @@ function Seedot(x, y, priority, shiny){
                 this.bideShake += 0.5;
             } else {
                 this.health -= amount;
+                this.status = "damaged";
             }
             if(this.health <= 0){
                 this.status = "eliminated";
@@ -4816,6 +4919,26 @@ function Seedot(x, y, priority, shiny){
         }
         return answer;
     }
+    this.useAttackArray = function(direction){
+        switch(direction){
+            case "up":
+                this.myArray = this.upAttackArray;
+                break;
+            case "down":
+                this.myArray = this.downAttackArray;
+                break;
+            case "right":
+                this.myArray = this.rightAttackArray;
+                break;
+            case "left":
+                this.myArray = this.leftAttackArray;
+                break;
+            default:
+                this.myArray = this.downAttackArray;
+                break;
+        }
+        return;
+    }
     this.attack = function(){
         if(this.status === "active" || this.status === "damaged"){
             var attackArray = ["Bide"];
@@ -4824,12 +4947,13 @@ function Seedot(x, y, priority, shiny){
             }
             var attackChoice = attackArray[Math.floor(attackArray.length * Math.random())];
             if(attackChoice === "Bide"){
+                console.log("biding");
                 this.bide = true;
-                this.bideCountDown = 600;
             } else {
-                var bounces = Math.floor(Math.random() * 4) + 2;
-                var newSeed = new BulletSeed(frontOfEnemy(this).x, frontOfEnemy(this).y, bounces);
-                enemyAttacks.push(newSeed);
+                // var bounces = Math.floor(Math.random() * 4) + 2;
+                // var newSeed = new BulletSeed(frontOfEnemy(this).x, frontOfEnemy(this).y, bounces);
+                // enemyAttacks.push(newSeed);
+                console.log("seed");
                 this.attckWindDown = 10;
                 this.attackCoolDown = shiny ? 150 : 200;
             }
@@ -4841,17 +4965,18 @@ function Seedot(x, y, priority, shiny){
         let steps = this.myArray;
         let damageSteps = this.damageArray;
         let shake = this.bide ? this.bideShake : 0;
-        let shakeEffect = shake%0.2 === 0 ? shake : shake * -1;
+        let shakeEffect = this.bideCountDown%4 === 0 ? shake : shake * -1;
         let sheet = this.sheet;
         if(this.status === "damaged" && this.damageCooldown%2 === 0){
             c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
         } else {
-            c.drawImage(sheet, steps[i][0] + shakeEffect, steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+            c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x + shakeEffect, this.y, this.width, this.height);
         }
-        c.beginPath();
-        c.strokeStyle = "blue";
-        c.strokeRect(this.hitbox().x, this.hitbox().y, this.hitbox().width, this.hitbox().height);
-        c.stroke();
+        // c.beginPath();
+        // c.lineWidth = 1;
+        // c.strokeStyle = "blue";
+        // c.strokeRect(this.hitbox().x, this.hitbox().y, this.hitbox().width, this.hitbox().height);
+        // c.stroke();
     }
     this.update = function(target){
         if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status === "active" && !pichu.damaged){
@@ -4927,8 +5052,89 @@ function Seedot(x, y, priority, shiny){
         }
         if(this.status != "eliminated" && this.status != "inactive"){
             if(this.bide){
-
+                this.useAttackArray();
+                console.log("load bide", this.bideShake);
+                this.i = 0;
+                if(!this.biding){
+                    this.bideCountDown--;
+                    if(this.bideCountDown <= 0){
+                        this.bideCountDown = 10;
+                        this.bideShake += 0.01;
+                        if(this.bideShake >= 0.5){
+                            this.bideShake += 0.5;
+                        }
+                    }
+                    if(this.bideShake >= 10){
+                        let newBide = new Bide(this.x + this.width/2, this.y + this.height/2, this.bideDamage, this);
+                        enemyAttacks.push(newBide);
+                        this.bideCountDown = 10;
+                        this.bideDamage = this.bideShake = 0;
+                        this.attackCoolDown = shiny ? 150 : 200;
+                        this.biding = true;
+                    }
+                }
+            } else {
+                this.motionDelay++;
+                if(this.motionDelay >= this.desiredDelay){
+                    this.i++;
+                    this.motionDelay = 0;
+                    if(this.i >= this.myArray.length){
+                        this.i = 0;
+                    }
+                }
+                if(pichu.live){
+                    if(this.attackCoolDown <= 0){
+                        var oneToAttack = [0, 0, 0, 1];
+                        var attackOption = oneToAttack[Math.floor(Math.random()*oneToAttack.length)];
+                        if(attackOption === 1){
+                            this.attack();
+                        }
+                    } else {
+                        this.attackCoolDown--;
+                    }
+                }
+                if(this.attckWindDown > 0){
+                    this.i = 0;
+                    this.useAttackArray(this.direction);
+                    this.attckWindDown--;
+                }
+                switch(this.direction){
+                    case "up":
+                        this.y -= this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.y += this.speed;
+                        }
+                        break;
+                    case "down":
+                        this.y += this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.y -= this.speed;
+                        }
+                        break;
+                    case "left":
+                        this.x -= this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.x += this.speed;
+                        }
+                        break;
+                    case "right":
+                        this.x += this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.x -= this.speed;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
+            if(this.status === "damaged"){
+                this.damageCooldown--;
+                if(this.damageCooldown < 0){
+                    this.status = "active";
+                    this.damageCooldown = 50;
+                }
+            }
+            this.draw();
         }
     }
 
@@ -5065,6 +5271,7 @@ pichu = {
                     if(enemies[i].bide){
                         enemies[i].health-= pichu.voltTackle.damage()/100;
                         enemies[i].bideDamage += pichu.voltTackle.damage();
+                        enemies[i].bideShake += 0.5;
                     } else {
                         enemies[i].health-= pichu.voltTackle.damage();
                     }
@@ -9035,6 +9242,8 @@ canvas.addEventListener("click", function(event){
     // berryPlace(berry);
     var x = event.layerX;
     var y = event.layerY;
+    var seed = new Seedot(x, y, Math.floor(Math.random() * 2), false);
+    enemies.push(seed);
     // var newpokeball = new Pokeball(x, y, false, emptyFn);
     // collidables.push(newpokeball);
     // var directionsArray = ["left", "right", "up", "down"];
