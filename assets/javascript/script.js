@@ -2818,7 +2818,7 @@ function Bide(x, y, damage, user){
         return 82;
     }
     this.damage = function(){
-        return this.damageDealt;
+        return this.damageDealt/2;
     }
     this.update = function(){
         if(this.radius < 1){
@@ -2842,6 +2842,11 @@ function Bide(x, y, damage, user){
             } else {
                 this.user.bide = false;
                 this.user.biding = false;
+                this.user.status = "damaged";
+                this.user.attackCoolDown = this.user.shiny ? 150 : 200;
+                this.user.bideCountDown = 10;
+                this.user.bideDamage = 0;
+                this.user.bideShake = 0;
                 enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
                 this.status = "stop";
             }
@@ -2862,7 +2867,7 @@ function BulletSeed(x, y, direction, bounces){
     this.y = y;
     this.direction = direction;
     this.bounces = bounces;
-    
+
 }
 
 /**************************************** ENEMY FUNCTIONS **************************************************************/
@@ -4837,8 +4842,9 @@ function Seedot(x, y, priority, shiny){
     this.status = "active";
     this.height = 119;
     this.width = 100;
-    this.exp = shiny ? 2 : 1;
-    this.health = shiny ? 300 : 200;
+    this.radius = 5;
+    this.exp = shiny ? 18 : 9;
+    this.health = shiny ? 80 : 40;
     this.sheet = shiny ? shinySpritesheet : spritesheet;
     this.downIdleArrays = [[96, 2439, 210, 250]];
     this.downArrays = [[96, 2439, 210, 250], [423, 2433, 210, 250], [96, 2439, 210, 250], [722, 2438, 210, 250]];
@@ -5053,7 +5059,7 @@ function Seedot(x, y, priority, shiny){
         if(this.status != "eliminated" && this.status != "inactive"){
             if(this.bide){
                 this.useAttackArray();
-                console.log("load bide", this.bideShake);
+                //console.log("load bide", this.bideShake);
                 this.i = 0;
                 if(!this.biding){
                     this.bideCountDown--;
@@ -5068,8 +5074,8 @@ function Seedot(x, y, priority, shiny){
                         let newBide = new Bide(this.x + this.width/2, this.y + this.height/2, this.bideDamage, this);
                         enemyAttacks.push(newBide);
                         this.bideCountDown = 10;
-                        this.bideDamage = this.bideShake = 0;
-                        this.attackCoolDown = shiny ? 150 : 200;
+                        this.bideDamage = 0;
+                        this.bideShake = 0;
                         this.biding = true;
                     }
                 }
@@ -5085,7 +5091,9 @@ function Seedot(x, y, priority, shiny){
                 if(pichu.live){
                     if(this.attackCoolDown <= 0){
                         var oneToAttack = [0, 0, 0, 1];
+                        console.log(oneToAttack);
                         var attackOption = oneToAttack[Math.floor(Math.random()*oneToAttack.length)];
+                        console.log(attackOption);
                         if(attackOption === 1){
                             this.attack();
                         }
@@ -5135,6 +5143,18 @@ function Seedot(x, y, priority, shiny){
                 }
             }
             this.draw();
+        } else if(this.status === "eliminated"){
+            if(this.radius <= 50){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "aqua";
+                c.lineWidth = 50 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            } else {
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+            }
         }
     }
 
@@ -6234,6 +6254,8 @@ function pauseMenu() {
             var expbar = document.getElementById("exp_bar");
             expbar.value = 0;
             window.onkeydown = window.onkeyup = "";
+            $("#tips").text("");
+            $("#directions").text("");
             mainMenunize();
         }
     }
@@ -6560,14 +6582,16 @@ function enemyRush(number){
 
                 enemies.push(newVoltorb);
             }
-        } else if(rushModeCount === 6){
+            return;
+        }
+        if(rushModeCount === 6){
             if(continueRush){
                 continueRush = false;
                 berryPlace("oran");
                 berryPlace("leppa");
-                rollingText("directions", "Eat berries to restore health/charge!", function(){
+                rollingText("tips", "Eat berries to restore health/charge!", function(){
                     if(!startMeBaby){
-                        $("#directions").text("");
+                        $("#tips").text("");
                     } else {
                         emptyFn();
                     } 
@@ -6576,9 +6600,11 @@ function enemyRush(number){
             if(collidables.length === 0){
                 continueRush = true;
             }
-        } else if(rushModeCount > 6 && rushModeCount < 9){
+            return;
+        } 
+        if(rushModeCount > 6 && rushModeCount < 9){
             if(rushModeCount === 7){
-                $("#directions").text("");
+                $("#tips").text("");
             }
             var placeOranBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
             var placeLeppaBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
@@ -6608,6 +6634,7 @@ function enemyRush(number){
                 var newWooper = new Wooper(wooper_x_coordinate, wooper_y_coordinate);
                 enemies.push(newWooper);
             }
+            return;
         } else {
             if(pichu.live){
                 var placeOranBerry = (((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2))) && rushModeCount % 5 != 1;
@@ -6617,6 +6644,7 @@ function enemyRush(number){
                 }
                 if(placeLeppaBerry){
                     berryPlace("leppa");
+                    console.log("leppa", rushModeCount);
                 }
             }
             //endless mode (until I code in other stuff)
@@ -6842,15 +6870,15 @@ function enemyRush(number){
                                 break;
                             case "spikyEar":
                                 var orb = new SpikyEarOrb(300, 300, function(){
-                                    rollingText("directions", "Spiky Ear Collected!", function() {
+                                    rollingText("tips", "Spiky Ear Collected!", function() {
                                         if(!startMeBaby){
-                                            $("#directions").text("");
+                                            $("#tips").text("");
                                         } else {
                                             var b = new Blank(0, 0);
                                             collidables.push(b);
-                                            rollingText("directions", "Spiky Ear Collected! (Check it out in the Change Avatar section!)", function(){
+                                            rollingText("tips", "Spiky Ear Collected! (Check it out in the Change Avatar section!)", function(){
                                                 if(!startMeBaby){
-                                                    $("#directions").text("");
+                                                    $("#tips").text("");
                                                 } else {
                                                     collidables.pop();
                                                 }                                            
@@ -6873,9 +6901,9 @@ function enemyRush(number){
                                     var newBucket = new PaintBucket(300, 300, chosenPaint, function(){
                                         var b = new Blank(0, 0);
                                         collidables.push(b);
-                                        rollingText("directions", "New Paint Collected! (Check it out in the Change Avatar section!)", function(){
+                                        rollingText("tips", "New Paint Collected! (Check it out in the Change Avatar section!)", function(){
                                             if(!startMeBaby){
-                                                $("#directions").text("");
+                                                $("#tips").text("");
                                             } else {
                                                 collidables.pop();
                                             }
@@ -6906,10 +6934,35 @@ function enemyRush(number){
                     //means the berries were eaten
                     continueRush = true;
                 }
+            } else if(rushModeCount >= 12 && rushModeCount < 15){
+                floor = grassFloor;
+                $("#directions").text("");
+                $("#tips").text("");
+                for(var i = 0;i < (rushModeCount - 11);i++){
+                    var seedot_x_coordinate;
+                    var seedot_y_coordinate;
+                    for(var j = 0;j < 1;j++){
+                        var randomCoordinate = {
+                            x: Math.floor(Math.random()*(canvas.width - 200)),
+                            y: Math.floor(Math.random()*(canvas.height - 200)),
+                            height: 100,
+                            width: 100
+                        }
+                        if(objIntersectBoth(randomCoordinate, pichu)){
+                            j--;
+                        } else {
+                            seedot_x_coordinate = randomCoordinate.x;
+                            seedot_y_coordinate = randomCoordinate.y;
+                        }
+                    }
+                    var newSeedot = new Seedot(seedot_x_coordinate, seedot_y_coordinate, Math.floor(Math.random()*2));
+                    enemies.push(newSeedot);
+                }
             } else {
                 floor = grassFloor;
                 if(rushModeCount % 5 > 1){
                     $("#directions").text("");
+                    $("#tips").text("");
                 }
                 for(var i = 0;i < 5;i++){
                     var enemy_x_coordinate;
@@ -7093,6 +7146,7 @@ function gameOver(){
         paused = false;
         startMeBaby = true;
         $("#directions").text("");
+        $("#tips").text("");
         if(test){
             startRush(true);
         } else {
@@ -7113,6 +7167,7 @@ function gameOver(){
         var expbar = document.getElementById("exp_bar");
         expbar.value = 0;
         $("#directions").text("");
+        $("#tips").text("");
         mainMenunize();
     }
 
@@ -8709,6 +8764,8 @@ function pauseMenu() {
             var expbar = document.getElementById("exp_bar");
             expbar.value = 0;
             window.onkeydown = window.onkeyup = "";
+            $("#tips").text("");
+            $("#directions").text("");
             mainMenunize();
         }
     }
@@ -9242,8 +9299,8 @@ canvas.addEventListener("click", function(event){
     // berryPlace(berry);
     var x = event.layerX;
     var y = event.layerY;
-    var seed = new Seedot(x, y, Math.floor(Math.random() * 2), false);
-    enemies.push(seed);
+    // var seed = new Seedot(x, y, Math.floor(Math.random() * 2), false);
+    // enemies.push(seed);
     // var newpokeball = new Pokeball(x, y, false, emptyFn);
     // collidables.push(newpokeball);
     // var directionsArray = ["left", "right", "up", "down"];
