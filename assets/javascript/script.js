@@ -6870,21 +6870,16 @@ function enemyRush(number){
                                 break;
                             case "spikyEar":
                                 var orb = new SpikyEarOrb(300, 300, function(){
-                                    rollingText("tips", "Spiky Ear Collected!", function() {
+                                    var b = new Blank(0, 0);
+                                    collidables.push(b);
+                                    var addText = collidables.length === 1 ? "                              Game resuming in 3            2            1" : "\nCollect the remaining item(s) to continue.";
+                                    rollingText("tips", "Spiky Ear Collected! (Check it out in the Change Avatar section!)" + addText, function(){
                                         if(!startMeBaby){
                                             $("#tips").text("");
                                         } else {
-                                            var b = new Blank(0, 0);
-                                            collidables.push(b);
-                                            rollingText("tips", "Spiky Ear Collected! (Check it out in the Change Avatar section!)", function(){
-                                                if(!startMeBaby){
-                                                    $("#tips").text("");
-                                                } else {
-                                                    collidables.pop();
-                                                }                                            
-                                            });
-                                        }
-                                    })
+                                            collidables.pop();
+                                        }                                            
+                                    });
                                 });
                                 collidables.push(orb);
                                 pichu.receivedItem = true;
@@ -6901,7 +6896,8 @@ function enemyRush(number){
                                     var newBucket = new PaintBucket(300, 300, chosenPaint, function(){
                                         var b = new Blank(0, 0);
                                         collidables.push(b);
-                                        rollingText("tips", "New Paint Collected! (Check it out in the Change Avatar section!)", function(){
+                                        var addText = collidables.length === 1 ? "                              Game resuming in 3            2            1" : "\nCollect the remaining item(s) to continue.";
+                                        rollingText("tips", "New Paint Collected! (Check it out in the Change Avatar section!)" + addText, function(){
                                             if(!startMeBaby){
                                                 $("#tips").text("");
                                             } else {
@@ -9306,7 +9302,18 @@ canvas.addEventListener("click", function(event){
     // var directionsArray = ["left", "right", "up", "down"];
     // var newHB = new HyperBeam(x, y, directionsArray[Math.floor(Math.random()*4)], pichu);
     // attacks.push(newHB);
-    // var orb = new SpikyEarOrb(x, y);
+    // var orb = new SpikyEarOrb(x, y, function(){
+    //     var b = new Blank(0, 0);
+    //     collidables.push(b);
+    //     var addText = collidables.length === 1 ? "                              Game resuming in 3         2         1" : "\nCollect the remaining item(s) to continue.";
+    //     rollingText("tips", "Spiky Ear Collected! (Check it out in the Change Avatar section!)" + addText, function(){
+    //         if(!startMeBaby){
+    //             $("#tips").text("");
+    //         } else {
+    //             collidables.pop();
+    //         }                                            
+    //     });
+    // });
     // collidables.push(orb);
     // var paintArrays = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png"];
     // var chosenPaint = paintArrays[Math.floor(Math.random() * paintArrays.length)];
