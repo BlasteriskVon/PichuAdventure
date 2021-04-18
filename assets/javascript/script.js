@@ -42,6 +42,19 @@ var shinyElectrodeSpritesheet = new Image();
 var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png", "shinx.png", "minthe.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
+let pichuCry1 = new Audio();
+let pichuCry2 = new Audio();
+let pichuCry3 = new Audio();
+let pichuCry4 = new Audio();
+let pichuCry5 = new Audio();
+let pichuCry6 = new Audio();
+let pichuCry7 = new Audio();
+let pichuCryLong = new Audio();
+let voltorbCry = new Audio();
+let wooperCry = new Audio();
+let snorlaxCry = new Audio();
+let seedotCry = new Audio();
+let electrodeCry = new Audio();
 
 
 var spikyEar = {
@@ -736,6 +749,8 @@ $("#welcomeRow").append(welcomeText);*/
 // }
 var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
 var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png","assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
+let soundArray = [pichuCry1, pichuCry2, pichuCry3, pichuCry4, pichuCry5, pichuCry6, pichuCry7, pichuCryLong, voltorbCry, wooperCry];
+let soundSources = ["assets/sounds/pichu_cries/vc_pichu_attack01.wav", "assets/sounds/pichu_cries/vc_pichu_attack02.wav", "assets/sounds/pichu_cries/vc_pichu_attack03.wav", "assets/sounds/pichu_cries/vc_pichu_attack04.wav", "assets/sounds/pichu_cries/vc_pichu_attack05.wav", "assets/sounds/pichu_cries/vc_pichu_attack06.wav", "assets/sounds/pichu_cries/vc_pichu_attack07.wav", "assets/sounds/pichu_cries/vc_pichu_final01.wav", "assets/sounds/enemy_cries/100 - Voltorb.wav", "assets/sounds/enemy_cries/194 - Wooper.wav"];
 function loadSprites() {
     var loadingText = $("<div id='loadingText'><h1>Loading spritesheets...</h1></div>");
     map.append(loadingText);
@@ -743,7 +758,7 @@ function loadSprites() {
     loadImages(arraySheets, arraySources, function(){
         $("#loadingText").html("<h1>Done!</h1>");
         $("#loadingText").remove();
-        mainMenunize();
+        loadSounds();
     });
 }
 function loadImages(names, files, onAllLoaded){
@@ -756,6 +771,28 @@ function loadImages(names, files, onAllLoaded){
         names[i].src = files[i];
         console.log(names[i]);
         names[i].onload = onload;
+    }
+}
+function loadSounds(){
+    var loadingText = $("<div id='loadingText'><h1>Loading sounds...</h1></div>");
+    map.append(loadingText);
+    loadAudio(soundArray, soundSources, function(){
+        voltorbCry.volume = 0.1;
+        $("#loadingText").html("<h1>Done!</h1>");
+        $("#loadingText").remove();
+        mainMenunize();
+    })
+}
+function loadAudio(names, files, onAllLoaded){
+    let i, numLoading = names.length;
+    const oncanplaythrough = () => --numLoading === 0 && onAllLoaded();
+    for(i = 0;i < names.length;i++){
+        if(names[i] === undefined){
+            names[i] = new Audio();
+        }
+        names[i].src = files[i];
+        names[i].volume = 0.3;
+        names[i].oncanplaythrough = oncanplaythrough;
     }
 }
 var mobileUsage = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -788,6 +825,20 @@ if(!mobileUsage){
 
 
 /**************************************** MISCELLANEOUS FUNCTIONS **************************************************************/
+function playSound(index){
+    if(soundArray[index].duration > 0 && !soundArray[index].paused){
+        soundArray[index].pause();
+        soundArray[index].currentTime = 0;
+        soundArray[index].play();
+    } else {
+        soundArray[index].play();
+    }
+}
+
+function pichuCry(){
+    let index = Math.floor(Math.random() * 7);
+    playSound(index);
+}
 function pointWithin(x, y, obj){
     var x_intersection = x <= obj.x + obj.width && x >= obj.x;
     var y_intersection = y <= obj.y + obj.height && y >= obj.y;
@@ -2903,6 +2954,7 @@ function Voltorb(x, y, priority, shiny){
             this.status = "damaged";
             this.health -= amount;
             if(this.health <= 0){
+                playSound(8);
                 this.status = "eliminated";
                 pichu.gainExp(this.exp);
             }
@@ -5703,6 +5755,7 @@ pichu = {
                     this.loseCharge(15);
                     this.attckWindDown = 10;
                     attacks.push(newThunderbolt);
+                    pichuCry();
                 } else {
                     if(this.charge < 15){
                         var levelTag = document.getElementById("pichu_level");
@@ -5725,6 +5778,7 @@ pichu = {
                     pichu.loseCharge(20);
                     pichu.attckWindDown = 10;
                     attacks.push(newSwift);
+                    pichuCry();
                 } else {
                     if(this.charge < 20){
                         var levelTag = document.getElementById("pichu_level");
@@ -5747,6 +5801,7 @@ pichu = {
                         pichu.attckWindDown = 10;
                         var doubleTeam = new DoubleTeam(pichu.x, pichu.y);
                         attacks.push(doubleTeam);
+                        pichuCry();
                     }
                 } else {
                     if(this.charge < 15){
@@ -5787,6 +5842,7 @@ pichu = {
                     this.loseCharge(this.thunderCost);
                     this.attckWindDown = 10;
                     attacks.push(newThunder);
+                    pichuCry();
                 } else {
                     if(this.charge < this.thunderCost){
                         var levelTag = document.getElementById("pichu_level");
@@ -5810,6 +5866,7 @@ pichu = {
                     pichu.voltTackle.active = true;
                     pichu.voltTackle.hits = 8 + 4 * Math.floor(pichu.level/4);
                     pichu.damaged = true;
+                    pichuCry();
                 } else {
                     if(this.charge < this.voltTackleCost){
                         var levelTag = document.getElementById("pichu_level");
@@ -6602,7 +6659,7 @@ function enemyRush(number){
             }
             return;
         } 
-        if(rushModeCount > 6 && rushModeCount < 9){
+        if(rushModeCount > 6 && rushModeCount <= 9){
             if(rushModeCount === 7){
                 $("#tips").text("");
             }
@@ -6978,7 +7035,7 @@ function enemyRush(number){
                         }
                     }
                     var newEnemy;
-                    var enemyChoice = Math.floor(Math.random() * 2);
+                    var enemyChoice = Math.floor(Math.random() * 3);
                     if(rushModeCount < 15 && i > 2){
                         enemyChoice = 0;
                     }
@@ -7003,6 +7060,9 @@ function enemyRush(number){
                             break;
                         case 1:
                             newEnemy = new Wooper(enemy_x_coordinate, enemy_y_coordinate, isShiny);
+                            break;
+                        case 2:
+                            newEnemy = new Seedot(enemy_x_coordinate, enemy_y_coordinate, Math.floor(Math.random() * 2), isShiny);
                             break;
                         default:
                             break;
@@ -9060,13 +9120,14 @@ switch(event.key){
         //         resetSprites();
         // }
         //use electrode sprites
-        if(pichu.health != 999){
-                useSeedotSprites();
-                pichu.health = 999;
-            } else {
-                resetSprites();
-                pichu.health = pichu.max_Health();
-        }
+        // if(pichu.health != 999){
+        //         useSeedotSprites();
+        //         pichu.health = 999;
+        //     } else {
+        //         resetSprites();
+        //         pichu.health = pichu.max_Health();
+        // }
+        // PichuCry();
         break;
     default:
         break;
@@ -9096,7 +9157,7 @@ function frontOfPichu(){
     return result;
 }
 
-function PichuCry(x, y){
+function PichuCryAttack(x, y){
     var newCries = [];
     for(var i = 0;i < 8;i++){
         var direction, newX, newY;
