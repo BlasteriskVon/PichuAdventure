@@ -55,6 +55,7 @@ let wooperCry = new Audio();
 let snorlaxCry = new Audio();
 let seedotCry = new Audio();
 let electrodeCry = new Audio();
+let berryEat = new Audio();
 
 
 var spikyEar = {
@@ -749,8 +750,8 @@ $("#welcomeRow").append(welcomeText);*/
 // }
 var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
 var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png","assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
-let soundArray = [pichuCry1, pichuCry2, pichuCry3, pichuCry4, pichuCry5, pichuCry6, pichuCry7, pichuCryLong, voltorbCry, wooperCry];
-let soundSources = ["assets/sounds/pichu_cries/vc_pichu_attack01.wav", "assets/sounds/pichu_cries/vc_pichu_attack02.wav", "assets/sounds/pichu_cries/vc_pichu_attack03.wav", "assets/sounds/pichu_cries/vc_pichu_attack04.wav", "assets/sounds/pichu_cries/vc_pichu_attack05.wav", "assets/sounds/pichu_cries/vc_pichu_attack06.wav", "assets/sounds/pichu_cries/vc_pichu_attack07.wav", "assets/sounds/pichu_cries/vc_pichu_final01.wav", "assets/sounds/enemy_cries/100 - Voltorb.wav", "assets/sounds/enemy_cries/194 - Wooper.wav"];
+let soundArray = [pichuCry1, pichuCry2, pichuCry3, pichuCry4, pichuCry5, pichuCry6, pichuCry7, pichuCryLong, voltorbCry, wooperCry, snorlaxCry, seedotCry, electrodeCry, berryEat];
+let soundSources = ["assets/sounds/pichu_cries/vc_pichu_attack01.wav", "assets/sounds/pichu_cries/vc_pichu_attack02.wav", "assets/sounds/pichu_cries/vc_pichu_attack03.wav", "assets/sounds/pichu_cries/vc_pichu_attack04.wav", "assets/sounds/pichu_cries/vc_pichu_attack05.wav", "assets/sounds/pichu_cries/vc_pichu_attack06.wav", "assets/sounds/pichu_cries/vc_pichu_attack07.wav", "assets/sounds/pichu_cries/vc_pichu_final01.wav", "assets/sounds/enemy_cries/100 - Voltorb.wav", "assets/sounds/enemy_cries/194 - Wooper.wav", "assets/sounds/enemy_cries/143 - Snorlax.wav", "assets/sounds/enemy_cries/273 - Seedot.wav", "assets/sounds/enemy_cries/101 - Electrode.wav", "assets/sounds/misc/se_common_lifeup.wav"];
 function loadSprites() {
     var loadingText = $("<div id='loadingText'><h1>Loading spritesheets...</h1></div>");
     map.append(loadingText);
@@ -977,6 +978,7 @@ function oranBerry(x, y, size){
             default:
                 break;
         }
+        playSound(13);
         pichu.gainHealth(amountGain);
         collidables.splice(collidables.indexOf(this), 1);
         return;
@@ -1055,6 +1057,7 @@ function leppaBerry(x, y, size){
             default:
                 break;
         }
+        playSound(13);
         pichu.gainCharge(amountGain);
         collidables.splice(collidables.indexOf(this), 1);
         return;
@@ -3215,6 +3218,7 @@ function Wooper(x, y, shiny){
             this.status = "damaged";
             this.health -= amount;
             if(this.health <= 0){
+                playSound(9);
                 this.status = "eliminated";
                 pichu.gainExp(this.exp);
             }
@@ -3584,6 +3588,7 @@ function Snorlax(x, y, priority){
             this.health -= amount;
             if(this.health <= 0){
                 this.status = "eliminated";
+                playSound(10);
                 pichu.gainExp(this.exp);
                 continueRush = true;
             }
@@ -4963,6 +4968,7 @@ function Seedot(x, y, priority, shiny){
                 this.status = "damaged";
             }
             if(this.health <= 0){
+                playSound(11);
                 this.status = "eliminated";
                 pichu.gainExp(this.exp);
             }
@@ -6647,7 +6653,7 @@ function enemyRush(number){
                 berryPlace("oran");
                 berryPlace("leppa");
                 rollingText("tips", "Eat berries to restore health/charge!", function(){
-                    if(!startMeBaby){
+                    if(!startMeBaby || rushModeCount != 6){
                         $("#tips").text("");
                     } else {
                         emptyFn();
@@ -6661,7 +6667,9 @@ function enemyRush(number){
         } 
         if(rushModeCount > 6 && rushModeCount <= 9){
             if(rushModeCount === 7){
-                $("#tips").text("");
+                if($("#tips").text() === "Eat berries to restore health/charge!"){
+                    $("#tips").text("");
+                }
             }
             var placeOranBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.health < pichu.max_Health())) || (pichu.health < (pichu.max_Health()/2));
             var placeLeppaBerry = rushModeCount === 9 || ((rushModeCount%3 === 0) && (pichu.charge < pichu.charge_Max()));
