@@ -2933,10 +2933,38 @@ function ShadowBall(x, y, dx, dy, user, shinyUser){
     this.dx = dx;
     this.dy = dy;
     this.user = user;
-    this.bounces = shinyUser ? 
+    this.bounces = 3;
     this.width = 1;
     this.height = 1;
-    this.radius = 
+    this.radius = shinyUser ? 10 : 7;
+    this.i = 0;
+    this.motionDelay = undefined;
+    this.bigTime = true;
+    this.size_i = 0;
+    this.size_Delay = 100;
+    this.draw = function(){
+        if(this.status != "stop"){
+            let rad;
+            if(this.bigTime){
+                rad = this.radius;
+            } else {
+                rad = this.radius * 0.8;
+            }
+            c.beginPath();
+            c.lineWidth = 1;
+            c.arc(this.x, this.y, rad, Math.PI*2, false);
+            c.strokeStyle = "darkmagenta";
+            c.stroke();
+            c.fillStyle = "darkmagenta";
+            c.fill();
+            c.beginPath();
+            c.arc(this.x, this.y, this.radius/1.5, Math.PI*2, false);
+            c.strokeStyle = "fuchsia";
+            c.stroke();
+            c.fillStyle = "fuchsia";
+            c.fill();
+        }
+    }
     
 }
 
