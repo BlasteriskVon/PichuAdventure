@@ -39,6 +39,7 @@ var shinxSpritesheet = new Image();
 var mintheSpritesheet = new Image();
 var electrodeSpritesheet = new Image();
 var shinyElectrodeSpritesheet = new Image();
+var gastlySpritesheet = new Image();
 var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png", "shinx.png", "minthe.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
@@ -748,8 +749,8 @@ $("#welcomeRow").append(welcomeText);*/
 //         })
 //     })
 // }
-var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
-var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png","assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
+var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, gastlySpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
+var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/gastlySpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png","assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
 let soundArray = [pichuCry1, pichuCry2, pichuCry3, pichuCry4, pichuCry5, pichuCry6, pichuCry7, pichuCryLong, voltorbCry, wooperCry, snorlaxCry, seedotCry, electrodeCry, berryEat];
 let soundSources = ["assets/sounds/pichu_cries/vc_pichu_attack01.wav", "assets/sounds/pichu_cries/vc_pichu_attack02.wav", "assets/sounds/pichu_cries/vc_pichu_attack03.wav", "assets/sounds/pichu_cries/vc_pichu_attack04.wav", "assets/sounds/pichu_cries/vc_pichu_attack05.wav", "assets/sounds/pichu_cries/vc_pichu_attack06.wav", "assets/sounds/pichu_cries/vc_pichu_attack07.wav", "assets/sounds/pichu_cries/vc_pichu_final01.wav", "assets/sounds/enemy_cries/100 - Voltorb.wav", "assets/sounds/enemy_cries/194 - Wooper.wav", "assets/sounds/enemy_cries/143 - Snorlax.wav", "assets/sounds/enemy_cries/273 - Seedot.wav", "assets/sounds/enemy_cries/101 - Electrode.wav", "assets/sounds/misc/se_common_lifeup.wav"];
 function loadSprites() {
@@ -2922,6 +2923,21 @@ function BulletSeed(x, y, direction, bounces){
     this.direction = direction;
     this.bounces = bounces;
 
+}
+
+function ShadowBall(x, y, dx, dy, user, shinyUser){
+    this.name = "Shadow Ball";
+    this.type = "Ghost";
+    this.x = x;
+    this.y = y;
+    this.dx = dx;
+    this.dy = dy;
+    this.user = user;
+    this.bounces = shinyUser ? 
+    this.width = 1;
+    this.height = 1;
+    this.radius = 
+    
 }
 
 /**************************************** ENEMY FUNCTIONS **************************************************************/
@@ -5148,7 +5164,8 @@ function Seedot(x, y, priority, shiny){
                 }
                 if(pichu.live){
                     if(this.attackCoolDown <= 0){
-                        var oneToAttack = [0, 0, 0, 1];
+                        var oneToAttack = Array(400).fill(0);
+                        oneToAttack.push(1);
                         console.log(oneToAttack);
                         var attackOption = oneToAttack[Math.floor(Math.random()*oneToAttack.length)];
                         console.log(attackOption);
@@ -5216,6 +5233,472 @@ function Seedot(x, y, priority, shiny){
         }
     }
 
+}
+
+function Gastly(x, y, priority, shiny){
+    this.x = x;
+    this.y = y;
+    this.status = "active";
+    this.height = 126;
+    this.width = 162;
+    this.shiny = shiny;
+    this.radius = 5;
+    this.exp = shiny ? 25 : 13;
+    this.health = shiny ? 60 : 30;
+    this.sheet = gastlySpritesheet;
+    this.downIdleArrays = [[25, 52, 424, 336]];
+    this.downArrays = [[25, 52, 424, 336], [25, 52, 424, 336], [1245, 58, 424, 336], [1245, 58, 424, 336]];
+    this.leftIdleArrays = [[83, 867, 424, 336]];
+    this.leftArrays = [[83, 867, 424, 336], [83, 867, 424, 336], [614, 854, 424, 336], [614, 854, 424, 336]];
+    this.rightIdleArrays = [[75, 1314, 424, 336]];
+    this.rightArrays = [[75, 1314, 424, 336], [75, 1314, 424, 336], [614, 1312, 424, 336], [614, 1312, 424, 336]];
+    this.upIdleArrays = [[42, 458, 424, 336]];
+    this.upArrays = [[42, 458, 424, 336], [42, 458, 424, 336], [1251, 514, 424, 336], [1251, 514, 424, 336]];
+    this.laughingArrays = [[1818, 68, 424, 336], [2384, 72, 424, 336]]; //when laughing, desiredDelay should be 17;
+    this.priority = priority;
+    this.shiny = shiny;
+    this.speed = shiny ? 3 : 1.5;
+    this.direction = "down";
+    this.i = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 7;
+    this.myArray = undefined;
+    this.damageCooldown = 50;
+    this.damageArray = [[0, 0, 1, 1]];
+    this.laughingWindDown = Math.floor(Math.random() * 100) + 50;
+    this.doubled = false;
+    this.balled = false;
+    this.laughingCounter = 0;
+    this.hitbox = function(){
+        var answer = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        return answer;
+    }
+    this.damage = function(amount){
+        if(this.status === "active"){
+            this.health -= amount;
+            this.status = "damaged";
+            if(this.health <= 0){
+                //add gastly noise
+                this.status = "eliminated";
+                pichu.gainExp(this.exp);
+            }
+        }
+    }
+    this.intersect = function(){
+        return false; //it's a ghost, it's intangible!
+    }
+    this.attack = function(){
+        return; //add shadow ball function!
+    }
+    this.draw = function(){
+        let i = this.i;
+        this.myArray = this.myArray ? this.myArray : this.downArrays;
+        let steps = this.myArray;
+        let damageSteps = this.damageArray;
+        let sheet = this.sheet;
+        if(this.status === "damaged" && this.damageCooldown%2 === 0){
+            c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
+        } else {
+            c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+        }
+        c.beginPath();
+        c.lineWidth = 1;
+        c.strokeStyle = "blue";
+        c.strokeRect(this.hitbox().x, this.hitbox().y, this.hitbox().width, this.hitbox().height);
+        c.stroke();
+    }
+    this.update = function(target){
+        if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status === "active" && !pichu.damaged){
+            let damage = this.shiny ? 9 + 1*(Math.max(0, pichu.level - 5)) : 9;
+            pichu.damage(damage);
+        }
+        let threshold = 30;
+        if(this.priority){
+            if(Math.abs(this.x - target.x) >= threshold){
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.i = 0;
+                    }
+                    this.myArray = this.leftArrays;
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.i = 0;
+                    }
+                    this.myArray = this.rightArrays;
+                }
+            } else {
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.i = 0;
+                    }
+                    this.myArray = this.upArrays;
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.i = 0;
+                    }
+                    this.myArray = this.downArrays;
+                }
+            }
+        }
+        if(!this.priority){
+            if(Math.abs(this.y - target.y) >= threshold){
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.i = 0;
+                    }
+                    this.myArray = this.upArrays;
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.i = 0;
+                    }
+                    this.myArray = this.downArrays;
+                }
+            } else {
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.i = 0;
+                    }
+                    this.myArray = this.leftArrays;
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.i = 0;
+                    }
+                    this.myArray = this.rightArrays;
+                }
+            }
+        }
+        if(!pichu.live){
+            this.direction = "down";
+            this.myArray = this.downIdleArrays;
+            this.i = 0;
+        }
+        if(this.status != "eliminated" && this.status != "inactive"){
+            if(this.laughingCounter > 0){
+                this.myArray = this.laughingArrays; //when laughing, desiredDelay should be 17
+                this.laughingCounter--;
+                if(this.laughingCounter === 100){
+                    this.attack();
+                }
+                if(this.laughingCounter <= 0){
+                    if(!this.doubled && this.laughingWindDown <= 0){
+                        let clone = new GastlyDouble(this.x, this.y, !this.priority, this.shiny, this);
+                        enemies.push(clone);
+                        this.doubled = true;
+                    }
+                    this.laughingWindDown = 300;
+                }
+            }
+            this.motionDelay++;
+            let desired = this.laughingCounter > 0 ? 17 : this.desiredDelay;
+            if(this.motionDelay >= desired){
+                this.i++;
+                this.motionDelay = 0;
+                if(this.i >= this.myArray.length){
+                    this.i = 0;
+                }
+            }
+            if(pichu.live && this.laughingCounter <= 0 && this.laughingWindDown === 0){
+                var oneToLaugh = Array(9).fill(0);
+                oneToLaugh.push(1);
+                var laughOption = oneToLaugh[Math.floor(Math.random()*oneToLaugh.length)];
+                if(laughOption === 1){
+                    this.laughingCounter = 200;
+                    this.i = 0;
+                }
+            }
+            if(this.laughingCounter <= 0 && pichu.live){
+                switch(this.direction){
+                    case "up":
+                        this.y -= this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.y += this.speed;
+                        }
+                        break;
+                    case "down":
+                        this.y += this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.y -= this.speed;
+                        }
+                        break;
+                    case "left":
+                        this.x -= this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.x += this.speed;
+                        }
+                        break;
+                    case "right":
+                        this.x += this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.x -= this.speed;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if(this.laughingWindDown > 0 && this.laughingCounter <= 0 && (!this.doubled || !this.balled)){
+                this.laughingWindDown--;
+            }
+            if(this.status === "damaged"){
+                this.damageCooldown--;
+                if(this.damageCooldown < 0){
+                    this.status = "active";
+                    this.damageCooldown = 50;
+                }
+            }
+            this.draw();
+        } else if(this.status === "eliminated"){
+            if(this.radius <= 50){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "aqua";
+                c.lineWidth = 50 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            } else {
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+            }
+        }
+    }
+}
+
+function GastlyDouble(x, y, priority, shiny, original){
+    this.x = x;
+    this.y = y;
+    this.status = "active";
+    this.height = 126;
+    this.width = 162;
+    this.original = original;
+    this.shiny = shiny;
+    this.radius = 5;
+    this.exp = 0;
+    this.health = shiny ? 10 : 1;
+    this.sheet = gastlySpritesheet;
+    this.downIdleArrays = [[25, 52, 424, 336]];
+    this.downArrays = [[25, 52, 424, 336], [25, 52, 424, 336], [1245, 58, 424, 336], [1245, 58, 424, 336]];
+    this.leftIdleArrays = [[83, 867, 424, 336]];
+    this.leftArrays = [[83, 867, 424, 336], [83, 867, 424, 336], [614, 854, 424, 336], [614, 854, 424, 336]];
+    this.rightIdleArrays = [[75, 1314, 424, 336]];
+    this.rightArrays = [[75, 1314, 424, 336], [75, 1314, 424, 336], [614, 1312, 424, 336], [614, 1312, 424, 336]];
+    this.upIdleArrays = [[42, 458, 424, 336]];
+    this.upArrays = [[42, 458, 424, 336], [42, 458, 424, 336], [1251, 514, 424, 336], [1251, 514, 424, 336]];
+    this.priority = priority;
+    this.shiny = shiny;
+    this.speed = original.speed
+    this.direction = "down";
+    this.i = 0;
+    this.motionDelay = 0;
+    this.desiredDelay = 7;
+    this.myArray = undefined;
+    this.damageCooldown = 50;
+    this.damageArray = [[0, 0, 1, 1]];
+    this.hitbox = function(){
+        var answer = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        }
+        return answer;
+    }
+    this.damage = function(amount){
+        if(this.status === "active"){
+            this.health -= amount;
+            this.status = "damaged";
+            if(this.health <= 0){
+                //add gastly noise
+                this.status = "eliminated";
+                pichu.gainExp(this.exp);
+            }
+        }
+    }
+    this.intersect = function(){
+        return false; //it's a ghost, it's intangible!
+    }
+    this.attack = function(){
+        return; //it's a clone, it shouldn't attack. this is only here in case the function is called by a different function
+    }
+    this.draw = function(){
+        let i = this.i;
+        this.myArray = this.myArray ? this.myArray : this.downArrays;
+        let steps = this.myArray;
+        let damageSteps = this.damageArray;
+        let sheet = this.sheet;
+        if(this.status === "damaged" && this.damageCooldown%2 === 0){
+            c.drawImage(sheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width, this.height);
+        } else {
+            c.drawImage(sheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width, this.height);
+        }
+    }
+    this.update = function(target){
+        if(objIntersectBoth(pichu.hitbox(), this.hitbox()) && this.status === "active" && !pichu.damaged){
+            this.status = "succeeded";
+            let damage = this.shiny ? 9 + 1*(Math.max(0, pichu.level - 5)) : 9;
+            pichu.damage(damage);
+            if(this.original.laughingCounter <= 0){
+                this.original.laughingCounter = 99.5;
+                this.original.i = 0;
+            }
+        }
+        let threshold = 30;
+        if(this.priority){
+            if(Math.abs(this.x - target.x) >= threshold){
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.i = 0;
+                    }
+                    this.myArray = this.leftArrays;
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.i = 0;
+                    }
+                    this.myArray = this.rightArrays;
+                }
+            } else {
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.i = 0;
+                    }
+                    this.myArray = this.upArrays;
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.i = 0;
+                    }
+                    this.myArray = this.downArrays;
+                }
+            }
+        }
+        if(!this.priority){
+            if(Math.abs(this.y - target.y) >= threshold){
+                if(target.y < this.y){
+                    if(this.direction != "up"){
+                        this.direction = "up";
+                        this.i = 0;
+                    }
+                    this.myArray = this.upArrays;
+                } else if(target.y > this.y){
+                    if(this.direction != "down"){
+                        this.direction = "down";
+                        this.i = 0;
+                    }
+                    this.myArray = this.downArrays;
+                }
+            } else {
+                if(target.x < this.x){
+                    if(this.direction != "left"){
+                        this.direction = "left";
+                        this.i = 0;
+                    }
+                    this.myArray = this.leftArrays;
+                } else if(target.x > this.x){
+                    if(this.direction != "right"){
+                        this.direction = "right";
+                        this.i = 0;
+                    }
+                    this.myArray = this.rightArrays;
+                }
+            }
+        }
+        if(!pichu.live){
+            this.direction = "down";
+            this.myArray = this.downIdleArrays;
+            this.i = 0;
+        }
+        if(this.status != "eliminated" && this.status != "inactive" && this.status != "succeeded"){
+            this.motionDelay++;
+            let desired = this.desiredDelay;
+            if(this.motionDelay >= desired){
+                this.i++;
+                this.motionDelay = 0;
+                if(this.i >= this.myArray.length){
+                    this.i = 0;
+                }
+            }
+            if(pichu.live){
+                switch(this.direction){
+                    case "up":
+                        this.y -= this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.y += this.speed;
+                        }
+                        break;
+                    case "down":
+                        this.y += this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.y -= this.speed;
+                        }
+                        break;
+                    case "left":
+                        this.x -= this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.x += this.speed;
+                        }
+                        break;
+                    case "right":
+                        this.x += this.speed;
+                        if(this.intersect() || picMenu || !pichu.live){
+                            this.x -= this.speed;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if(this.status === "damaged"){
+                this.damageCooldown--;
+                if(this.damageCooldown < 0){
+                    this.status = "active";
+                    this.damageCooldown = 50;
+                }
+            }
+            this.draw();
+        } else if(this.status === "eliminated"){
+            if(this.radius <= 50){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "aqua";
+                c.lineWidth = 50 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            } else {
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+                this.original.doubled = false;
+            }
+        } else if(this.status === "succeeded"){
+            if(this.radius <= 50){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "purple";
+                c.lineWidth = 50 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            }
+            if(this.radius > 50){
+                this.status = "inactive";
+                enemies.splice(enemies.indexOf(this), 1);
+                this.original.doubled = false;
+            }
+        }
+    }
 }
 
 
@@ -7281,6 +7764,7 @@ function resetSprites(){
     testLeftAttack = [[718, 610, 215, 215]];
     testRightAttack = [[708, 900, 215, 215]];
     testDamage = [[0, 0, 1, 1]];
+    pichu.desiredDelay = 10;
     testHeight = testWidth = 100;
     setPichu();
 }
@@ -7369,6 +7853,22 @@ function useSeedotSprites(){
     testRightAttack = [[981, 2731, 210, 260]];
     testHeight = 119;
     testWidth = 100;
+    setPichu();
+}
+
+function useGastlySprites(){
+    pichu.pichuSheet = gastlySpritesheet;
+    testDownIdle = [[25, 52, 424, 336]];
+    testDown = [[25, 52, 424, 336], [25, 52, 424, 336], [1245, 58, 424, 336], [1245, 58, 424, 336]];
+    testLeftIdle = [[83, 867, 424, 336]];
+    testLeft = [[83, 867, 424, 336], [83, 867, 424, 336], [614, 854, 424, 336], [614, 854, 424, 336]];
+    testRightIdle = [[75, 1314, 424, 336]];
+    testRight = [[75, 1314, 424, 336], [75, 1314, 424, 336], [614, 1312, 424, 336], [614, 1312, 424, 336]];
+    testUpIdle = [[42, 458, 424, 336]];
+    testUp = [[42, 458, 424, 336], [42, 458, 424, 336], [1251, 514, 424, 336], [1251, 514, 424, 336]];
+    laughing = [[1818, 68, 424, 336], [2384, 72, 424, 336]]; //when laughing, desiredDelay should be 17;
+    testWidth = 162;
+    testHeight = 126;
     setPichu();
 }
 
@@ -9136,6 +9636,12 @@ switch(event.key){
         //         pichu.health = pichu.max_Health();
         // }
         // PichuCry();
+        //use Gastly sprites
+        if(pichu.pichuSheet === pichuSheet()){
+            useGastlySprites();
+        } else {
+            resetSprites();
+        }
         break;
     default:
         break;
@@ -9364,6 +9870,8 @@ canvas.addEventListener("click", function(event){
     // berryPlace(berry);
     var x = event.layerX;
     var y = event.layerY;
+    var ghost = new Gastly(x, y, true, false);
+    enemies.push(ghost);
     // var seed = new Seedot(x, y, Math.floor(Math.random() * 2), false);
     // enemies.push(seed);
     // var newpokeball = new Pokeball(x, y, false, emptyFn);
@@ -9405,6 +9913,10 @@ function animate() {
     c.stroke();
     // 
     ***********************/
+   c.beginPath();
+   c.strokeStyle = "yellow";
+   c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
+   c.stroke();
     collidableDelayDraw();
     var target = pichu;
     for(var i = 0;i < attacks.length;i++){
