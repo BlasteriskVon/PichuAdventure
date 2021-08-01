@@ -1476,7 +1476,7 @@ function Thunderbolt(x, y, direction, radius, enemyAttack){
         width: this.radius * 2,
         height: this.radius * 2
     }
-    if(this.x <= 0 || this.x >= canvas.width || this.y <= 0 || this.y >= canvas.height){
+    if(this.x+this.radius <= 0 || this.x-this.radius >= canvas.width || this.y+this.radius <= 0 || this.y-this.radius >= canvas.height){
         if(enemyAttack){
             this.status = "stop";
             enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
@@ -1792,6 +1792,14 @@ function Thunderbolt(x, y, direction, radius, enemyAttack){
                 }
             } else if(enemyAttacks[i].name === "Bide"){
                 enemyAttackHitbox = enemyAttacks[i].hitbox();
+            } else if(enemyAttacks[i].name === "Shadow Ball"){
+                let sb = enemyAttacks[i];
+                enemyAttackHitbox = {
+                    x: sb.x - (sb.radius * Math.sqrt(2))/2,
+                    y: sb.y - (sb.radius * Math.sqrt(2))/2,
+                    width: (sb.radius * Math.sqrt(2)),
+                    height: (sb.radius * Math.sqrt(2))
+                }
             } else {
                 enemyAttackHitbox = enemyAttacks[i];
             }
@@ -2936,33 +2944,87 @@ function ShadowBall(x, y, dx, dy, user, shinyUser){
     this.bounces = 3;
     this.width = 1;
     this.height = 1;
-    this.radius = shinyUser ? 10 : 7;
+    this.radius = shinyUser ? 60 : 50;
     this.i = 0;
     this.motionDelay = undefined;
     this.bigTime = true;
     this.size_i = 0;
-    this.size_Delay = 100;
+    this.size_Delay = 20;
+    this.damage = function(){
+        return 0;
+    }
     this.draw = function(){
         if(this.status != "stop"){
             let rad;
             if(this.bigTime){
-                rad = this.radius;
+                rad = this.radius/1.5;
             } else {
-                rad = this.radius * 0.8;
+                rad = this.radius/1.7;
             }
             c.beginPath();
             c.lineWidth = 1;
-            c.arc(this.x, this.y, rad, Math.PI*2, false);
+            c.arc(this.x, this.y, this.radius, Math.PI*2, false);
             c.strokeStyle = "darkmagenta";
             c.stroke();
             c.fillStyle = "darkmagenta";
             c.fill();
             c.beginPath();
-            c.arc(this.x, this.y, this.radius/1.5, Math.PI*2, false);
+            c.arc(this.x, this.y, rad, Math.PI*2, false);
             c.strokeStyle = "fuchsia";
             c.stroke();
             c.fillStyle = "fuchsia";
             c.fill();
+        }
+    }
+    this.update = function(){
+        this.x += this.dx;
+        this.y += this.dy;
+        if(this.x - this.radius <= 0 || this.x + this.radius >= canvas.width){
+            this.bounces--;
+            if(this.bounces >= 0){
+                this.dx *= -1;
+            }
+        }
+        if(this.y - this.radius <= 0 || this.y + this.radius >= canvas.height){
+            this.bounces--;
+            if(this.bounces >= 0){
+                this.dy *= -1;
+            }
+        }
+        if(this.x+this.radius <= 0 || this.x-this.radius >= canvas.width || this.y+this.radius <= 0 || this.y-this.radius >= canvas.height){
+            this.status = "stop";
+            enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+        } else {
+            //add condition for hitting pichu
+            let sbHitBox = {
+                x: this.x - (this.radius * Math.sqrt(2))/2,
+                y: this.y - (this.radius * Math.sqrt(2))/2,
+                width: (this.radius * Math.sqrt(2)),
+                height: (this.radius * Math.sqrt(2))
+            }
+            console.log(sbHitBox);
+            if(objIntersectBoth(sbHitBox, pichu.hitbox()) && this.status != "stop" && !pichu.damaged){
+                this.status = "stop";
+                enemyAttacks.splice(enemyAttacks.indexOf(this), 1);
+                pichu.damage(this.damage());
+            }
+            this.draw();
+            // c.beginPath();
+            // c.lineWidth = 1;
+            // c.strokeStyle = "yellow";
+            // c.strokeRect(sbHitBox.x, sbHitBox.y, sbHitBox.width, sbHitBox.height);
+            // c.stroke();
+            if(!this.bigTime){
+                this.size_i++;
+                if(this.size_i > this.size_Delay){
+                    this.bigTime = true;
+                }
+            } else {
+                this.size_i--;
+                if(this.size_i <= 0){
+                    this.bigTime = false;
+                }
+            }
         }
     }
     
@@ -9899,7 +9961,10 @@ canvas.addEventListener("click", function(event){
     var x = event.layerX;
     var y = event.layerY;
     var ghost = new Gastly(x, y, true, false);
-    enemies.push(ghost);
+    //enemies.push(ghost);
+
+    var ball = new ShadowBall(x, y, 3, 3, pichu);
+    enemyAttacks.push(ball);
     // var seed = new Seedot(x, y, Math.floor(Math.random() * 2), false);
     // enemies.push(seed);
     // var newpokeball = new Pokeball(x, y, false, emptyFn);
