@@ -5,6 +5,7 @@ var pichuLoad;
 var animateID;
 var pichu;
 var collidables;
+var maps = [];
 var c;
 var paused;
 var pauseReady;
@@ -26,6 +27,10 @@ var grassFloor = new Image();
 var battleFloor = new Image();
 var blackFloor = new Image();
 var whiteFloor = new Image();
+var mazeFloor = new Image();
+var mazeFloor1 = new Image();
+var mazeFloor2 = new Image();
+var mazeFloor3 = new Image();
 var alolanRaichuSpritesheet = new Image();
 var aquaSpritesheet = new Image();
 var candySpritesheet = new Image();
@@ -40,6 +45,8 @@ var mintheSpritesheet = new Image();
 var electrodeSpritesheet = new Image();
 var shinyElectrodeSpritesheet = new Image();
 var gastlySpritesheet = new Image();
+var leafSpritesheet = new Image();
+var deadLeafSpritesheet = new Image();
 var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png", "shinx.png", "minthe.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
@@ -116,11 +123,12 @@ var map = $("#map");
 function optionizeArrayVer(title, array){
     var optionsTitle;
     var fontSize;
-    if(array.length <= 5){
-        fontSize = 2;
-    } else {
-        fontSize = 1.5
-    }
+    // if(array.length <= 5){
+    //     fontSize = 2;
+    // } else {
+    //     fontSize = 1.5
+    // }
+    fontSize = 2;
     if(!document.querySelector("#optionRow") || !document.querySelector(`#option${array.length}`)){
         $("#optionRow").remove();
         var optionRow = $("<div id=\"optionRow\" class=\"row\"></div>");
@@ -481,7 +489,7 @@ function mainMenunize() {
     $("#player-pic").attr("src", pichuLoad.picture);
     map.css({"background-image":"url('assets/images/picMenuBG.png'", "background-repeat": "repeat"});
     //optionize("Pichu's Adventure: Main Menu", "Story Mode (still in construction!)", "Rush Mode", "How to Play", "Sprite Testing");
-    var mainMenuArray = ["Story Mode (still in construction)", "Rush Mode", "How to Play", "Sprite Testing"];
+    var mainMenuArray = ["Quest Mode (still in construction)", "Rush Mode", "Maze Mode", "How to Play", "Sprite Testing"];
     var loadChangeOption = pichuLoad.hasSpikyEar || pichuLoad.paintjobs.length > 0;
     if(loadChangeOption){
         mainMenuArray.push("Change Avatar");
@@ -493,15 +501,17 @@ function mainMenunize() {
     var option3 = document.getElementById("option3");
     var option4 = document.getElementById("option4");
     var option5 = document.getElementById("option5");
-    if(option5){
-        option5.onclick = modifyPichu;
+    var option6 = document.getElementById("option6");
+    if(option6){
+        option6.onclick = modifyPichu;
     }
 
     option2.onclick = rushModenize;
-    option3.onclick = function() {
+    option3.onclick = mazeModenize;
+    option4.onclick = function() {
         howToPlay(mainMenunize);
     }
-    option4.onclick = spriteTesternize;
+    option5.onclick = spriteTesternize;
 }
 
 function rushModenize() {
@@ -543,6 +553,23 @@ function spriteTesternize(){
         map.textContent = "";
         map.append(newCanvas);
         spriteTest();
+    }
+    option2.onclick = mainMenunize;
+}
+
+function mazeModenize(){
+    optionize("Are you sure you wish to play Maze Mode?", "Yes", "No");
+    var option1 = document.getElementById("option1");
+    var option2 = document.getElementById("option2");
+    var option3 = document.getElementById("option3");
+    var option4 = document.getElementById("option4");
+    option1.onclick = function() {
+        startMeBaby = true;
+        var newCanvas = document.createElement("canvas");
+        var map = document.getElementById("map");
+        map.textContent = "";
+        map.append(newCanvas);
+        startMaze();
     }
     option2.onclick = mainMenunize;
 }
@@ -749,8 +776,8 @@ $("#welcomeRow").append(welcomeText);*/
 //         })
 //     })
 // }
-var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, gastlySpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet];
-var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/gastlySpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png","assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png"];
+var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, gastlySpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, mazeFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet, mazeFloor1, mazeFloor2, mazeFloor3, leafSpritesheet, deadLeafSpritesheet];
+var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/gastlySpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png", "assets/images/floor6.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png", "assets/images/floor7.png", "assets/images/floor8.png", "assets/images/floor9.png", "assets/images/leafSpritesheet.png", "assets/images/deadLeafSpritesheet.png"];
 let soundArray = [pichuCry1, pichuCry2, pichuCry3, pichuCry4, pichuCry5, pichuCry6, pichuCry7, pichuCryLong, voltorbCry, wooperCry, snorlaxCry, seedotCry, electrodeCry, berryEat];
 let soundSources = ["assets/sounds/pichu_cries/vc_pichu_attack01.wav", "assets/sounds/pichu_cries/vc_pichu_attack02.wav", "assets/sounds/pichu_cries/vc_pichu_attack03.wav", "assets/sounds/pichu_cries/vc_pichu_attack04.wav", "assets/sounds/pichu_cries/vc_pichu_attack05.wav", "assets/sounds/pichu_cries/vc_pichu_attack06.wav", "assets/sounds/pichu_cries/vc_pichu_attack07.wav", "assets/sounds/pichu_cries/vc_pichu_final01.wav", "assets/sounds/enemy_cries/100 - Voltorb.wav", "assets/sounds/enemy_cries/194 - Wooper.wav", "assets/sounds/enemy_cries/143 - Snorlax.wav", "assets/sounds/enemy_cries/273 - Seedot.wav", "assets/sounds/enemy_cries/101 - Electrode.wav", "assets/sounds/misc/se_common_lifeup.wav"];
 function loadSprites() {
@@ -848,10 +875,33 @@ function pointWithin(x, y, obj){
 }
 
 function objIntersect(obj1, obj2){
-    var firstCorner = pointWithin(obj1.x, obj1.y, obj2);
-    var secondCorner = pointWithin(obj1.x + obj1.width, obj1.y + obj1.height, obj2);
-    var thirdCorner = pointWithin(obj1.x, obj1.y + obj1.height, obj2);
-    var fourthCorner = pointWithin(obj1.x + obj1.width, obj1.y, obj2);
+    let x1, y1, x2, y2, width1, width2, height1, height2;
+    if(obj1.functionCoordinates){
+        x1 = obj1.x();
+        y1 = obj1.y();
+        width1 = obj1.width();
+        height1 = obj1.height();
+    } else {
+        x1 = obj1.x;
+        y1 = obj1.y;
+        width1 = obj1.width;
+        height1 = obj1.height;
+    }
+    if(obj2.functionCoordinates){
+        x2 = obj2.x();
+        y2 = obj2.y();
+        width2 = obj2.width();
+        height2 = obj2.height();
+    } else {
+        x2 = obj2.x;
+        y2 = obj2.y;
+        width2 = obj2.width;
+        height2 = obj2.height;
+    }
+    var firstCorner = pointWithin(x1, y1, {x: x2, y: y2, width: width2, height: height2});
+    var secondCorner = pointWithin(x1 + width1, y1 + height1, {x: x2, y: y2, width: width2, height: height2});
+    var thirdCorner = pointWithin(x1, y1 + height1, {x: x2, y: y2, width: width2, height: height2});
+    var fourthCorner = pointWithin(x1 + width1, y1, {x: x2, y: y2, width: width2, height: height2});
     return firstCorner || secondCorner || thirdCorner || fourthCorner;
 }
 
@@ -903,6 +953,21 @@ function frontOfEnemy(enemy){
             break;
     }
     return result;
+}
+
+function collidableDraw() {
+    for(var i = 0;i < collidables.length;i++){
+        //console.log(collidables[i]);
+        collidables[i].update();
+    }
+}
+
+function collidableDelayDraw() {
+    for(var i = 0;i < collidables.length;i++){
+        if(collidables[i].drawn){
+            collidables[i].draw();
+        }
+    }
 }
 
 
@@ -1273,6 +1338,37 @@ function Pokeball(x, y, isVoltorb, openingFn){
         } else {
             return;
         }
+    }
+}
+
+function Leaf(x, y, notGreen, dirNum){
+    this.x = x;
+    this.y = y;
+    this.dirNum = dirNum ? dirNum : Math.floor(Math.random()*4);
+    this.sheet = notGreen ? deadLeafSpritesheet : leafSpritesheet;
+    this.draw = function(){
+        let coordinates;
+        switch(this.dirNum){
+            case 0:
+                coordinates = [1795, 463, 120, 105];
+                break;
+            case 1:
+                coordinates = [210, 13, 120, 105];
+                break;
+            case 2:
+                coordinates = [0, 189, 120, 105];
+                break;
+            case 3:
+                coordinates = [216, 193, 120, 105];
+                break;
+            default:
+                break;
+        }
+        let divider = 3;
+        c.drawImage(this.sheet, coordinates[0], coordinates[1], coordinates[2], coordinates[3], this.x, this.y, 120/divider, 105/divider);
+    }
+    this.update = function(){
+        this.draw();
     }
 }
 
@@ -2941,7 +3037,7 @@ function ShadowBall(x, y, dx, dy, user, shinyUser){
     this.dx = dx;
     this.dy = dy;
     this.user = user;
-    this.bounces = 3;
+    this.bounces = shinyUser ? 4 : 3;
     this.width = 1;
     this.height = 1;
     this.radius = shinyUser ? 60 : 50;
@@ -2951,28 +3047,32 @@ function ShadowBall(x, y, dx, dy, user, shinyUser){
     this.size_i = 0;
     this.size_Delay = 20;
     this.damage = function(){
-        return 0;
+        if(this.radius < 60){
+            return 10;
+        } else {
+            return 10 + 2.5*(Math.max(0, pichu.level - 5));
+        }
     }
     this.draw = function(){
         if(this.status != "stop"){
             let rad;
             if(this.bigTime){
-                rad = this.radius/1.5;
+                rad = this.radius;
             } else {
-                rad = this.radius/1.7;
+                rad = this.radius/1.1;
             }
             c.beginPath();
             c.lineWidth = 1;
-            c.arc(this.x, this.y, this.radius, Math.PI*2, false);
-            c.strokeStyle = "darkmagenta";
+            c.arc(this.x, this.y, rad, Math.PI*2, false);
+            c.strokeStyle = "indigo";
             c.stroke();
-            c.fillStyle = "darkmagenta";
+            c.fillStyle = "indigo";
             c.fill();
             c.beginPath();
-            c.arc(this.x, this.y, rad, Math.PI*2, false);
-            c.strokeStyle = "fuchsia";
+            c.arc(this.x, this.y, rad/1.5, Math.PI*2, false);
+            c.strokeStyle = "purple";
             c.stroke();
-            c.fillStyle = "fuchsia";
+            c.fillStyle = "purple";
             c.fill();
         }
     }
@@ -3073,8 +3173,14 @@ function Voltorb(x, y, priority, shiny){
     this.intersect = function() {
     var answer = false;
     for(var i = 0;i < collidables.length;i++){
-        if(objIntersectBoth(this, collidables[i].test) && !collidables[i].intangible){
-            answer = true;
+        if(collidables[i].test){
+            if(objIntersectBoth(this, collidables[i].test) && !collidables[i].intangible){
+                answer = true;
+            }
+        } else {
+            if(objIntersectBoth(this, collidables[i]) && !collidables[i].intangible){
+                answer = true;
+            }
         }
     }
     return answer;
@@ -5791,12 +5897,260 @@ function GastlyDouble(x, y, priority, shiny, original){
     }
 }
 
+/**************************************** MAZE FUNCTIONS **************************************************************/
+function Wall(direction, corner){
+    this.functionCoordinates = true;
+    this.corner = corner;
+    this.stats = function(){
+        let array = []; //array[0] = x, array[1] = y, array[2] = width, array[3] = height
+        if(!this.corner){
+            switch(this.direction){
+                case "up":
+                    array = [0, 0, canvas.width, 50];
+                    break;
+                case "down":
+                    array = [0, canvas.height-50, canvas.width, 50];
+                    break;
+                case "left":
+                    array = [0, 0, 50, canvas.height];
+                    break;
+                case "right":
+                    array = [canvas.width-50, 0, 50, canvas.height];
+                    break;
+                default:
+                    break;
+                
+            }
+        } else {
+            switch(this.direction){
+                case "up":
+                    array = [0, 0, 50, 50];
+                    break;
+                case "down":
+                    array = [canvas.width-50, canvas.height-50, 50, 50];
+                    break;
+                case "left":
+                    array = [0, canvas.height-50, 50, 50];
+                    break;
+                case "right":
+                    array = [canvas.width-50, 0, 50, 50];
+                    break;
+                default:
+                    break;
+                
+            }
+        }
+        return array;
+    }
+    this.x = function(){
+        return this.stats()[0];
+    }
+    this.y = function(){
+        return this.stats()[1];
+    }
+    this.width = function(){
+        return this.stats()[2];
+    }
+    this.height = function(){
+        return this.stats()[3];
+    }
+    this.direction = direction;
+    this.draw = function(){
+        c.beginPath();
+        c.lineWidth = 1;
+        c.strokeStyle = "darkslategrey";
+        c.strokeRect(this.x(), this.y(), this.width(), this.height());
+        c.stroke();
+        c.fillStyle = "darkslategrey";
+        c.fillRect(this.x(), this.y(), this.width(), this.height());
+    }
+    this.update = function(){
+        for(var i = 0;i < attacks.length;i++){
+            var areaOfAttack = {
+                x: attacks[i].x,
+                y: attacks[i].y,
+                width: attacks[i].width,
+                height: attacks[i].height
+            }
+            console.log(objIntersectBoth(areaOfAttack, this));
+            if(objIntersectBoth(areaOfAttack, this) && !this.opened && attacks[i].status!="stop" && attacks[i].damage() > 0){
+                attacks[i].status = "stop";
+                attacks.splice(i, 1);
+            }
+        }
+        this.draw();
+    }
+    this.approach = function(){
+        return;
+    }
+}
+
+function Map(x, y){
+    this.id = `${x}-${y}`;
+    this.x = x;
+    this.y = y;
+    this.opened = false;
+    this.walls = [new Wall("up"), new Wall("down"), new Wall("left"), new Wall("right")];
+    this.corners = [new Wall("up", true), new Wall("down", true), new Wall("left", true), new Wall("right", true)];
+    this.stuff = [];
+    this.enemies = [];
+    this.collidables = [];
+    this.previous = undefined;
+    this.draw = function(){
+        this.walls.forEach(function(wall){wall.draw()});
+        this.corners.forEach(function(corner){corner.draw()});
+        this.stuff.forEach(function(stuff){stuff.draw()});
+    }
+}
+function removeWall(map, direction){
+    const newWalls = map.walls.filter(wall => wall.direction != direction);
+    map.walls = newWalls;
+}
+function get(x, y){
+    const filteredArray = maps.filter(map => map.id === `${x}-${y}`);
+    return filteredArray[0];
+}
+function getAbove(currentmap){
+    const filteredArray = maps.filter(map => map.id === `${currentmap.x}-${currentmap.y-1}`);
+    return filteredArray[0];
+}
+function getLeft(currentmap){
+    const filteredArray = maps.filter(map => map.id === `${currentmap.x-1}-${currentmap.y}`);
+    return filteredArray[0];
+}
+function getRight(currentmap){
+    const filteredArray = maps.filter(map => map.id === `${currentmap.x+1}-${currentmap.y}`);
+    return filteredArray[0];
+}
+function getBelow(currentmap){
+    const filteredArray = maps.filter(map => map.id === `${currentmap.x}-${currentmap.y+1}`);
+    return filteredArray[0];
+}
+function setMap(){
+    collidables = [];
+    collidables = pichu.map.walls
+    collidables = collidables.concat(pichu.map.corners);
+    collidables = collidables.concat(pichu.map.collidables);
+    enemies = [];
+    enemies = pichu.map.enemies;
+    enemyAttacks = [];
+    attacks = [];
+}
+
+const x_range = 4;
+const y_range = 4;
+
+function recursiveBacktrack(first, map){
+    let current = map ? map : first;
+    let directionsArray = ["up", "down", "left", "right"];
+    if(!getAbove(current) || getAbove(current).opened){
+        directionsArray.splice(directionsArray.indexOf("up"), 1);
+    }
+    if(!getBelow(current) || getBelow(current).opened){
+        directionsArray.splice(directionsArray.indexOf("down"), 1);
+    }
+    if(!getLeft(current) || getLeft(current).opened){
+        directionsArray.splice(directionsArray.indexOf("left"), 1);
+    }
+    if(!getRight(current) || getRight(current).opened){
+        directionsArray.splice(directionsArray.indexOf("right"), 1);
+    }
+    if(directionsArray.length < 1){
+        if(current.id != first.id){
+            recursiveBacktrack(first, current.previous);
+        } else {
+            //finished!
+            pichu.map = get(0,0);
+            console.log(pichu.map);
+            setMap();
+            let randX = Math.floor(Math.random() * x_range);
+            let randY = Math.floor(Math.random() * y_range);
+            return;
+        }
+    } else {
+        let randomDirection = directionsArray[Math.floor(Math.random()*directionsArray.length)];
+        switch(randomDirection){
+            case "up":
+                removeWall(current, "up");
+                removeWall(getAbove(current), "down");
+                getAbove(current).previous = current;
+                getAbove(current).opened = true;
+                recursiveBacktrack(first, getAbove(current));
+                break;
+            case "down":
+                removeWall(current, "down");
+                removeWall(getBelow(current), "up");
+                getBelow(current).previous = current;
+                getBelow(current).opened = true;
+                recursiveBacktrack(first, getBelow(current));
+                break;
+            case "left":
+                removeWall(current, "left");
+                removeWall(getLeft(current), "right");
+                getLeft(current).previous = current;
+                getLeft(current).opened = true;
+                recursiveBacktrack(first, getLeft(current));
+                break;
+            case "right":
+                removeWall(current, "right");
+                removeWall(getRight(current), "left");
+                getRight(current).previous = current;
+                getRight(current).opened = true;
+                recursiveBacktrack(first, getRight(current));
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+function mazeTime(){
+    pichu.inMaze = true;
+    pichu.x = 200;
+    pichu.y = 200;
+    pichu.direction = "down";
+    pichu.stopMoving();
+    for(var i = 0;i < y_range;i++){
+        for(var j = 0;j < x_range;j++){
+            let newMap = new Map(j, i);
+            for(var k = 0;k < 50;k++){
+                let leaf_x = Math.random() * canvas.width;
+                let leaf_y = Math.random() * canvas.height;
+                let newLeaf = new Leaf(leaf_x, leaf_y);
+                newMap.stuff.push(newLeaf);
+            }
+            let enemyChance = Math.floor(Math.random()*10);
+            if(i === 0 && j === 0){
+                enemyChance = 0;
+            }
+            if(enemyChance > 1){
+                for(var m = Math.floor(Math.random()*3);m < 3;m++){
+                    let x1 = Math.floor(Math.random() * canvas.width);
+                    let y1 = Math.floor(Math.random() * canvas.height);
+                    if(x1 <= 50 || x1+120 >= canvas.width - 50 || y1 <= 50 || y1+120 >= canvas.height - 50){
+                        m--;
+                    } else {
+                        let newVoltorb = new Voltorb(x1, y1, Math.floor(Math.random() * 2));
+                        newMap.enemies.push(newVoltorb);
+                    }
+                }
+            }
+            maps.push(newMap);
+        }
+    }
+    let randomY = Math.floor(Math.random() * y_range);
+    let randomX = Math.floor(Math.random() * x_range);
+    let randMap = get(randomX, randomY);
+    randMap.opened = true;
+    recursiveBacktrack(randMap);
+}
+
 
 /**************************************** GAME MODE FUNCTIONS **************************************************************/
 
 function startRush(test) {
     canvas = document.querySelector("canvas");
-    var mappy = document.getElementById("map");6 + 
+    var mappy = document.getElementById("map");
     map.css("background-image","none");
 canvas.width = mappy.scrollWidth;
 canvas.height = mappy.scrollHeight;
@@ -5827,6 +6181,8 @@ pichu = {
     pichuSheet: pichuSheet(),
     attackNumber: 0,
     z_attackNumber: undefined,
+    inMaze: false,
+    map: undefined,
     thunderCost: 1,
     voltTackleCost: 1,
     radius: 5,
@@ -6175,10 +6531,24 @@ pichu = {
             height: 10
         }
         for(var i = 0;i < collidables.length;i++){
-            if(objIntersectBoth(pichuTest, collidables[i].test)){
-                answer[0] = true;
-                answer[1] = i;
+            if(collidables[i].test){
+                if(objIntersectBoth(pichuTest, collidables[i].test)){
+                    answer[0] = true;
+                    answer[1] = i;
+                }
+            } else {
+                pichuTest = {
+                    x: this.x + this.width/2 - 20,
+                    y: this.y + this.height/2 - 10,
+                    width: 55,
+                    height: 55
+                }
+                if(objIntersectBoth(pichuTest, collidables[i])){
+                    answer[0] = true;
+                    answer[1] = i;
+                }
             }
+            
         }
         return answer;
     },
@@ -6542,6 +6912,13 @@ pichu = {
                             }
                             this.y -= distance;
                             if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                if(this.hitWall() && pichu.inMaze){
+                                    if(getAbove(pichu.map)){
+                                        pichu.map = getAbove(pichu.map);
+                                        pichu.y = canvas.height - pichu.height - 1;
+                                        setMap();
+                                    }
+                                }
                                 var index = -5;
                                 if(this.intersect()[0]){
                                     if(this.intersect()[1] >= 0){
@@ -6565,6 +6942,13 @@ pichu = {
                             }
                             this.y += distance;
                             if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                if(this.hitWall() && pichu.inMaze){
+                                    if(getBelow(pichu.map)){
+                                        pichu.map = getBelow(pichu.map);
+                                        pichu.y = 0;
+                                        setMap();
+                                    }
+                                }
                                 var index = -5;
                                 if(this.intersect()[0]){
                                     if(this.intersect()[1] >= 0){
@@ -6590,6 +6974,13 @@ pichu = {
                             }
                             this.x -= distance;
                             if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                if(this.hitWall() && pichu.inMaze){
+                                    if(getLeft(pichu.map)){
+                                        pichu.map = getLeft(pichu.map);
+                                        pichu.x = canvas.width - pichu.width - 1;
+                                        setMap();
+                                    }
+                                }
                                 var index = -5;
                                 if(this.intersect()[0]){
                                     if(this.intersect()[1] >= 0){
@@ -6613,6 +7004,13 @@ pichu = {
                             }
                             this.x += distance;
                             if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                if(this.hitWall() && pichu.inMaze){
+                                    if(getRight(pichu.map)){
+                                        pichu.map = getRight(pichu.map);
+                                        pichu.x = 0;
+                                        setMap();
+                                    }
+                                }
                                 var index = -5;
                                 if(this.intersect()[0]){
                                     if(this.intersect()[1] >= 0){
@@ -6757,20 +7155,6 @@ rollingTextClass("sign", this.message, function() {
     
 })
 }
-}
-
-function collidableDraw() {
-    for(var i = 0;i < collidables.length;i++){
-        collidables[i].update();
-    }
-}
-
-function collidableDelayDraw() {
-    for(var i = 0;i < collidables.length;i++){
-        if(collidables[i].drawn){
-            collidables[i].draw();
-        }
-    }
 }
 
 function pictureMenu() {
@@ -7660,7 +8044,13 @@ document.getElementById("player-pic").onclick = pictureMenu;
 
 function animate() {
     c.clearRect(0, 0, canvas.width, canvas.height);
+    if(pichu.inMaze){
+        floor = mazeFloor1;
+    }
     c.drawImage(floor, 0, 0, canvas.width, canvas.height);
+    if(pichu.inMaze){
+        pichu.map.draw();
+    }
     collidableDraw();
     pichu.update();
     // c.beginPath();
@@ -7807,12 +8197,1503 @@ function gameOver(){
         $("#tips").text("");
         mainMenunize();
     }
-
-
 }
-
     rushMode();
 }
+
+/***
+ * THE FOLLOWING FUNCTION IS FOR MAZE MODE
+ * WHERE PICHU TRAVELS THROUGH A MAZE (CREATED USING RECURSIVE BACKTRACKING) AND FINDS ENEMIES AND GOODIES
+ */
+
+ function startMaze(){
+    canvas = document.querySelector("canvas");
+    var mappy = document.getElementById("map");
+    map.css("background-image","none");
+    canvas.width = mappy.scrollWidth;
+    canvas.height = mappy.scrollHeight;
+    c = canvas.getContext("2d");
+    collidables = [];
+    paused = false;
+    pauseReady = true;
+    getables = [];
+    attacks = [];
+    enemyAttacks = [];
+    enemies = [];
+    picMenu = false;
+    document.getElementById("player-pic").className = "pictureSelect";
+    pichu = {
+        mode: "default",
+        direction: "down",
+        motion: false,
+        freeRoam: false, //this allows Pichu to move even if he is off the map or overlapping a collidable object. this is to avoid issues when Volt Tackle lands him in an inconvinient spot
+        x: pichuLoad.x,
+        y: pichuLoad.y,
+        spikyEared: pichuLoad.usingSpikyEar ? true : false,
+        pichuSheet: pichuSheet(),
+        attackNumber: 0,
+        z_attackNumber: undefined,
+        inMaze: false,
+        map: undefined,
+        thunderCost: 1,
+        voltTackleCost: 1,
+        radius: 5,
+        height: 100,
+        width: 100,
+        damaged: false,
+        damageCooldown: 50,
+        level: pichuLoad.level,
+        exp: pichuLoad.exp,
+        receivedItem: false,
+        slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow him down temporarily
+        voltTackle: {
+            active: false,
+            dx: 0,
+            dy: 0,
+            radius: 60,
+            width: 120,
+            height: 120,
+            hits: 8,
+            speed: 10,
+            big: false,
+            bigMeter: 0,
+            targetEnemyIndex: undefined,
+            targetPhase: 0,
+            damage: function(){
+                return 0.1 * (1 + pichu.level);
+            },
+            end: function(){
+                pichu.voltTackle.active = false;
+                pichu.freeRoam = true;
+                pichu.voltTackle.hits = 8;
+                pichu.voltTackle.bigMeter = 0;
+                pichu.voltTackle.big = false;
+                if(pichu.health <= 0){
+                    pichu.live = false;
+                    pichu.damaged = false;
+                    gameOver();
+                }
+            },
+            draw: function(){
+                c.beginPath();
+                var r = !this.big ? pichu.voltTackle.radius : pichu.voltTackle.radius * 1.5;
+                c.arc(pichu.x, pichu.y, r, Math.PI*2, false);
+                c.strokeStyle = "rgb(255, 255, 120)";
+                c.stroke();
+                c.fillStyle = "rgb(255, 255, 120)";
+                c.fill();
+        
+                //inner bolt
+                c.beginPath();
+                c.arc(pichu.x, pichu.y, 30, Math.PI*2, false);
+                c.strokeStyle = "rgb(255, 255, 0)"; //potential colors: gold, lightgoldenrodyellow, palegoldenrod, lightyellow
+                c.stroke();
+                c.fillStyle = "rgb(255, 255, 0)";
+                c.fill();
+            },
+            chooseEnemy: function(exclusion) {
+                console.log("pichu choosing enemy");
+                var distanceArray = [];
+                var closestIndex = 0;
+                var smallestDistance = undefined;
+                for(var i = 0;i < enemies.length;i++){
+                    var distance = Math.sqrt(Math.pow((pichu.x - enemies[i].x),2) + Math.pow((pichu.y - enemies[i].y),2));
+                    distanceArray.push(distance);
+                    if((distance < smallestDistance || !smallestDistance) && enemies[i].status === "active"){
+                        if(i != exclusion || enemies.length === 1){
+                            smallestDistance = distance;
+                            closestIndex = i;
+                        }
+                    }
+                }
+                pichu.voltTackle.targetEnemyIndex = closestIndex;
+                pichu.voltTackle.targetPhase = 0;
+                if(!smallestDistance){
+                    pichu.voltTackle.end();
+                }
+            },
+            update: function(){
+                var newAreaOfAttack = {
+                    x: pichu.x - pichu.voltTackle.radius,
+                    y: pichu.y - pichu.voltTackle.radius,
+                    width: pichu.voltTackle.width,
+                    height: pichu.voltTackle.height
+                }
+                for(var i = 0;i < enemies.length;i++){
+                    var enemyHitbox;
+                    if(enemies[i].big){
+                        enemyHitbox = enemies[i].hitbox();
+                    } else {
+                        enemyHitbox = enemies[i];
+                    }
+                    if(objIntersectBoth(newAreaOfAttack, enemyHitbox) && enemies[i].status === "active" && pichu.voltTackle.active){
+                        if(enemies[i].bide){
+                            enemies[i].health-= pichu.voltTackle.damage()/100;
+                            enemies[i].bideDamage += pichu.voltTackle.damage();
+                            enemies[i].bideShake += 0.5;
+                        } else {
+                            enemies[i].health-= pichu.voltTackle.damage();
+                        }
+                        if(enemies[i].health <= 0){
+                            if(i === pichu.voltTackle.targetEnemyIndex){
+                                console.log("killed enemy and it was target");
+                                pichu.voltTackle.chooseEnemy(i);
+                                pichu.voltTackle.targetPhase = 0;
+                            } else {
+                                console.log("killed enemy and it was not target");
+                            }
+                            pichu.health -= pichu.voltTackle.damage()*10;
+                            enemies[i].damage(1);
+                        }
+                    }
+                }
+                if(!this.big){
+                    this.bigMeter++;
+                    if(this.bigMeter >= 20){
+                        this.big = true;
+                    }
+                } else {
+                    this.bigMeter -= 2;
+                    if(this.bigMeter <= 0){
+                        this.big = false;
+                    }
+                }
+                var target = enemies[pichu.voltTackle.targetEnemyIndex];
+                if(!target && enemies.length > 0){
+                    pichu.voltTackle.chooseEnemy();
+                    target = enemies[pichu.voltTackle.targetEnemyIndex];
+                    pichu.voltTackle.targetPhase = 0;
+                }
+                if(enemies.length === 0){
+                    pichu.voltTackle.end();
+                }
+                if(target){
+                    var target_x, target_y;
+                    var targetSpots = [
+                        {x: target.x + target.width/2, y: target.y + target.height},
+                        {x: target.x, y: target.y + target.height/2},
+                        {x: target.x + target.width/2, y: target.y},
+                        {x: target.x + target.width, y: target.y + target.height/2},
+                        {x: target.x + target.width/2, y: target.y + target.height},
+                        {x: target.x, y: target.y + target.height/2},
+                        {x: target.x + target.width/2, y: target.y},
+                        {x: target.x + target.width, y: target.y + target.height/2}
+                    ]
+                    target_x = targetSpots[pichu.voltTackle.targetPhase].x;
+                    target_y = targetSpots[pichu.voltTackle.targetPhase].y;
+                    console.log(pichu.x, pichu.y, target_x, target_y);
+                    if(!(Math.abs(pichu.x - target_x) >= pichu.voltTackle.speed || Math.abs(pichu.y - target_y) >= pichu.voltTackle.speed)){
+                        console.log("hit target");
+                        pichu.voltTackle.dx = 0; //meaning it reached its target
+                        pichu.voltTackle.dy = 0;
+                        pichu.voltTackle.targetPhase++;
+                        if(pichu.voltTackle.targetPhase >= targetSpots.length){
+                            pichu.voltTackle.chooseEnemy(pichu.voltTackle.targetEnemyIndex);
+                        }
+                        pichu.voltTackle.hits--;
+                        if(pichu.voltTackle.hits <= 0){
+                            console.log("stopping"); //count is often around 435 or 483
+                            pichu.voltTackle.end();
+                        }
+                    } else {
+                        if(pichu.x != target_x){
+                            if(pichu.x > target_x){
+                                if(Math.abs(pichu.x - target_x) > pichu.voltTackle.speed){
+                                    pichu.voltTackle.dx = -1 * pichu.voltTackle.speed;
+                                } else {
+                                    pichu.voltTackle.dx = -1 * Math.abs(pichu.x - target_x);
+                                }
+                            } else {
+                                if(Math.abs(pichu.x - target_x) > pichu.voltTackle.speed){
+                                    pichu.voltTackle.dx = pichu.voltTackle.speed;
+                                } else {
+                                    pichu.voltTackle.dx =  Math.abs(pichu.x - target_x);
+                                }
+                            }
+                        } else {
+                            pichu.voltTackle.dx = 0;
+                        }
+                        if(pichu.y != target_y){
+                            if(pichu.y > target_y){
+                                if(Math.abs(pichu.y - target_y) > pichu.voltTackle.speed){
+                                    pichu.voltTackle.dy = -1 * pichu.voltTackle.speed;
+                                } else {
+                                    pichu.voltTackle.dy = -1 * Math.abs(pichu.y - target_y);
+                                }
+                            } else {
+                                if(Math.abs(pichu.y - target_y) > pichu.voltTackle.speed){
+                                    pichu.voltTackle.dy = pichu.voltTackle.speed;
+                                } else {
+                                    pichu.voltTackle.dy =  Math.abs(pichu.y - target_y);
+                                }
+                            }
+                        } else {
+                            pichu.voltTackle.dy = 0;
+                        }
+                    }
+                    console.log(target_x, target_y);
+                    console.log("above is target");
+                    pichu.x += pichu.voltTackle.dx;
+                    pichu.y += pichu.voltTackle.dy;
+                }
+                if(!pichu.voltTackle.active){
+                    pichu.voltTackle.end();
+                } else {
+                    pichu.voltTackle.draw();
+                }
+        
+            }
+        },
+        hitbox: function(){
+            var newPichu = {
+                x: this.x,
+                y: this.y,
+                width: this.width,
+                height: this.height
+            }
+            switch(this.direction){
+                case "down":
+                    newPichu.x += 23;
+                    newPichu.width = 54;
+                    newPichu.y += 28;
+                    newPichu.height = 67;
+                    break;
+                case "up":
+                    newPichu.x += 23;
+                    newPichu.width = 54;
+                    newPichu.y += 29;
+                    newPichu.height = 67;
+                    break;
+                case "left":
+                    newPichu.x += 28;
+                    newPichu.width = 52;
+                    newPichu.y += 21;
+                    newPichu.height = 71;
+                    break;
+                case "right":
+                    newPichu.x += 36;
+                    newPichu.width = 52;
+                    newPichu.y += 24;
+                    newPichu.height = 71;
+                    break;
+                default:
+                    break;
+                    
+            }
+            return newPichu;
+        },
+        levelUpExp: function() {
+            return 10*pichu.level;
+        },
+        gainExp: function(points){
+            pichu.exp += points;
+            if(pichu.exp >= pichu.levelUpExp()){
+                var remainingExp = pichu.exp - pichu.levelUpExp();
+                pichu.level++;
+                pichu.exp = 0;
+                pichu.levelUp(remainingExp);
+            }
+        },
+        levelUp: function(remainingExp){
+            if(pichu.voltTackle.active){
+                pichu.health *= 1.5;
+                if(pichu.health > pichu.max_Health()){
+                    pichu.health = pichu.max_Health();
+                }
+            } else {
+                pichu.health = pichu.max_Health();
+            }
+            pichu.charge = pichu.charge_Max();
+            var levelTag = document.getElementById("pichu_level");
+            if(levelTag.getAttribute("status") === "level"){
+                $("#level-label").text("");
+                $("#pichu_level").attr("status", "levelingUp");
+                rollingText("pichu_level", "Level Up!", function() {
+                    $("#level-label").text("Level");
+                    $("#pichu_level").attr("status", "level");
+                })
+            }
+            pichu.gainExp(remainingExp);
+        },
+        checkClones: function(){
+            var answer = 0;
+            for(var i = 0;i < attacks.length;i++){
+                if(attacks[i].name === "Double Team"){
+                    answer++;
+                }
+            }
+            return answer;
+        },
+        live: true,
+        health: 10,
+        max_Health: function() {
+            return 10 + 10*this.level;
+            //return 1000000;
+        },
+        speed: function() {
+            //return 5;
+            return Math.min(2 + 0.5*pichu.level, 10);
+        },
+        i: 0,
+        picture: pichuLoad.picture,
+        motionDelay: 0,
+        desiredDelay: 10,
+        idle_i: 0,
+        idleDelay: 0,
+        idleDesiredDelay: 60,
+        spriteMultiplier: 1,
+        charge: 45,
+        charge_Max: function() {
+            return 45 + (20 * pichu.level);
+        },
+        loseCharge: function(amount){
+            pichu.charge -= amount;
+            if(pichu.charge < 0){
+                pichu.charge = 0;
+            }
+        },
+        gainCharge: function(amount){
+            pichu.charge += amount;
+            if(pichu.charge > pichu.charge_Max()){
+                pichu.charge = pichu.charge_Max();
+            }
+        },
+        attckWindDown: 0,
+        downArrays: [[0, 0, 215, 215], [230, 0, 215, 215], [0, 0, 215, 215], [467, 0, 215, 215]], //first is default, second is left foot out, fourth is right foot out (third is default)
+        upArrays: [[0, 290, 215, 215], [240, 293, 215, 215], [0, 290, 215, 215], [480, 290, 215, 215]], //same as above
+        leftArrays: [[0, 610, 215, 215], [230, 610, 215, 215], [0, 610, 215, 215], [467, 610, 215, 215]],
+        rightArrays: [[0, 900, 215, 215], [230, 900, 215, 215], [0, 900, 215, 215], [467, 900, 215, 215]],
+        downIdleArrays: [[0, 0, 215, 215], [947, 0, 215, 215]],
+        upIdleArrays: [[0, 290, 215, 215]],
+        leftIdleArrays: [[0, 610, 215, 215], [955, 610,215, 215]],
+        rightIdleArrays: [[0, 900, 215, 215], [944, 900, 215, 215]],
+        downAttackArray: [[717, 0, 215, 215]],
+        upAttackArray: [[714, 290, 215, 215]],
+        leftAttackArray: [[718, 610, 215, 215]],
+        rightAttackArray: [[708, 900, 215, 215]],
+        damageArray: [[0, 0, 1, 1]],
+        defeatedArray: [[1681, 0, 215, 215]],
+        myArray: undefined,
+        intersect: function() {
+            var answer = [false, -5];
+            var pichuTest = {
+                x: this.x + this.width/2 - 5,
+                y: this.y + this.height/2 - 5,
+                width: 10,
+                height: 10
+            }
+            for(var i = 0;i < collidables.length;i++){
+                if(collidables[i].test){
+                    if(objIntersectBoth(pichuTest, collidables[i].test)){
+                        answer[0] = true;
+                        answer[1] = i;
+                    }
+                } else {
+                    pichuTest = {
+                        x: this.x + this.width/2 - 20,
+                        y: this.y + this.height/2 - 10,
+                        width: 55,
+                        height: 55
+                    }
+                    if(objIntersectBoth(pichuTest, collidables[i])){
+                        answer[0] = true;
+                        answer[1] = i;
+                    }
+                }
+                
+            }
+            return answer;
+        },
+        hitWall: function() {
+            var pichuTest = {
+                x: this.x + 25,
+                y: this.y,
+                width: this.width - 25,
+                height: this.height
+            }
+            //console.log(pichuTest);
+            var test1 = pichuTest.x < 0 || (pichuTest.x + pichuTest.width) >= canvas.width;
+            var test2 = pichuTest.y < 0 || (pichuTest.y + pichuTest.height) >= canvas.height;
+            //console.log(test1 || test2);        
+            return test1 || test2;
+        },
+        damage: function(amount){
+            if(!this.damaged && this.live){
+                pichu.damaged = true;
+                pichu.health -= amount;
+                if(pichu.health <= 0){
+                    pichu.live = false;
+                    pichu.damaged = false;
+                    gameOver();
+                }
+            }
+        },
+        gainHealth: function(amount){
+            pichu.health += amount;
+            if(pichu.health > pichu.max_Health()){
+                pichu.health = pichu.max_Health();
+            }
+        },
+        defeat: function(){
+            /*if(this.radius <= 100){
+                c.beginPath();
+                c.arc(this.x + this.width/2, this.y + this.height/2, this.radius, Math.PI*2, false);
+                c.strokeStyle = "yellow";
+                c.lineWidth = 100 - this.radius;
+                c.stroke();
+                this.radius+=2;
+            } else {
+                emptyFn();
+            }*/
+            steps = this.defeatedArray;
+            c.drawImage(this.pichuSheet, steps[0][0], steps[0][1], steps[0][2], steps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+        },
+        draw: function() {
+            if(!this.live){
+                return;
+            }
+            if(this.motion){
+                i = this.i;
+                this.myArray = this.myArray ? this.myArray : this.downArrays; //as myArray starts off undefined, this will change it to be equal to the down array by default
+                steps = this.myArray;
+                if(steps.length === 1){
+                    i = 0;
+                }
+                damageSteps = this.damageArray;
+                if(this.damaged && this.damageCooldown%2 === 0){
+                    c.drawImage(this.pichuSheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                } else {
+                    c.drawImage(this.pichuSheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                }
+            } else {
+                idle_i = this.idle_i;
+                this.myArray = this.myArray ? this.myArray : this.downIdleArrays;
+                steps = this.myArray;
+                damageSteps = this.damageArray;
+                if(this.damaged && this.damageCooldown%2 === 0){
+                        c.drawImage(this.pichuSheet, damageSteps[0][0], damageSteps[0][1], damageSteps[0][2], damageSteps[0][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                } else {
+                        c.drawImage(this.pichuSheet, steps[idle_i][0], steps[idle_i][1], steps[idle_i][2], steps[idle_i][3], this.x, this.y, this.width * this.spriteMultiplier, this.height * this.spriteMultiplier);
+                }
+            }
+        },
+        turnUp: function() {
+            this.direction = "up";
+            this.myArray = this.upArrays;
+        },
+        turnLeft: function() {
+            this.direction = "left";
+            this.myArray = this.leftArrays;
+        },
+        turnRight: function() {
+            this.direction = "right";
+            this.myArray = this.rightArrays;
+        },
+        turnDown: function() {
+            this.direction = "down";
+            this.myArray = this.downArrays;
+        },
+        startMoving: function() {
+            this.motion = true;
+            this.idle_i = 0;
+            this.idleDelay = 0;
+            switch(this.direction){
+                case "up":
+                    this.myArray = this.upArrays;
+                    break;
+                case "down":
+                    this.myArray = this.downArrays;
+                    break;
+                case "left":
+                    this.myArray = this.leftArrays;
+                    break;
+                case "right":
+                    this.myArray = this.rightArrays;
+                    break;
+                default:
+                    break;
+            }
+        },
+        stopMoving: function() {
+            this.motion = false;
+            this.i = 1;
+            this.motionDelay = 0;
+            switch(this.direction){
+                case "up":
+                    this.myArray = this.upIdleArrays;
+                    break;
+                case "down":
+                    this.myArray = this.downIdleArrays;
+                    break;
+                case "left":
+                    this.myArray = this.leftIdleArrays;
+                    break;
+                case "right":
+                    this.myArray = this.rightIdleArrays;
+                    break;
+                default:
+                    break;
+            }
+        },
+        //attacks: ["Thunderbolt", "Volt Tackle", "Thunder"], this one is for testing these attacks
+        attacks: ["Thunderbolt"],
+        attack: function(z) {
+            var atkNum;
+            if(z){
+                atkNum = this.z_attackNumber;
+            } else {
+                atkNum = this.attackNumber;
+            }
+            if(pichu.voltTackle.active){
+                atkNum = -10; //making sure that if Pichu is using Volt Tackle that no other attacks can be used
+            }
+            switch(atkNum){
+                case 0:
+                    if(this.live && (this.charge >= 15)){
+                        var frontPichu = frontOfPichu();
+                        var newThunderbolt = new Thunderbolt(frontPichu.x, frontPichu.y, this.direction, 20);
+                        this.idle_i = 0;
+                        this.loseCharge(15);
+                        this.attckWindDown = 10;
+                        attacks.push(newThunderbolt);
+                        pichuCry();
+                    } else {
+                        if(this.charge < 15){
+                            var levelTag = document.getElementById("pichu_level");
+                            if(levelTag.getAttribute("status") === "level"){
+                                $("#level-label").text("");
+                                $("#pichu_level").attr("status", "notEnoughCharge");
+                                rollingText("pichu_level", "Not enough charge!", function() {
+                                    $("#level-label").text("Level");
+                                    $("#pichu_level").attr("status", "level");
+                                })
+                            }
+                        }
+                    }
+                    break;
+                case 1:
+                    if(this.live && (this.charge >= 20)){
+                        var frontPichu = frontOfPichu();
+                        var newSwift = new Swift(frontPichu.x, frontPichu.y, 5, 30, 15);
+                        pichu.idle_i = 0;
+                        pichu.loseCharge(20);
+                        pichu.attckWindDown = 10;
+                        attacks.push(newSwift);
+                        pichuCry();
+                    } else {
+                        if(this.charge < 20){
+                            var levelTag = document.getElementById("pichu_level");
+                            if(levelTag.getAttribute("status") === "level"){
+                                $("#level-label").text("");
+                                $("#pichu_level").attr("status", "notEnoughCharge");
+                                rollingText("pichu_level", "Not enough charge!", function() {
+                                    $("#level-label").text("Level");
+                                    $("#pichu_level").attr("status", "level");
+                                })
+                            }
+                        }
+                    }
+                    break;
+                case 2:
+                    if(this.live && (this.charge >= 15)){
+                        if(pichu.checkClones() < 6){
+                            pichu.idle_i = 0;
+                            pichu.loseCharge(15);
+                            pichu.attckWindDown = 10;
+                            var doubleTeam = new DoubleTeam(pichu.x, pichu.y);
+                            attacks.push(doubleTeam);
+                            pichuCry();
+                        }
+                    } else {
+                        if(this.charge < 15){
+                            var levelTag = document.getElementById("pichu_level");
+                            if(levelTag.getAttribute("status") === "level"){
+                                $("#level-label").text("");
+                                $("#pichu_level").attr("status", "notEnoughCharge");
+                                rollingText("pichu_level", "Not enough charge!", function() {
+                                    $("#level-label").text("Level");
+                                    $("#pichu_level").attr("status", "level");
+                                })
+                            }
+                        }
+                    }
+                    break;
+                case 3:
+                    if(this.live && (this.charge >= this.thunderCost)){
+                        var front = {
+                            x: pichu.x + pichu.width/2,
+                            y: pichu.y + pichu.height/2
+                        }
+                        switch(this.direction){
+                            case "right":
+                                front.x = pichu.x + pichu.width*1.5;
+                                front.y = pichu.y;
+                                break;
+                            case "left":
+                                front.x = pichu.x - pichu.width/3;
+                                front.y = pichu.y;
+                                break;
+                            case "up":
+                                front.y = pichu.y - pichu.height/1.5;
+                            default:
+                                break;
+                        }
+                        var newThunder = new Thunder(front.x, front.y, this.direction);
+                        this.idle_i = 0;
+                        this.loseCharge(this.thunderCost);
+                        this.attckWindDown = 10;
+                        attacks.push(newThunder);
+                        pichuCry();
+                    } else {
+                        if(this.charge < this.thunderCost){
+                            var levelTag = document.getElementById("pichu_level");
+                            if(levelTag.getAttribute("status") === "level"){
+                                $("#level-label").text("");
+                                $("#pichu_level").attr("status", "notEnoughCharge");
+                                rollingText("pichu_level", "Not enough charge!", function() {
+                                    $("#level-label").text("Level");
+                                    $("#pichu_level").attr("status", "level");
+                                })
+                            }
+                        }
+                    }
+                    break;
+                case 4:
+                    if(this.live && (this.charge >= this.voltTackleCost)){
+                        this.idle_i = 0;
+                        this.loseCharge(this.voltTackleCost);
+                        this.health -= pichu.max_Health()/3;
+                        this.attckWindDown = 10;
+                        pichu.voltTackle.active = true;
+                        pichu.voltTackle.hits = 8 + 4 * Math.floor(pichu.level/4);
+                        pichu.damaged = true;
+                        pichuCry();
+                    } else {
+                        if(this.charge < this.voltTackleCost){
+                            var levelTag = document.getElementById("pichu_level");
+                            if(levelTag.getAttribute("status") === "level"){
+                                $("#level-label").text("");
+                                $("#pichu_level").attr("status", "notEnoughCharge");
+                                rollingText("pichu_level", "Not enough charge!", function() {
+                                    $("#level-label").text("Level");
+                                    $("#pichu_level").attr("status", "level");
+                                })
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    console.log("No attack here... or you're using Volt Tackle");
+                    break;
+            }
+        },
+        update: function() {
+            if(this.live){
+                if(!pichu.voltTackle.active){
+                    if(this.attckWindDown > 0){
+                        this.mode = "attack";
+                        switch(this.direction){
+                            case "up":
+                                this.myArray = this.upAttackArray;
+                                break;
+                            case "down":
+                                this.myArray = this.downAttackArray;
+                                break;
+                            case "left":
+                                this.myArray = this.leftAttackArray;
+                                break;
+                            case "right":
+                                this.myArray = this.rightAttackArray;
+                                break;
+                            default:
+                                break;
+                        }
+                        this.attckWindDown--;
+                    } else {
+                        this.mode = "default";
+                        if(this.motion){
+                            switch(this.direction){
+                                case "up":
+                                    this.myArray = this.upArrays;
+                                    break;
+                                case "down":
+                                    this.myArray = this.downArrays;
+                                    break;
+                                case "left":
+                                    this.myArray = this.leftArrays;
+                                    break;
+                                case "right":
+                                    this.myArray = this.rightArrays;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        } else {
+                            switch(this.direction){
+                                case "up":
+                                    this.myArray = this.upIdleArrays;
+                                    break;
+                                case "down":
+                                    this.myArray = this.downIdleArrays;
+                                    break;
+                                case "left":
+                                    this.myArray = this.leftIdleArrays;
+                                    break;
+                                case "right":
+                                    this.myArray = this.rightIdleArrays;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    if(this.motion){
+                        this.motionDelay++;
+                        if(this.motionDelay >= this.desiredDelay){
+                            this.i++;
+                            this.motionDelay = 0;
+                            if(this.i >= this.myArray.length){
+                                this.i = 0;
+                            }
+                        }
+                        switch(this.direction){
+                            case "up":
+                                var distance = this.speed();
+                                if(this.slowed_Down > 0){
+                                    distance /= 3;
+                                }
+                                this.y -= distance;
+                                if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                    if(this.hitWall() && pichu.inMaze){
+                                        if(getAbove(pichu.map)){
+                                            pichu.map = getAbove(pichu.map);
+                                            pichu.y = canvas.height - pichu.height - 1;
+                                            setMap();
+                                        }
+                                    }
+                                    var index = -5;
+                                    if(this.intersect()[0]){
+                                        if(this.intersect()[1] >= 0){
+                                        index = this.intersect()[1];
+                                        }
+                                    }
+                                    this.y += distance;
+                                    if(index >= 0){
+                                        collidables[index].approach();
+                                    }
+                                } else {
+                                    if(!this.intersect()[0] && !this.hitWall()){
+                                        pichu.freeRoam = false;
+                                    }
+                                }
+                                break;
+                            case "down":
+                                var distance = this.speed();
+                                if(this.slowed_Down > 0){
+                                    distance /= 3;
+                                }
+                                this.y += distance;
+                                if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                    if(this.hitWall() && pichu.inMaze){
+                                        if(getBelow(pichu.map)){
+                                            pichu.map = getBelow(pichu.map);
+                                            pichu.y = 0;
+                                            setMap();
+                                        }
+                                    }
+                                    var index = -5;
+                                    if(this.intersect()[0]){
+                                        if(this.intersect()[1] >= 0){
+                                        index = this.intersect()[1];
+                                        collidables[index].drawn = true;
+                                        }
+                                    }
+                                    this.y -= distance;
+                                    if(index >= 0){
+                                        collidables[index].approach();
+                                    }
+                                } else {
+                                    if(!this.intersect()[0] && !this.hitWall()){
+                                        pichu.freeRoam = false;
+                                    }
+                                }
+                                break;
+                            case "left":
+                                var distance = this.speed();
+                                console.log("distance is " + this.speed());
+                                if(this.slowed_Down > 0){
+                                    distance /= 3;
+                                }
+                                this.x -= distance;
+                                if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                    if(this.hitWall() && pichu.inMaze){
+                                        if(getLeft(pichu.map)){
+                                            pichu.map = getLeft(pichu.map);
+                                            pichu.x = canvas.width - pichu.width - 1;
+                                            setMap();
+                                        }
+                                    }
+                                    var index = -5;
+                                    if(this.intersect()[0]){
+                                        if(this.intersect()[1] >= 0){
+                                        index = this.intersect()[1];
+                                        }
+                                    }
+                                    this.x += distance;
+                                    if(index >= 0){
+                                        collidables[index].approach();
+                                    }
+                                } else {
+                                    if(!this.intersect()[0] && !this.hitWall()){
+                                        pichu.freeRoam = false;
+                                    }
+                                }
+                                break;
+                            case "right":
+                                var distance = this.speed();
+                                if(this.slowed_Down > 0){
+                                    distance /= 3;
+                                }
+                                this.x += distance;
+                                if((this.intersect()[0] || this.hitWall()) && !pichu.freeRoam){
+                                    if(this.hitWall() && pichu.inMaze){
+                                        if(getRight(pichu.map)){
+                                            pichu.map = getRight(pichu.map);
+                                            pichu.x = 0;
+                                            setMap();
+                                        }
+                                    }
+                                    var index = -5;
+                                    if(this.intersect()[0]){
+                                        if(this.intersect()[1] >= 0){
+                                        index = this.intersect()[1];
+                                        }
+                                    }
+                                    this.x -= distance;
+                                    if(index >= 0){
+                                        collidables[index].approach();
+                                    }
+                                } else {
+                                    if(!this.intersect()[0] && !this.hitWall()){
+                                        pichu.freeRoam = false;
+                                    }
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        this.idleDelay++;
+                        if(this.idleDelay >= this.idleDesiredDelay){
+                            this.idle_i++;
+                            this.idleDelay = 0;
+                            this.idleDesiredDelay = 10;
+                            if(this.idle_i >= this.myArray.length){
+                                this.idle_i = 0;
+                                this.idleDesiredDelay = 100;
+                            }
+                        }
+                    }
+                    // getBox();
+                    /*if(objIntersectBoth(pichu, entry)){
+                        phaseCheck();
+                    }*/
+                    if(this.charge < this.charge_Max()){
+                        var currentThunder = false;
+                        for(var i = 0;i < attacks.length;i++){
+                            if(attacks[i].name === "Thunder"){
+                                currentThunder = true;
+                            }
+                        }
+                        if(!currentThunder){
+                            if(this.motion){
+                                this.charge+=0.15;
+                            } else {
+                                this.charge+=0.05;
+                            }
+                        } else {
+                            this.charge+=0.02;
+                        }
+                    }
+                    if(this.damaged){
+                        this.damageCooldown--;
+                        if(this.damageCooldown < 0){
+                            this.damaged = false;
+                            this.damageCooldown = 50;
+                        }
+                    }
+                    if(this.slowed_Down > 0){
+                        this.slowed_Down--;
+                    }
+                    this.draw();
+                    if(this.spikyEared){
+                        spikyEar.draw();
+                    }
+                } else {
+                    pichu.voltTackle.update();
+                }
+            } else {
+                this.defeat();
+                if(this.spikyEared){
+                    spikyEar.draw();
+                }
+            }
+        }
+    }
+
+    function pictureMenu() {
+        if(paused){
+            return;
+        }
+        if(picMenu){
+            var menu = document.getElementsByClassName("bison");
+            $(".bison").empty();
+            $(".bison").remove();
+            $("#map").css("background-color", "black");
+            canvas.style.position = "absolute";
+            canvas.style.zIndex = 1;
+            picMenu = false
+            animateID = requestAnimationFrame(animate);
+        } else {
+        picMenu = true;
+        cancelAnimationFrame(animateID);
+        $("#map").css("background-color", "transparent");
+        canvas.style.position = "fixed";
+        canvas.style.zIndex = -1;
+        var newDiv = $("<div>", {"class":"row bison"});
+        newDiv.css({"background-image":"url('assets/images/picMenuBG.png'", "background-repeat": "repeat"});
+        var picHeader = $("<div class='col-md-12'><h1 style='color: black'>Please select what picture you would like to be your profile pic! You get new options as you level up!</h1></div>");
+        newDiv.append(picHeader);
+        $("#map").append(newDiv);
+        var search = String("pichu");
+        var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=UXUhR58v2nmQC6jMGg5vr7GbLMDZclbm&q=" + search + "&limit=25&offset=0&lang=en";
+        $.ajax({
+            url: queryURL,
+            method: "GET"
+        }).then(function(response) {
+            var index = -1;
+            var limiter = Math.min(pichu.level + 1, 11);
+            for(var i = 0;i < 3;i++){
+                var newRow = $("<div>", {"class":"row"});
+                for(var j = 0;j < 4;j++){
+                    var newCol = $("<div>", {"class":"col-md-3"});
+                    if(index < limiter){
+                        var source;
+                        if(index < 0){
+                            source = "assets/images/startingAvatar.png";
+                        } else {
+                            source = response.data[index].images.original.url;
+                        }
+                        var newImage = $("<img>", {"src": source});
+                        newImage.attr("class", i + "-" + j + " options");
+                        newImage.css({"width":"90%", "height":"auto"});
+                        newImage.on("click", function() {
+                            pichu.picture = pichuLoad.picture = $(this).attr("src");
+                            $("#player-pic").attr("src", pichuLoad.picture);
+                            localStorage.setItem("pichuSaveFile", JSON.stringify(pichuLoad));
+                        })
+                        newCol.append(newImage);
+                    }
+                    newRow.append(newCol);
+                    index++;
+                }
+                $(".bison").append(newRow);
+            }
+            //$(".bison").css("height", $("#map").css("height"));
+        })
+        }
+    }
+    
+    function pause(){
+        if((picMenu && !paused) || !startMeBaby){ //checks to ensure that the menu won't pop up if a different menu is up or if the game is not started
+            return;
+        }
+        if(paused){
+            $("#optionRow").remove();
+            $("#map").css("background-color", "black");
+            canvas.style.position = "absolute";
+            canvas.style.zIndex = 1;
+            picMenu = false
+            paused = false;
+            animateID = requestAnimationFrame(animate);
+        } else {
+            cancelAnimationFrame(animateID);
+            picMenu = true;
+            paused = true;
+            pichu.stopMoving();
+            $("#map").css("background-color", "transparent");
+            canvas.style.position = "fixed";
+            canvas.style.zIndex = -1;
+            pauseMenu();
+        }
+    }
+    
+    function pauseMenu() {
+        optionize("P A U S E", "How to Play", "Quit Game", "Continue Playing", "Change Attack", "Change Z-Attack");
+        $(".options").css("background-color", "black");
+        var option1 = document.getElementById("option1");
+        var option2 = document.getElementById("option2");
+        var option3 = document.getElementById("option3");
+        var option4 = document.getElementById("option4");
+    
+        option1.onclick = function() {
+            howToPlay(pauseMenu);
+        }
+    
+        option2.onclick = function() {
+            optionize("Are you sure you wish to quit?", "Yes", "No");
+            option2.onclick = pauseMenu;
+            option1.onclick = function() {
+                canvas.remove();
+                cancelAnimationFrame(animateID);
+                startMeBaby = false;
+                $("#map").css("background-color", "black");
+                var map = document.getElementById("map");
+                map.textContent = "";
+                document.getElementById("pichu_level").innerText = "";
+                var chargebar = document.getElementById("charge_bar");
+                chargebar.value = 0;
+                var healthbar = document.getElementById("hp_bar");
+                healthbar.value = 0;
+                var expbar = document.getElementById("exp_bar");
+                expbar.value = 0;
+                window.onkeydown = window.onkeyup = "";
+                $("#tips").text("");
+                $("#directions").text("");
+                mainMenunize();
+            }
+        }
+        option3.onclick = pause;
+    
+        option4.onclick = function() {
+            var optionsArray = pichu.attacks.slice();
+            optionsArray.push("Go Back (this isn't an attack)");
+            for(var i = 0;i < optionsArray.length;i++){
+                switch(optionsArray[i]){
+                    case "Thunderbolt":
+                        if(pichu.attackNumber === 0){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 0){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Swift":
+                        if(pichu.attackNumber === 1){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 1){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Double Team":
+                        if(pichu.attackNumber === 2){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 2){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                     case "Thunder":
+                        if(pichu.attackNumber === 3){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 3){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Volt Tackle":
+                        if(pichu.attackNumber === 4){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 4){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    default:
+                        break;
+    
+                }
+            }
+            $("#optionRow").remove();
+            optionizeArrayVer("Which attack would you like to select? (* means the attack is mapped to the Spacebar, ** means it is mapped to the Z key)", optionsArray);
+    
+            var optionArrayByClass = document.getElementsByClassName("options");
+            for(var i = 0;i < optionArrayByClass.length;i++){
+                optionArrayByClass[i].onclick = function(option){
+                    console.log(option.target.innerText.replace(/\*/g, ''));
+                    switch(option.target.innerText.replace(/\*/g, '')){
+                        case "Thunderbolt":
+                            if(pichu.attackNumber != 0 && pichu.z_attackNumber != 0){
+                                pichu.attackNumber = 0;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Swift":
+                            if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
+                                pichu.attackNumber = 1;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Double Team":
+                            if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
+                                pichu.attackNumber = 2;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Thunder":
+                            if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
+                                pichu.attackNumber = 3;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Volt Tackle":
+                            if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
+                                pichu.attackNumber = 4;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        default:
+                            $("#optionRow").remove();
+                            pauseMenu();
+                    }
+                }
+            }
+        }
+    
+        option5.onclick = function() {
+            var optionsArray = pichu.attacks.slice();
+            optionsArray.push("Go Back (this isn't an attack)");
+            for(var i = 0;i < optionsArray.length;i++){
+                switch(optionsArray[i]){
+                    case "Thunderbolt":
+                        if(pichu.attackNumber === 0){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 0){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Swift":
+                        if(pichu.attackNumber === 1){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 1){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Double Team":
+                        if(pichu.attackNumber === 2){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 2){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Thunder":
+                        if(pichu.attackNumber === 3){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 3){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    case "Volt Tackle":
+                        if(pichu.attackNumber === 4){
+                            optionsArray[i] = optionsArray[i].concat("*");
+                        }
+                        if(pichu.z_attackNumber === 4){
+                            optionsArray[i] = optionsArray[i].concat("**");
+                        }
+                        break;
+                    default:
+                        break;
+    
+                }
+            }
+            $("#optionRow").remove();
+            optionizeArrayVer("Which attack would you like to select to be mapped to the Z key? (* means the attack is mapped to the Spacebar, ** means it is mapped to the Z key)", optionsArray);
+    
+            var optionArrayByClass = document.getElementsByClassName("options");
+            for(var i = 0;i < optionArrayByClass.length;i++){
+                optionArrayByClass[i].onclick = function(option){
+                    console.log(option.target.innerText.replace(/\*/g, ''));
+                    switch(option.target.innerText.replace(/\*/g, '')){
+                        case "Thunderbolt":
+                            if(pichu.attackNumber != 0 && pichu.z_attackNumber != 0){
+                                pichu.z_attackNumber = 0;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Swift":
+                            if(pichu.attackNumber != 1 && pichu.z_attackNumber != 1){
+                                pichu.z_attackNumber = 1;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Double Team":
+                            if(pichu.attackNumber != 2 && pichu.z_attackNumber != 2){
+                                pichu.z_attackNumber = 2;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Thunder":
+                            if(pichu.attackNumber != 3 && pichu.z_attackNumber != 3){
+                                pichu.z_attackNumber = 3;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        case "Volt Tackle":
+                            if(pichu.attackNumber != 4 && pichu.z_attackNumber != 4){
+                                pichu.z_attackNumber = 4;
+                                option.target.innerText = "Done!";
+                            } else {
+                                option.target.innerText = "Already being used!";
+                            }
+                            break;
+                        default:
+                            $("#optionRow").remove();
+                            pauseMenu();
+                    }
+                }
+            }
+        }
+       
+    }
+    
+    window.onkeydown = function(event) {
+        event.preventDefault();
+        if(canvas.style.zIndex != "" && canvas.style.zIndex < 1 && event.key != "Enter"){
+            console.log("bingo");
+        } else {
+        switch(event.key){
+            case "ArrowUp":
+                if(!pichu.voltTackle.active){
+                    if(pichu.direction != "up"){
+                        pichu.turnUp();
+                    }
+                    pichu.startMoving();
+                }
+                break;
+            case "ArrowDown":
+                if(!pichu.voltTackle.active){
+                    if(pichu.direction != "down"){
+                        pichu.i = 1;
+                        pichu.turnDown();
+                    }
+                    pichu.startMoving();
+                }
+                break;
+            case "ArrowLeft":
+                if(!pichu.voltTackle.active){
+                    if(pichu.direction != "left"){
+                        pichu.i = 1;
+                        pichu.turnLeft();
+                    }
+                    pichu.startMoving();
+                }
+                break;
+            case "ArrowRight":
+                if(!pichu.voltTackle.active){
+                    if(pichu.direction != "right"){
+                        pichu.i = 1;
+                        pichu.turnRight();
+                    }
+                    pichu.startMoving();
+                }
+                break;
+            case "Enter":
+                if(pauseReady){
+                    pause();
+                    pauseReady = false;
+                } else {
+                    console.log("not pause ready");
+                }
+                break;
+            case " ":
+                pichu.attack();
+                break;
+            case "z":
+                if(pichu.attacks.length > 1){
+                    pichu.attack(true);
+                }
+                break;
+            default:
+                break;
+        }
+        }
+        };
+    
+    window.onkeyup = function(event){
+        var possibleDirection = event.key.slice(5).toLowerCase();
+        if(pichu.direction === possibleDirection){
+            pichu.stopMoving();
+        }
+        switch(event.key){
+            case "Enter":
+                if(!pauseReady){
+                    pauseReady = true;
+                }
+                break;
+            default:
+                break;
+        }
+    };
+
+    document.getElementById("player-pic").onclick = pictureMenu;
+    function animate() {
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        if(pichu.inMaze){
+            floor = mazeFloor1;
+        }
+        c.drawImage(floor, 0, 0, canvas.width, canvas.height);
+        if(pichu.inMaze){
+            pichu.map.draw();
+        }
+        collidableDraw();
+        pichu.update();
+        // c.beginPath();
+        // c.strokeStyle = "yellow";
+        // c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
+        // c.stroke();
+        collidableDelayDraw();
+        var target = pichu;
+        for(var i = 0;i < attacks.length;i++){
+            if(attacks[i].name === "Double Team"){
+                target = attacks[i];
+                i = attacks.length;
+            }
+        }
+        for(var i = 0;i < enemies.length;i++){
+        enemies[i].update(target);
+        }
+        for(var i = 0;i < enemyAttacks.length;i++){
+            switch(enemyAttacks[i].name){
+                case "Thunderbolt":
+                    for(var j = 0;j < 5;j++){
+                        if(enemyAttacks[i]){
+                            enemyAttacks[i].update();
+                        }
+                    }
+                    break;
+                default:
+                    enemyAttacks[i].update();
+                    break;
+            }
+        }
+        if(pichu.voltTackle.active){
+            pichu.voltTackle.draw();
+        }
+        for(var i = 0;i < attacks.length;i++){
+            switch(attacks[i].name){
+                case "Thunderbolt":
+                    for(var j = 0;j < 5;j++){
+                        if(attacks[i]){
+                            attacks[i].update();
+                        }
+                    }
+                    break;
+                default:
+                    attacks[i].update();
+                    break;
+            }
+        }
+        var levelTag = document.getElementById("pichu_level");
+        if(levelTag.getAttribute("status") === "level"){
+            document.getElementById("pichu_level").innerText = pichu.level;
+        }
+        var chargebar = document.getElementById("charge_bar");
+        chargebar.max = pichu.charge_Max();
+        chargebar.value = pichu.charge;
+        var healthbar = document.getElementById("hp_bar");
+        healthbar.max = pichu.max_Health();
+        healthbar.value = pichu.health;
+        var expbar = document.getElementById("exp_bar");
+        expbar.max = pichu.levelUpExp();
+        expbar.value = pichu.exp;
+        animateID = requestAnimationFrame(animate);
+    }
+
+    function gameOver(){
+        startMeBaby = false;
+        picMenu = true;
+        paused = true;
+        $("#map").css("background-color", "transparent");
+        canvas.style.position = "fixed";
+        canvas.style.zIndex = -1;
+        optionize("G A M E  O V E R", "Restart?", "Return to Main Menu");
+        $(".options").css("background-color", "black");
+        var option1 = document.getElementById("option1");
+        var option2 = document.getElementById("option2");
+        var option3 = document.getElementById("option3");
+        var option4 = document.getElementById("option4");
+        option1.onclick = function() {
+            cancelAnimationFrame(animateID);
+            $("#optionRow").remove();
+            $("#map").css("background-color", "black");
+            //canvas.style.position = "absolute";
+            canvas.style.zIndex = 1;
+            picMenu = false
+            paused = false;
+            startMeBaby = true;
+            $("#directions").text("");
+            $("#tips").text("");
+            if(test){
+                startRush(true);
+            } else {
+                startRush();
+            }
+        }
+        option2.onclick = function() {
+            canvas.remove();
+            cancelAnimationFrame(animateID);
+            $("#map").css("background-color", "black");
+            var map = document.getElementById("map");
+            map.textContent = "";
+            document.getElementById("pichu_level").innerText = "";
+            var chargebar = document.getElementById("charge_bar");
+            chargebar.value = 0;
+            var healthbar = document.getElementById("hp_bar");
+            healthbar.value = 0;
+            var expbar = document.getElementById("exp_bar");
+            expbar.value = 0;
+            $("#directions").text("");
+            $("#tips").text("");
+            mainMenunize();
+        }
+    }
+
+    function mazeMode(){
+        pichu.health = pichu.max_Health();
+        pichu.level = 0;
+        pichu.exp = 0;
+        mazeTime();
+        animateID = requestAnimationFrame(animate);
+    }
+
+    mazeMode();
+
+
+     
+ }
 
 /*** 
  * 
