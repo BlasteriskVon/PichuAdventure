@@ -489,7 +489,7 @@ function mainMenunize() {
     $("#player-pic").attr("src", pichuLoad.picture);
     map.css({"background-image":"url('assets/images/picMenuBG.png'", "background-repeat": "repeat"});
     //optionize("Pichu's Adventure: Main Menu", "Story Mode (still in construction!)", "Rush Mode", "How to Play", "Sprite Testing");
-    var mainMenuArray = ["Quest Mode (still in construction)", "Rush Mode", "Maze Mode", "How to Play", "Sprite Testing"];
+    var mainMenuArray = ["Quest Mode (still in construction)", "Rush Mode", "Dungeon Mode (still in construction but playable)", "How to Play", "Sprite Testing"];
     var loadChangeOption = pichuLoad.hasSpikyEar || pichuLoad.paintjobs.length > 0;
     if(loadChangeOption){
         mainMenuArray.push("Change Avatar");
@@ -558,7 +558,7 @@ function spriteTesternize(){
 }
 
 function mazeModenize(){
-    optionize("Are you sure you wish to play Maze Mode?", "Yes", "No");
+    optionize("Are you sure you wish to play Dungeon Mode?", "Yes", "No");
     var option1 = document.getElementById("option1");
     var option2 = document.getElementById("option2");
     var option3 = document.getElementById("option3");
@@ -6110,6 +6110,7 @@ function mazeTime(){
     pichu.y = 200;
     pichu.direction = "down";
     pichu.stopMoving();
+    maps = [];
     for(var i = 0;i < y_range;i++){
         for(var j = 0;j < x_range;j++){
             let newMap = new Map(j, i);
@@ -9656,11 +9657,7 @@ function gameOver(){
             startMeBaby = true;
             $("#directions").text("");
             $("#tips").text("");
-            if(test){
-                startRush(true);
-            } else {
-                startRush();
-            }
+            startMaze();
         }
         option2.onclick = function() {
             canvas.remove();
