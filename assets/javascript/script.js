@@ -5897,6 +5897,23 @@ function GastlyDouble(x, y, priority, shiny, original){
     }
 }
 
+function Diglett(x, y, priority){
+    this.downArrays = [[75, 1918, 190, 190], [871, 2172, 190, 190], [75, 1918, 190, 190], [867, 2172, 190, 190]];//869, 2171, 190, 190
+    this.downIdleArrays = [[75, 1918, 190, 190], [1329, 1902, 190, 190]];//may need to add more
+    this.downAttackArray = [[86, 2181, 190, 190]];
+    this.rightArrays = [[319, 1915, 190, 190], [1113, 2166, 190, 190]];//1113, 2168
+    this.rightIdleArrays = [[319, 1915, 190, 190], [1573, 1899, 190, 190]];
+    this.rightAttackArray = [[330, 2178, 190, 190]];
+    this.leftArrays = [[580, 1913, 190, 190], [1374, 2168, 190, 190]];
+    this.leftIdleArrays = [[580, 1913, 190, 190], [1834, 1897, 190, 190]];
+    this.leftAttackArray = [[591, 2176, 190, 190]];
+    this.upArrays = [[822, 1918, 190, 190], [1087, 1909, 190, 190], [822, 1918, 190, 190], [1083, 1909, 190, 190]];
+    this.upIdleArrays = [[822, 1918, 190, 190]];
+    this.upAttackArray = [[1085, 1911, 190, 190]];
+    this.diggingArrays = [[1585, 2161, 190, 190], [1864, 2157, 190, 190]];
+
+}
+
 /**************************************** MAZE FUNCTIONS **************************************************************/
 function Wall(direction, corner){
     this.functionCoordinates = true;
@@ -9840,6 +9857,26 @@ function useGastlySprites(){
     setPichu();
 }
 
+function useDiglettSprites(){
+    pichu.pichuSheet = pichuSheet();
+    testDownIdle = [[75, 1918, 190, 190], [1329, 1902, 190, 190]];
+    testDownAttack = [[86, 2181, 190, 190]];
+    testDown = [[75, 1918, 190, 190], [872, 2172, 190, 190], [75, 1918, 190, 190], [866, 2172, 190, 190]];
+    testRight = [[319, 1915, 190, 190], [1113, 2172, 190, 190]];
+    testRightIdle = [[319, 1915, 190, 190], [1573, 1899, 190, 190]];
+    testRightAttack = [[330, 2178, 190, 190]];
+    testLeft = [[580, 1913, 190, 190], [1374, 2170, 190, 190]];
+    testLeftIdle = [[580, 1913, 190, 190], [1834, 1897, 190, 190]];
+    testLeftAttack = [[591, 2176, 190, 190]];
+    testUp = [[822, 1918, 190, 190], [1088, 1909, 190, 190], [822, 1918, 190, 190], [1082, 1909, 190, 190]];
+    testUpIdle = [[822, 1918, 190, 190]];
+    testUpAttack = [[1085, 1911, 190, 190]];
+    setPichu();
+
+
+
+}
+
 function setPichu(){
     pichu.downArrays = testDown;
     pichu.upArrays = testUp;
@@ -11605,8 +11642,8 @@ switch(event.key){
         // }
         // PichuCry();
         //use Gastly sprites
-        if(pichu.pichuSheet === pichuSheet()){
-            useGastlySprites();
+        if(pichu.downIdleArrays[0][0] != 75){
+            useDiglettSprites();
         } else {
             resetSprites();
         }
@@ -11884,10 +11921,10 @@ function animate() {
     c.stroke();
     // 
     ***********************/
-   c.beginPath();
-   c.strokeStyle = "yellow";
-   c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
-   c.stroke();
+//    c.beginPath();
+//    c.strokeStyle = "yellow";
+//    c.strokeRect(pichu.hitbox().x, pichu.hitbox().y, pichu.hitbox().width, pichu.hitbox().height);
+//    c.stroke();
     collidableDelayDraw();
     var target = pichu;
     for(var i = 0;i < attacks.length;i++){
