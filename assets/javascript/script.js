@@ -47,6 +47,7 @@ var shinyElectrodeSpritesheet = new Image();
 var gastlySpritesheet = new Image();
 var leafSpritesheet = new Image();
 var deadLeafSpritesheet = new Image();
+var snorkelSpritesheet = new Image();
 var arrayOfPaints = ["alolanRaichu.png", "aqua.png", "candy.png", "grape.png", "grayscale.png", "pumpkin.png", "shadow.png", "snow.png", "togemaru.png", "shinx.png", "minthe.png"];
 var entry1, entry2, entry3, entry4;
 var canvas;
@@ -117,6 +118,15 @@ var spikyEar = {
         steps = this.myArray;
         c.drawImage(spritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], pichu.x + this.x_adjust, pichu.y + this.y_adjust, pichu.width, pichu.height);
     }
+}
+
+function drawSnorkel(){
+    let steps = pichu.myArray;
+    let i = pichu.motion ? pichu.i : pichu.idle_i;
+    if(i >= pichu.myArray.length || !pichu.motion || pichu.attacking){
+        i = 0;
+    }
+    c.drawImage(snorkelSpritesheet, steps[i][0], steps[i][1], steps[i][2], steps[i][3], pichu.x, pichu.y, pichu.width, pichu.height);
 }
 var map = $("#map");
 
@@ -776,8 +786,8 @@ $("#welcomeRow").append(welcomeText);*/
 //         })
 //     })
 // }
-var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, gastlySpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, mazeFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet, mazeFloor1, mazeFloor2, mazeFloor3, leafSpritesheet, deadLeafSpritesheet];
-var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/gastlySpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png", "assets/images/floor6.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png", "assets/images/floor7.png", "assets/images/floor8.png", "assets/images/floor9.png", "assets/images/leafSpritesheet.png", "assets/images/deadLeafSpritesheet.png"];
+var arraySheets = [spritesheet, shinySpritesheet, miscItemsSpritesheet, snorlaxSpritesheet, gengarSpritesheet, dragoniteSpritesheet, electrodeSpritesheet, shinyElectrodeSpritesheet, gastlySpritesheet, basicFloor, grassFloor, battleFloor, blackFloor, whiteFloor, mazeFloor, alolanRaichuSpritesheet, aquaSpritesheet, candySpritesheet, grapeSpritesheet, grayscaleSpritesheet, pumpkinSpritesheet, shadowSpritesheet, snowSpritesheet, togemaruSpritesheet, shinxSpritesheet, mintheSpritesheet, mazeFloor1, mazeFloor2, mazeFloor3, leafSpritesheet, deadLeafSpritesheet, snorkelSpritesheet];
+var arraySources = ["assets/images/spritesheet.png", "assets/images/special_spritesheet.png", "assets/images/miscItems.png", "assets/images/snorlaxSpritesheet.png", "assets/images/gengarSpritesheet.png", "assets/images/dragoniteSpritesheet.png", "assets/images/electrodeSpritesheet.png", "assets/images/shiny_electrode_spritesheet.png", "assets/images/gastlySpritesheet.png", "assets/images/floor.png", "assets/images/floor2.png", "assets/images/floor3.png", "assets/images/floor4.png", "assets/images/floor5.png", "assets/images/floor6.png", "assets/images/paintjobs/alolanRaichu.png", "assets/images/paintjobs/aqua.png", "assets/images/paintjobs/candy.png", "assets/images/paintjobs/grape.png", "assets/images/paintjobs/grayscale.png", "assets/images/paintjobs/pumpkin.png", "assets/images/paintjobs/shadow.png", "assets/images/paintjobs/snow.png", "assets/images/paintjobs/togemaru.png", "assets/images/paintjobs/shinx.png", "assets/images/paintjobs/minthe.png", "assets/images/floor7.png", "assets/images/floor8.png", "assets/images/floor9.png", "assets/images/leafSpritesheet.png", "assets/images/deadLeafSpritesheet.png", "assets/images/snorkelSpritesheet.png"];
 let soundArray = [pichuCry1, pichuCry2, pichuCry3, pichuCry4, pichuCry5, pichuCry6, pichuCry7, pichuCryLong, voltorbCry, wooperCry, snorlaxCry, seedotCry, electrodeCry, berryEat];
 let soundSources = ["assets/sounds/pichu_cries/vc_pichu_attack01.wav", "assets/sounds/pichu_cries/vc_pichu_attack02.wav", "assets/sounds/pichu_cries/vc_pichu_attack03.wav", "assets/sounds/pichu_cries/vc_pichu_attack04.wav", "assets/sounds/pichu_cries/vc_pichu_attack05.wav", "assets/sounds/pichu_cries/vc_pichu_attack06.wav", "assets/sounds/pichu_cries/vc_pichu_attack07.wav", "assets/sounds/pichu_cries/vc_pichu_final01.wav", "assets/sounds/enemy_cries/100 - Voltorb.wav", "assets/sounds/enemy_cries/194 - Wooper.wav", "assets/sounds/enemy_cries/143 - Snorlax.wav", "assets/sounds/enemy_cries/273 - Seedot.wav", "assets/sounds/enemy_cries/101 - Electrode.wav", "assets/sounds/misc/se_common_lifeup.wav"];
 function loadSprites() {
@@ -6211,6 +6221,7 @@ pichu = {
     level: pichuLoad.level,
     exp: pichuLoad.exp,
     receivedItem: false,
+    wearingSnorkel: false,
     slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow him down temporarily
     voltTackle: {
         active: false,
@@ -7095,6 +7106,9 @@ pichu = {
                 if(this.spikyEared){
                     spikyEar.draw();
                 }
+                if(this.wearingSnorkel){
+                    drawSnorkel();
+                }
             } else {
                 pichu.voltTackle.update();
             }
@@ -7102,6 +7116,9 @@ pichu = {
             this.defeat();
             if(this.spikyEared){
                 spikyEar.draw();
+            }
+            if(this.wearingSnorkel){
+                drawSnorkel();
             }
         }
     }
@@ -8263,6 +8280,7 @@ function gameOver(){
         level: pichuLoad.level,
         exp: pichuLoad.exp,
         receivedItem: false,
+        wearingSnorkel: false,
         slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow him down temporarily
         voltTackle: {
             active: false,
@@ -9147,6 +9165,9 @@ function gameOver(){
                     if(this.spikyEared){
                         spikyEar.draw();
                     }
+                    if(this.wearingSnorkel){
+                        drawSnorkel();
+                    }
                 } else {
                     pichu.voltTackle.update();
                 }
@@ -9154,6 +9175,9 @@ function gameOver(){
                 this.defeat();
                 if(this.spikyEared){
                     spikyEar.draw();
+                }
+                if(this.wearingSnorkel){
+                    drawSnorkel();
                 }
             }
         }
@@ -9915,6 +9939,7 @@ pichu = {
     damageCooldown: 50,
     level: pichuLoad.level,
     exp: pichuLoad.exp,
+    wearingSnorkel: false,
     slowed_Down: 0, //this property is mainly used when Pichu is hit by attacks that would slow them down temporarily
     hitbox: function(){
         var newPichu = {
@@ -10525,10 +10550,16 @@ pichu = {
             if(this.spikyEared){
                 spikyEar.draw();
             }
+            if(this.wearingSnorkel){
+                drawSnorkel();
+            }
         } else {
             this.defeat();
             if(this.spikyEared){
                 spikyEar.draw();
+            }
+            if(this.wearingSnorkel){
+                drawSnorkel();
             }
         }
     }
@@ -11642,11 +11673,12 @@ switch(event.key){
         // }
         // PichuCry();
         //use Gastly sprites
-        if(pichu.downIdleArrays[0][0] != 75){
-            useDiglettSprites();
-        } else {
-            resetSprites();
-        }
+        // if(pichu.downIdleArrays[0][0] != 75){
+        //     useDiglettSprites();
+        // } else {
+        //     resetSprites();
+        // }
+        pichu.wearingSnorkel = !pichu.wearingSnorkel;
         break;
     default:
         break;
